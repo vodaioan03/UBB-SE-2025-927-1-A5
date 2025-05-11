@@ -1,0 +1,390 @@
+﻿@{
+    ViewData["Title"] = "Courses";
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Courses</h1>
+        <div>
+            <button class="btn btn-primary me-2">
+                <i class="bi bi-plus-circle"></i> New Course
+            </button>
+            <div class="btn-group">
+                <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                    <i class="bi bi-funnel"></i> Filters
+                </button>
+                <div class="dropdown-menu dropdown-menu-end p-3" style="width: 300px;">
+                    <h5 class="dropdown-header">Course Type</h5>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="" id="flexCheckPremium" checked>
+                        <label class="form-check-label" for="flexCheckPremium">
+                            Premium
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="" id="flexCheckFree" checked>
+                        <label class="form-check-label" for="flexCheckFree">
+                            Free
+                        </label>
+                    </div>
+
+                    <h5 class="dropdown-header mt-3">Enrollment</h5>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="" id="flexCheckEnrolled" checked>
+                        <label class="form-check-label" for="flexCheckEnrolled">
+                            Enrolled
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="" id="flexCheckNotEnrolled" checked>
+                        <label class="form-check-label" for="flexCheckNotEnrolled">
+                            Not Enrolled
+                        </label>
+                    </div>
+
+                    <div class="d-grid gap-2 mt-3">
+                        <button class="btn btn-sm btn-outline-secondary" id="resetFilters">
+                            Reset Filters
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                <input type="text" class="form-control" placeholder="Search courses..." id="courseSearch">
+            </div>
+        </div>
+        <div class="col-md-6 text-end">
+            <div class="btn-group" role="group" id="viewToggle">
+                <button type="button" class="btn btn-outline-secondary active" data-view="grid">
+                    <i class="bi bi-grid-3x3-gap"></i>
+                </button>
+                <button type="button" class="btn btn-outline-secondary" data-view="list">
+                    <i class="bi bi-list-ul"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="row" id="coursesContainer">
+        <!-- Course cards will be loaded here -->
+    </div>
+
+    <nav aria-label="Page navigation" class="mt-4">
+        <ul class="pagination justify-content-center" id="pagination">
+            <!-- Pagination will be generated dynamically -->
+        </ul>
+    </nav>
+</div>
+
+@section Styles {
+    <style>
+        .course-card {
+            transition: transform 0.2s;
+            height: 100%;
+            margin-bottom: 20px;
+        }
+
+            .course-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            }
+
+        .course-img {
+            height: 160px;
+            object-fit: cover;
+        }
+
+        .badge-enrolled {
+            background-color: #198754;
+        }
+
+        .badge-not-enrolled {
+            background-color: #6c757d;
+        }
+
+        /* List view styles */
+        .list-view .col-md-4 {
+            flex: 0 0 100%;
+            max-width: 100%;
+        }
+
+        .list-view .course-card {
+            display: flex;
+            flex-direction: row;
+        }
+
+        .list-view .course-img {
+            width: 200px;
+            height: auto;
+            border-radius: 0.25rem 0 0 0.25rem;
+        }
+
+        .list-view .card-body {
+            flex: 1;
+        }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Sample course data
+            const courses = [
+                {
+                    id: 1,
+                    title: "Advanced ASP.NET Core",
+                    description: "Master advanced concepts in ASP.NET Core development",
+                    image: "https://via.placeholder.com/300x160?text=ASP.NET",
+                    type: "Premium",
+                    enrolled: true,
+                    duration: "8 weeks",
+                    lessons: 24,
+                    progress: 75
+                },
+                {
+                    id: 2,
+                    title: "JavaScript Fundamentals",
+                    description: "Learn the basics of JavaScript programming",
+                    image: "https://via.placeholder.com/300x160?text=JavaScript",
+                    type: "Free",
+                    enrolled: false,
+                    duration: "4 weeks",
+                    lessons: 12,
+                    progress: 0
+                },
+                {
+                    id: 3,
+                    title: "Database Design",
+                    description: "Principles of relational database design",
+                    image: "https://via.placeholder.com/300x160?text=Database",
+                    type: "Premium",
+                    enrolled: true,
+                    duration: "6 weeks",
+                    lessons: 18,
+                    progress: 30
+                },
+                {
+                    id: 4,
+                    title: "UI/UX Design",
+                    description: "Introduction to user interface and experience design",
+                    image: "https://via.placeholder.com/300x160?text=UI/UX",
+                    type: "Free",
+                    enrolled: false,
+                    duration: "5 weeks",
+                    lessons: 15,
+                    progress: 0
+                },
+                {
+                    id: 5,
+                    title: "DevOps Essentials",
+                    description: "Learn CI/CD pipelines and deployment strategies",
+                    image: "https://via.placeholder.com/300x160?text=DevOps",
+                    type: "Premium",
+                    enrolled: true,
+                    duration: "7 weeks",
+                    lessons: 21,
+                    progress: 10
+                },
+                {
+                    id: 6,
+                    title: "Mobile App Development",
+                    description: "Build cross-platform mobile applications",
+                    image: "https://via.placeholder.com/300x160?text=Mobile",
+                    type: "Premium",
+                    enrolled: false,
+                    duration: "9 weeks",
+                    lessons: 27,
+                    progress: 0
+                }
+            ];
+
+            // Pagination variables
+            const itemsPerPage = 3;
+            let currentPage = 1;
+            let currentView = "grid";
+            let filteredCourses = [...courses];
+
+            // Initial render
+            filterAndRenderCourses();
+            renderPagination();
+
+            // Filter courses
+            $('.form-check-input').change(function () {
+                filterAndRenderCourses();
+                renderPagination();
+            });
+
+            // Search functionality
+            $('#courseSearch').on('input', function () {
+                filterAndRenderCourses();
+                renderPagination();
+            });
+
+            // Reset filters
+            $('#resetFilters').click(function () {
+                $('.form-check-input').prop('checked', true);
+                $('#courseSearch').val('');
+                filterAndRenderCourses();
+                renderPagination();
+            });
+
+            // View toggle functionality
+            $('#viewToggle .btn').click(function () {
+                $('#viewToggle .btn').removeClass('active');
+                $(this).addClass('active');
+                currentView = $(this).data('view');
+                applyViewMode();
+            });
+
+            // Pagination click handler
+            $('#pagination').on('click', '.page-link', function (e) {
+                e.preventDefault();
+                const newPage = parseInt($(this).data('page'));
+                if (isNaN(newPage)) return;
+
+                currentPage = newPage;
+                renderCourses(getPaginatedCourses());
+                renderPagination();
+            });
+
+            function filterAndRenderCourses() {
+                const showPremium = $('#flexCheckPremium').is(':checked');
+                const showFree = $('#flexCheckFree').is(':checked');
+                const showEnrolled = $('#flexCheckEnrolled').is(':checked');
+                const showNotEnrolled = $('#flexCheckNotEnrolled').is(':checked');
+                const searchQuery = $('#courseSearch').val().toLowerCase();
+
+                filteredCourses = courses.filter(course => {
+                    // Filter by type
+                    if ((course.type === 'Premium' && !showPremium) ||
+                        (course.type === 'Free' && !showFree)) {
+                        return false;
+                    }
+
+                    // Filter by enrollment
+                    if ((course.enrolled && !showEnrolled) ||
+                        (!course.enrolled && !showNotEnrolled)) {
+                        return false;
+                    }
+
+                    // Filter by search
+                    if (searchQuery &&
+                        !course.title.toLowerCase().includes(searchQuery) &&
+                        !course.description.toLowerCase().includes(searchQuery)) {
+                        return false;
+                    }
+
+                    return true;
+                });
+
+                currentPage = 1; // Reset to first page when filtering
+                renderCourses(getPaginatedCourses());
+            }
+
+            function getPaginatedCourses() {
+                const startIndex = (currentPage - 1) * itemsPerPage;
+                const endIndex = startIndex + itemsPerPage;
+                return filteredCourses.slice(startIndex, endIndex);
+            }
+
+            function renderCourses(coursesToRender) {
+                const $container = $('#coursesContainer');
+                $container.empty();
+
+                if (coursesToRender.length === 0) {
+                    $container.html('<div class="col-12"><div class="alert alert-info">No courses match your filters.</div></div>');
+                    return;
+                }
+
+                coursesToRender.forEach(course => {
+                    const progressBar = course.enrolled ? `
+                        <div class="mt-2">
+                            <div class="d-flex justify-content-between small mb-1">
+                                <span>Progress: ${course.progress}%</span>
+                                <span>${course.lessons} lessons</span>
+                            </div>
+                            <div class="progress" style="height: 6px;">
+                                <div class="progress-bar" role="progressbar" style="width: ${course.progress}%"
+                                    aria-valuenow="${course.progress}" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                        </div>
+                    ` : `<div class="mt-2 small">Duration: ${course.duration}</div>`;
+
+                    const courseCard = `
+                        <div class="col-md-4">
+                            <div class="card course-card">
+                                <img src="${course.image}" class="card-img-top course-img" alt="${course.title}">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <h5 class="card-title">${course.title}</h5>
+                                        <span class="badge ${course.type === 'Premium' ? 'bg-warning' : 'bg-success'}">
+                                            ${course.type}
+                                        </span>
+                                    </div>
+                                    <p class="card-text text-muted">${course.description}</p>
+                                    ${progressBar}
+                                </div>
+                                <div class="card-footer bg-transparent">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="badge ${course.enrolled ? 'badge-enrolled' : 'badge-not-enrolled'}">
+                                            ${course.enrolled ? 'Enrolled' : 'Not Enrolled'}
+                                        </span>
+                                        <button class="btn btn-sm ${course.enrolled ? 'btn-outline-primary' : 'btn-primary'}">
+                                            ${course.enrolled ? 'Continue' : 'Enroll Now'}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    $container.append(courseCard);
+                });
+
+                applyViewMode();
+            }
+
+            function renderPagination() {
+                const totalPages = Math.ceil(filteredCourses.length / itemsPerPage);
+                let paginationHtml = '';
+
+                // Previous button
+                paginationHtml += `
+                    <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                        <a class="page-link" href="#" data-page="${currentPage - 1}">Previous</a>
+                    </li>`;
+
+                // Page numbers
+                for (let i = 1; i <= totalPages; i++) {
+                    paginationHtml += `
+                        <li class="page-item ${i === currentPage ? 'active' : ''}">
+                            <a class="page-link" href="#" data-page="${i}">${i}</a>
+                        </li>`;
+                }
+
+                // Next button
+                paginationHtml += `
+                    <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                        <a class="page-link" href="#" data-page="${currentPage + 1}">Next</a>
+                    </li>`;
+
+                $('#pagination').html(paginationHtml);
+            }
+
+            function applyViewMode() {
+                if (currentView === "list") {
+                    $('#coursesContainer').addClass('list-view');
+                    $('#coursesContainer .col-md-4').css('flex', '0 0 100%').css('max-width', '100%');
+                } else {
+                    $('#coursesContainer').removeClass('list-view');
+                    $('#coursesContainer .col-md-4').css('flex', '').css('max-width', '');
+                }
+            }
+        });
+    </script>
+}
