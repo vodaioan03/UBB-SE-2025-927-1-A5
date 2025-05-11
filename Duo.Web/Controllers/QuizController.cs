@@ -22,5 +22,10 @@ namespace Duo.Web.Controllers
             return RedirectToAction("ViewQuizzes");
         }
 
+        public IActionResult Manage()
+        {
+            return View("ViewQuizzes"); 
+        }
+
     }
 }

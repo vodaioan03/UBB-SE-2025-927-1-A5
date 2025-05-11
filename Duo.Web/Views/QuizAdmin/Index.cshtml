@@ -1,0 +1,54 @@
+﻿@{
+    ViewData["Title"] = "Admin Page";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid py-4 px-5">
+    <h2 class="mb-4">Admin Page</h2>
+    <hr class="border-secondary mb-4" />
+
+    <div class="vstack gap-4">
+
+        <!-- Manage Quizzes -->
+        <div class="d-flex justify-content-between align-items-center p-4 bg-dark rounded shadow-sm">
+            <div class="d-flex align-items-center gap-3">
+                <i class="bi bi-clock-history fs-3 text-light"></i>
+                <div>
+                    <h5 class="mb-0 text-light">Manage Quizzes</h5>
+                    <small class="text-muted">here you can see and delete</small>
+                </div>
+            </div>
+            <a href="@Url.Action("ManageQuizzes", "QuizAdmin")" class="btn btn-primary d-flex align-items-center gap-2">
+                Add quiz <i class="bi bi-chevron-right"></i>
+            </a>
+        </div>
+
+        <!-- You can duplicate this block for Sections, Exams, Exercises -->
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        body {
+            background-color: #121212;
+            color: #f8f9fa;
+        }
+
+        .bg-dark {
+            background-color: #1e1e1e !important;
+        }
+
+        .btn-primary {
+            background-color: #0d6efd;
+            border: none;
+        }
+
+            .btn-primary:hover {
+                background-color: #0b5ed7;
+            }
+
+        .text-light {
+            color: #f8f9fa !important;
+        }
+    </style>
+}
