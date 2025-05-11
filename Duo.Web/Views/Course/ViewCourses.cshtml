@@ -9,6 +9,11 @@
             <button class="btn btn-primary me-2">
                 <i class="bi bi-plus-circle"></i> New Course
             </button>
+            <div class="btn-group me-2">
+                <button type="button" class="btn btn-outline-secondary" id="darkModeToggle">
+                    <i class="bi bi-moon-stars"></i>
+                </button>
+            </div>
             <div class="btn-group">
                 <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
                     <i class="bi bi-funnel"></i> Filters
@@ -39,6 +44,26 @@
                         <input class="form-check-input" type="checkbox" value="" id="flexCheckNotEnrolled" checked>
                         <label class="form-check-label" for="flexCheckNotEnrolled">
                             Not Enrolled
+                        </label>
+                    </div>
+
+                    <h5 class="dropdown-header mt-3">Difficulty</h5>
+                    <div class="form-check">
+                        <input class="form-check-input difficulty-filter" type="checkbox" value="beginner" id="flexCheckBeginner" checked>
+                        <label class="form-check-label" for="flexCheckBeginner">
+                            Beginner
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input difficulty-filter" type="checkbox" value="intermediate" id="flexCheckIntermediate" checked>
+                        <label class="form-check-label" for="flexCheckIntermediate">
+                            Intermediate
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input difficulty-filter" type="checkbox" value="advanced" id="flexCheckAdvanced" checked>
+                        <label class="form-check-label" for="flexCheckAdvanced">
+                            Advanced
                         </label>
                     </div>
 
@@ -84,10 +109,19 @@
 
 @section Styles {
     <style>
+        /* Light mode styles */
+        body {
+            background-color: #ffffff;
+            color: #212529;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
         .course-card {
             transition: transform 0.2s;
             height: 100%;
             margin-bottom: 20px;
+            background-color: #ffffff;
+            border: 1px solid #dee2e6;
         }
 
             .course-card:hover {
@@ -106,6 +140,18 @@
 
         .badge-not-enrolled {
             background-color: #6c757d;
+        }
+
+        .badge-beginner {
+            background-color: #0dcaf0;
+        }
+
+        .badge-intermediate {
+            background-color: #ffc107;
+        }
+
+        .badge-advanced {
+            background-color: #fd7e14;
         }
 
         /* List view styles */
@@ -128,6 +174,136 @@
             flex: 0 0 100%;
             max-width: 100%;
         }
+
+        /* Dark mode styles */
+        body.dark-mode {
+            background-color: #212529;
+            color: #f8f9fa;
+        }
+
+            body.dark-mode .card,
+            body.dark-mode .dropdown-menu {
+                background-color: #2c3034;
+                border-color: #495057;
+            }
+
+            body.dark-mode .card-body,
+            body.dark-mode .dropdown-item {
+                color: #f8f9fa;
+            }
+
+            body.dark-mode .form-control,
+            body.dark-mode .input-group-text {
+                background-color: #343a40;
+                border-color: #495057;
+                color: #f8f9fa;
+            }
+
+            body.dark-mode .page-link {
+                background-color: #343a40;
+                border-color: #495057;
+                color: #f8f9fa;
+            }
+
+            body.dark-mode .page-item.active .page-link {
+                background-color: #0d6efd;
+                border-color: #0d6efd;
+            }
+
+            body.dark-mode .text-muted {
+                color: #adb5bd !important;
+            }
+
+            body.dark-mode .dropdown-menu,
+            body.dark-mode .dropdown-header,
+            body.dark-mode .form-check-label {
+                color: #f8f9fa !important;
+            }
+
+        .list-view .course-title-container {
+            width: 250px; /* Fixed width for title */
+            min-width: 250px; /* Prevent shrinking */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 15px;
+            border-right: 1px solid rgba(0,0,0,0.1);
+            background-color: rgba(0,0,0,0.03);
+        }
+
+        body.dark-mode .list-view .course-title-container {
+            border-bottom-color: rgba(255,255,255,0.1);
+        }
+
+        .list-view .course-title {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            width: 100%;
+            font-size: 1.1rem;
+            font-weight: 500;
+            line-height: 1.3;
+            margin: 0;
+        }
+
+        .list-view .card-body {
+            flex: 1;
+            min-width: 0; /* Important for text truncation */
+        }
+
+        /* Grid view title */
+        .grid-view .course-title-container {
+            height: 18vh;
+            min-height: 18vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 10px;
+            text-align: center;
+            background-color: rgba(0,0,0,0.03);
+        }
+
+        .grid-view .course-title {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            width: 100%;
+            font-size: 1.1rem;
+            line-height: 1.3;
+            max-height: 18vh;
+            padding: 5px 0;
+        }
+
+        .btn-enroll {
+            background-color: #0d6efd;
+            color: white;
+        }
+
+        .btn-continue {
+            background-color: transparent;
+            border-color: #0d6efd;
+            color: #0d6efd;
+        }
+
+        /* Dark mode overrides */
+        body.dark-mode .btn-enroll {
+            background-color: #1a73e8;
+            color: white;
+        }
+
+        body.dark-mode .btn-continue {
+            background-color: #8ab4f8;
+            border-color: #8ab4f8;
+            color: white;
+        }
+
+        body.dark-mode .btn-continue:hover {
+            background-color: rgba(138, 180, 248, 0.1);
+        }
     </style>
 }
 
@@ -144,6 +320,7 @@
             // Initialize
             loadCourses();
             setupEventHandlers();
+            initDarkMode();
 
             function loadCourses() {
                 allCourses = [
@@ -156,7 +333,8 @@
                         enrolled: true,
                         duration: "8 weeks",
                         lessons: 24,
-                        progress: 75
+                        progress: 75,
+                        difficulty: "advanced"
                     },
                     {
                         id: 2,
@@ -167,7 +345,8 @@
                         enrolled: false,
                         duration: "4 weeks",
                         lessons: 12,
-                        progress: 0
+                        progress: 0,
+                        difficulty: "beginner"
                     },
                     {
                         id: 3,
@@ -178,7 +357,8 @@
                         enrolled: true,
                         duration: "6 weeks",
                         lessons: 18,
-                        progress: 30
+                        progress: 30,
+                        difficulty: "intermediate"
                     },
                     {
                         id: 4,
@@ -189,7 +369,8 @@
                         enrolled: false,
                         duration: "5 weeks",
                         lessons: 15,
-                        progress: 0
+                        progress: 0,
+                        difficulty: "beginner"
                     },
                     {
                         id: 5,
@@ -200,7 +381,8 @@
                         enrolled: true,
                         duration: "7 weeks",
                         lessons: 21,
-                        progress: 10
+                        progress: 10,
+                        difficulty: "intermediate"
                     },
                     {
                         id: 6,
@@ -211,7 +393,8 @@
                         enrolled: false,
                         duration: "9 weeks",
                         lessons: 27,
-                        progress: 0
+                        progress: 0,
+                        difficulty: "advanced"
                     },
                     {
                         id: 7,
@@ -222,7 +405,8 @@
                         enrolled: true,
                         duration: "9 weeks",
                         lessons: 12,
-                        progress: 33
+                        progress: 33,
+                        difficulty: "advanced"
                     },
                     {
                         id: 8,
@@ -233,7 +417,8 @@
                         enrolled: false,
                         duration: "4 weeks",
                         lessons: 12,
-                        progress: 0
+                        progress: 0,
+                        difficulty: "intermediate"
                     },
                     {
                         id: 9,
@@ -244,7 +429,8 @@
                         enrolled: true,
                         duration: "4 weeks",
                         lessons: 14,
-                        progress: 2
+                        progress: 2,
+                        difficulty: "intermediate"
                     },
                     {
                         id: 10,
@@ -255,7 +441,8 @@
                         enrolled: false,
                         duration: "7 weeks",
                         lessons: 20,
-                        progress: 11
+                        progress: 11,
+                        difficulty: "intermediate"
                     },
                     {
                         id: 11,
@@ -266,7 +453,8 @@
                         enrolled: true,
                         duration: "7 weeks",
                         lessons: 13,
-                        progress: 80
+                        progress: 80,
+                        difficulty: "advanced"
                     },
                     {
                         id: 12,
@@ -277,7 +465,8 @@
                         enrolled: false,
                         duration: "12 weeks",
                         lessons: 30,
-                        progress: 100
+                        progress: 100,
+                        difficulty: "advanced"
                     }
                 ];
                 filteredCourses = [...allCourses];
@@ -325,6 +514,28 @@
                     $('#courseSearch').val('');
                     filterAndRenderCourses();
                 });
+
+                // Dark mode toggle
+                $('#darkModeToggle').click(function() {
+                    $('body').toggleClass('dark-mode');
+                    localStorage.setItem('darkMode', $('body').hasClass('dark-mode'));
+                    updateDarkModeIcon();
+                });
+            }
+
+            function initDarkMode() {
+                const darkMode = localStorage.getItem('darkMode') === 'true';
+                if (darkMode) {
+                    $('body').addClass('dark-mode');
+                }
+                updateDarkModeIcon();
+            }
+
+            function updateDarkModeIcon() {
+                const isDark = $('body').hasClass('dark-mode');
+                $('#darkModeToggle').html(
+                    isDark ? '<i class="bi bi-sun"></i>' : '<i class="bi bi-moon-stars"></i>'
+                );
             }
 
             function filterAndRenderCourses() {
@@ -332,6 +543,9 @@
                 const showFree = $('#flexCheckFree').is(':checked');
                 const showEnrolled = $('#flexCheckEnrolled').is(':checked');
                 const showNotEnrolled = $('#flexCheckNotEnrolled').is(':checked');
+                const showBeginner = $('#flexCheckBeginner').is(':checked');
+                const showIntermediate = $('#flexCheckIntermediate').is(':checked');
+                const showAdvanced = $('#flexCheckAdvanced').is(':checked');
                 const searchQuery = $('#courseSearch').val().toLowerCase();
 
                 filteredCourses = allCourses.filter(course => {
@@ -344,6 +558,13 @@
                     // Filter by enrollment
                     if ((course.enrolled && !showEnrolled) ||
                         (!course.enrolled && !showNotEnrolled)) {
+                        return false;
+                    }
+
+                    // Filter by difficulty
+                    if ((course.difficulty === 'beginner' && !showBeginner) ||
+                        (course.difficulty === 'intermediate' && !showIntermediate) ||
+                        (course.difficulty === 'advanced' && !showAdvanced)) {
                         return false;
                     }
 
@@ -396,35 +617,41 @@
                         </div>
                     ` : `<div class="mt-2 small">Duration: ${course.duration}</div>`;
 
-                    const courseCard = `
-                        <div class="col-md-${currentView === 'grid' ? '4' : '12'}">
-                            <div class="card course-card ${currentView === 'list' ? 'flex-row' : ''} mb-4">
-                                <div class="d-flex flex-row align-items-center justify-content-center" style="height: 18vh;">
-                                    ${course.title}
-                                </div>
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-start">
-                                        <h5 class="card-title">${course.title}</h5>
-                                        <span class="badge ${course.type === 'Premium' ? 'bg-warning' : 'bg-success'}">
-                                            ${course.type}
-                                        </span>
-                                    </div>
-                                    <p class="card-text text-muted">${course.description}</p>
-                                    ${progressBar}
-                                </div>
-                                <div class="card-footer bg-transparent ${currentView === 'list' ? 'border-top-0' : ''}">
-                                    <div class="d-flex justify-content-between align-items-center gap-2">
-                                        <span class="badge ${course.enrolled ? 'badge-enrolled' : 'badge-not-enrolled'}">
-                                            ${course.enrolled ? 'Enrolled' : 'Not Enrolled'}
-                                        </span>
-                                        <button class="btn btn-sm ${course.enrolled ? 'btn-outline-primary' : 'btn-primary'}">
-                                            ${course.enrolled ? 'Continue' : 'Enroll Now'}
-                                        </button>
-                                    </div>
-                                </div>
+
+        const courseCard = `
+            <div class="col-md-${currentView === 'grid' ? '4' : '12'}">
+                <div class="card course-card ${currentView === 'list' ? 'flex-row' : ''} mb-4">
+                    <div class="course-title-container ${currentView}">
+                        <div class="course-title align-items-center text-center">${course.title}</div>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <span class="badge ${course.type === 'Premium' ? 'bg-warning' : 'bg-success'}">
+                                    ${course.type}
+                                </span>
+                                <span class="badge badge-${course.difficulty} ms-1">
+                                    ${course.difficulty}
+                                </span>
                             </div>
                         </div>
-                    `;
+                        <p class="card-text text-muted mt-2">${course.description}</p>
+                        ${progressBar}
+                    </div>
+                    <div class="card-footer bg-transparent ${currentView === 'list' ? 'border-top-0' : ''}">
+                        <div class="d-flex justify-content-between align-items-center gap-2">
+                            <span class="badge ${course.enrolled ? 'badge-enrolled' : 'badge-not-enrolled'}">
+                                ${course.enrolled ? 'Enrolled' : 'Not Enrolled'}
+                            </span>
+                            <button class="btn btn-sm ${course.enrolled ? 'btn-continue' : 'btn-enroll'}">
+                                ${course.enrolled ? 'Continue' : 'Enroll Now'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
                     $container.append(courseCard);
                 });
 
