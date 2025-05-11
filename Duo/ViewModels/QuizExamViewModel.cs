@@ -511,10 +511,10 @@ namespace Duo.ViewModels
                     return;
                 }
 
-                UserService userService = (UserService)App.ServiceProvider.GetService(typeof(UserService))
-                    ?? throw new InvalidOperationException("UserService not found.");
-                SectionService sectionService = (SectionService)App.ServiceProvider.GetService(typeof(SectionService))
-                    ?? throw new InvalidOperationException("SectionService not found.");
+                IUserService userService = (IUserService)App.ServiceProvider.GetService(typeof(IUserService))
+                    ?? throw new InvalidOperationException("IUserService not found.");
+                ISectionService sectionService = (ISectionService)App.ServiceProvider.GetService(typeof(ISectionService))
+                    ?? throw new InvalidOperationException("ISectionService not found.");
 
                 User user = await userService.GetByIdAsync(1)
                     ?? throw new InvalidOperationException("User not found.");
