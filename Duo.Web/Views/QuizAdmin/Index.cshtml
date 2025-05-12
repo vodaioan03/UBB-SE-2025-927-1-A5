@@ -4,12 +4,16 @@
 }
 
 <div class="container-fluid py-4 px-5">
-    <h2 class="mb-4">Admin Page</h2>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">Admin Page</h2>
+        <button type="button" id="darkModeToggle" class="btn btn-outline-light rounded-circle p-2">
+            <i id="modeIcon" class="bi bi-moon-stars fs-5"></i>
+        </button>
+    </div>
+
     <hr class="border-secondary mb-4" />
 
     <div class="vstack gap-4">
-
-        <!-- Manage Quizzes -->
         <div class="d-flex justify-content-between align-items-center p-4 bg-dark rounded shadow-sm">
             <div class="d-flex align-items-center gap-3">
                 <i class="bi bi-clock-history fs-3 text-light"></i>
@@ -26,8 +30,6 @@
                 </a>
             </div>
         </div>
-
-        <!-- You can duplicate this block for Sections, Exams, Exercises -->
     </div>
 </div>
 
@@ -38,6 +40,11 @@
             color: #f8f9fa;
         }
 
+        body.dark-mode {
+            background-color: #121212;
+            color: #f8f9fa;
+         }
+
         .bg-dark {
             background-color: #1e1e1e !important;
         }
@@ -47,12 +54,58 @@
             border: none;
         }
 
-            .btn-primary:hover {
-                background-color: #0b5ed7;
-            }
+        .btn-primary:hover {
+            background-color: #0b5ed7;
+        }
 
         .text-light {
             color: #f8f9fa !important;
         }
+
+        body.dark-mode {
+            background-color: #121212;
+            color: #f8f9fa;
+        }
+
+        body.dark-mode .bg-dark {
+            background-color: #1e1e1e !important;
+        }
+
+        body.dark-mode .btn-primary {
+            background-color: #0d6efd;
+            color: white;
+        }
+
+        body.dark-mode .text-light {
+            color: #f8f9fa !important;
+        }
+
     </style>
 }
+
+@section Scripts {
+    <script>
+                function initDarkMode() {
+            const isDark = localStorage.getItem("darkMode") === "true";
+            if (isDark) {
+                $('body').addClass('dark-mode');
+            }
+            updateDarkModeIcon();
+        }
+
+        function updateDarkModeIcon() {
+            const isDark = $('body').hasClass('dark-mode');
+            const icon = $('#modeIcon');
+            icon.removeClass('bi-moon-stars bi-sun');
+            icon.addClass(isDark ? 'bi-sun' : 'bi-moon-stars');
+        }
+
+        $('#darkModeToggle').click(function () {
+            $('body').toggleClass('dark-mode');
+            localStorage.setItem('darkMode', $('body').hasClass('dark-mode'));
+            updateDarkModeIcon();
+        });
+
+    </script>
+}
+
