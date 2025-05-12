@@ -42,7 +42,7 @@ namespace Duo.Tests.Services
 
             // Assert
             Assert.AreEqual(expected.Count, result.Count);
-            Assert.AreEqual(expected[0].Id, result[0].Id);
+            Assert.AreEqual(expected[0].ExerciseId, result[0].ExerciseId);
         }
 
         [TestMethod]
@@ -70,7 +70,7 @@ namespace Duo.Tests.Services
 
             // Assert
             Assert.IsNotNull(result);
-            Assert.AreEqual(42, result.Id);
+            Assert.AreEqual(42, result.ExerciseId);
         }
 
         [TestMethod]

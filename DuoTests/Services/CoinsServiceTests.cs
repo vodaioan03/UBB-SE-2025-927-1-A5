@@ -1,11 +1,8 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
-using System;
-using System.Threading.Tasks;
-using Duo.Services;
-using Duo.Services.Interfaces;
+﻿using Moq;
+using DuoClassLibrary.Interfaces.Proxies;
+using DuoClassLibrary.Services;
 
-namespace Duo.Tests.Services
+namespace DuoTests.Services
 {
     [TestClass]
     public class CoinsServiceTests
