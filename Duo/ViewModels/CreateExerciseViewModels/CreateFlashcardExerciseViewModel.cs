@@ -1,7 +1,6 @@
 ﻿using System;
-using Duo.Models;
-using Duo.Models.Exercises;
-using Duo.ViewModels.Base;
+using DuoClassLibrary.Models.Exercises;
+using DuoClassLibrary.Models;
 using Duo.ViewModels.ExerciseViewModels;
 
 namespace Duo.ViewModels.CreateExerciseViewModels

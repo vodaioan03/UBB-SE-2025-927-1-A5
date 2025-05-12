@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
-using System.Linq;
 using System.Windows.Input;
 using Duo.Commands;
-using Duo.Models;
-using Duo.Models.Exercises;
+using DuoClassLibrary.Models.Exercises;
+using DuoClassLibrary.Models;
 using Duo.ViewModels.Base;
 using Duo.ViewModels.ExerciseViewModels;
 
