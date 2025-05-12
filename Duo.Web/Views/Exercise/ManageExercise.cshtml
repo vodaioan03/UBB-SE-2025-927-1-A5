@@ -1,0 +1,85 @@
+@{
+    ViewData["Title"] = "Manage Exercises";
+}
+
+<div class="container-fluid px-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="mb-0">Manage Exercises</h2>
+        <a class="btn btn-outline-secondary btn-sm" onclick="history.back()">
+            <i class="bi bi-arrow-left"></i> Back
+        </a>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <a href="@Url.Action("AddExercise", "Exercise")" class="btn btn-primary">Add Exercise</a>
+    </div>
+
+    <ul class="list-group">
+        @foreach (var exercise in Model)
+        {
+            <li class="list-group-item d-flex justify-content-between align-items-center bg-dark text-light">
+                @exercise.Question (@exercise.Type)
+                <div>
+                    <a href="@Url.Action("EditExercise", "Exercise", new { id = exercise.ExerciseId })" class="btn btn-sm btn-outline-primary me-2">Edit</a>
+                    <form asp-action="DeleteExercise" asp-controller="Exercise" asp-route-id="@exercise.ExerciseId" method="post" class="d-inline">
+                        <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                    </form>
+                </div>
+            </li>
+        }
+    </ul>
+</div>
+
+@section Styles {
+    <style>
+        body {
+            background-color: #121212;
+            color: #f8f9fa;
+        }
+
+        .list-group-item {
+            color: #f8f9fa;
+        }
+
+        .btn-outline-danger {
+            color: #dc3545;
+            border-color: #dc3545;
+        }
+
+        .btn-outline-danger:hover {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .btn-outline-primary {
+            color: #0d6efd;
+            border-color: #0d6efd;
+        }
+
+        .btn-outline-primary:hover {
+            background-color: #0d6efd;
+            color: white;
+        }
+
+        /* Fill in the Blank specific */
+        .blank-row, .choice-row, .pair-row {
+            transition: all 0.2s ease;
+        }
+
+        /* Flashcard specific */
+        #flashcardTime {
+            max-width: 200px;
+        }
+
+        /* Dark mode adjustments */
+        [data-bs-theme="dark"] .alert-info {
+            background-color: #1d3a4d;
+            border-color: #2a5169;
+        }
+
+        [data-bs-theme="dark"] .alert-warning {
+            background-color: #4d3a1d;
+            border-color: #69512a;
+        }
+    </style>
+}
