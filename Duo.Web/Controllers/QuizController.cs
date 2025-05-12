@@ -75,5 +75,6 @@ namespace Duo.Web.Controllers
             await _quizService.DeleteQuiz(id);
             return RedirectToAction(nameof(ViewQuizzes));
         }
+
     }
 }
