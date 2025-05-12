@@ -2,6 +2,11 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddHttpClient();
+builder.Services.AddScoped<DuoClassLibrary.Services.Interfaces.ISectionServiceProxy, DuoClassLibrary.Services.SectionServiceProxy>();
+builder.Services.AddScoped<DuoClassLibrary.Services.ISectionService, DuoClassLibrary.Services.SectionService>();
+builder.Services.AddScoped<DuoClassLibrary.Services.IQuizServiceProxy, DuoClassLibrary.Services.QuizServiceProxy>();
+builder.Services.AddScoped<DuoClassLibrary.Services.IQuizService, DuoClassLibrary.Services.QuizService>();
 
 var app = builder.Build();
 

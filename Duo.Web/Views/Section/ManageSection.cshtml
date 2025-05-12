@@ -12,22 +12,16 @@
     </div>
 
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <a href="@Url.Action(" AddSection", "Section" )" class="btn btn-primary">Add Section</a>
+        <a href="@Url.Action("AddSection", "Section" )" class="btn btn-primary">Add Section</a>
     </div>
 
-    <ul class="list-group">
-        @for (int i = 1; i <= 3; i++)
-        {
-        <li class="list-group-item d-flex justify-content-between align-items-center bg-dark text-light">
-            Section #@i
-            <button class="btn btn-sm btn-outline-danger">Remove</button>
-        </li>
-        }
+    <ul class="list-group" id="section-list">
+        <!-- Sections will be loaded here -->
     </ul>
 
     <div class="mt-4">
         <h5>Selected Quizzes</h5>
-        <div class="border rounded p-4 dark-box" style="min-height: 200px;">
+        <div class="border rounded p-4 dark-box" style="min-height: 200px;" id="quiz-list">
             <!-- Selected quizzes go here -->
         </div>
     </div>
@@ -79,4 +73,80 @@
             background-color: #0b5ed7;
         }
 </style>
+}
+
+@section Scripts {
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+$(document).ready(function () {
+    // Load sections
+    $.ajax({
+        url: 'https://localhost:7174/api/Section/get-all',
+        method: 'GET',
+        success: function (sections) {
+            var sectionList = $('#section-list');
+            sectionList.empty();
+            $.each(sections, function (i, section) {
+                var li = $('<li class="list-group-item d-flex justify-content-between align-items-center bg-dark text-light" style="cursor:pointer;"></li>');
+                li.text(section.title);
+                li.data('section-id', section.id);
+                var removeBtn = $('<button class="btn btn-sm btn-outline-danger">Remove</button>');
+                li.append(removeBtn);
+                sectionList.append(li);
+            });
+        },
+        error: function (xhr, status, error) {
+            console.error('Error loading sections:', error);
+            $('#section-list').html('<div class="alert alert-danger">Failed to load sections. Please try again.</div>');
+        }
+    });
+
+    // Click handler for section
+    $('#section-list').on('click', 'li', function (e) {
+        if ($(e.target).hasClass('btn-outline-danger')) return; // Don't trigger on remove
+        var sectionId = $(this).data('section-id');
+        $.ajax({
+            url: `https://localhost:7174/api/Quiz/get-all-by-section?sectionId=${sectionId}`,
+            method: 'GET',
+            success: function (quizzes) {
+                var quizList = $('#quiz-list');
+                quizList.empty();
+                if (quizzes.length === 0) {
+                    quizList.append('<div class="text-muted">No quizzes for this section.</div>');
+                } else {
+                    var ul = $('<ul class="list-group"></ul>');
+                    $.each(quizzes, function (i, quiz) {
+                        ul.append('<li class="list-group-item bg-dark text-light">' + quiz.id + ': ' + (quiz.title || 'Quiz') + '</li>');
+                    });
+                    quizList.append(ul);
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error('Error loading quizzes:', error);
+                $('#quiz-list').html('<div class="alert alert-danger">Failed to load quizzes. Please try again.</div>');
+            }
+        });
+    });
+
+    // Remove section handler
+    $('#section-list').on('click', '.btn-outline-danger', function (e) {
+        e.stopPropagation();
+        var sectionId = $(this).parent().data('section-id');
+        if (confirm('Are you sure you want to remove this section?')) {
+            $.ajax({
+                url: `https://localhost:7174/api/Section/${sectionId}`,
+                method: 'DELETE',
+                success: function () {
+                    $(e.target).parent().remove();
+                    $('#quiz-list').empty();
+                },
+                error: function (xhr, status, error) {
+                    console.error('Error removing section:', error);
+                    alert('Failed to remove section. Please try again.');
+                }
+            });
+        }
+    });
+});
+</script>
 }
