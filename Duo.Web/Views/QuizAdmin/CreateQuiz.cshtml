@@ -1,0 +1,30 @@
+﻿@{
+    ViewData["Title"] = "Create New Quiz";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid px-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Create New Quiz</h2>
+        <button class="btn btn-primary">Add Exercise</button>
+    </div>
+
+    <h5>Selected Exercises</h5>
+    <ul class="list-group mb-4">
+        @* Dummy data — replace with Model later *@
+        <li class="list-group-item bg-dark text-light d-flex justify-content-between">
+            Exercise #3 – Match the items for Association Exercise 4
+            <button class="btn btn-sm btn-outline-danger">Remove</button>
+        </li>
+        <li class="list-group-item bg-dark text-light d-flex justify-content-between">
+            Exercise #5 – Match the items for Association Exercise 7
+            <button class="btn btn-sm btn-outline-danger">Remove</button>
+        </li>
+    </ul>
+
+    <div class="text-end">
+        <a href="@Url.Action("ViewQuizzes", "QuizAdmin")" class="btn btn-secondary">Cancel</a>
+        <button class="btn btn-primary">Save</button>
+    </div>
+</div>

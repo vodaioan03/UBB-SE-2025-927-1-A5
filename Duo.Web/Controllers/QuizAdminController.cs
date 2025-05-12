@@ -7,8 +7,13 @@ public class QuizAdminController : Controller
         return View(); 
     }
 
-    public IActionResult ManageQuizzes()
+    public IActionResult ViewQuizzes()
     {
-        return RedirectToAction("Manage", "Quiz"); 
+        return View("~/Views/Quiz/ViewQuizzes.cshtml");
+    }
+
+    public IActionResult CreateQuiz()
+    {
+        return View();
     }
 }

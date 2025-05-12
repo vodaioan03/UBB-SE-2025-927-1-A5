@@ -18,9 +18,13 @@
                     <small class="text-muted">here you can see and delete</small>
                 </div>
             </div>
-            <a href="@Url.Action("ManageQuizzes", "QuizAdmin")" class="btn btn-primary d-flex align-items-center gap-2">
-                Add quiz <i class="bi bi-chevron-right"></i>
-            </a>
+
+            <div class="d-flex gap-2 align-items-center">
+                <a href="@Url.Action("CreateQuiz", "QuizAdmin")" class="btn btn-primary">Add quiz</a>
+                <a href="@Url.Action("ViewQuizzes", "QuizAdmin")" class="btn btn-outline-light btn-sm">
+                    <i class="bi bi-chevron-right fs-4"></i>
+                </a>
+            </div>
         </div>
 
         <!-- You can duplicate this block for Sections, Exams, Exercises -->
