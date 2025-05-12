@@ -1,4 +1,15 @@
+using DuoClassLibrary.Services;
+
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services
+    .AddHttpClient<IQuizServiceProxy, QuizServiceProxy>(client =>
+    {
+        client.BaseAddress = new Uri(builder.Configuration["Api:BaseUrl"]);
+    });
+
+builder.Services
+    .AddSingleton<IQuizService, QuizService>();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();

@@ -27,7 +27,7 @@ namespace DuoClassLibrary.Services
 
         public async Task<List<Quiz>> GetAsync()
         {
-            var result = await httpClient.GetAsync($"{url}quiz/list");
+            var result = await httpClient.GetAsync($"{url}quiz/get-all");
             result.EnsureSuccessStatusCode();
             string responseJson = await result.Content.ReadAsStringAsync();
             var quizzes = new List<Quiz>();
