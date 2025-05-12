@@ -47,16 +47,29 @@ namespace Duo.Web.Controllers
             var exercises = await _exerciseService.GetAllExercisesFromQuiz(quizId);
             if (exercises == null) return NotFound();
 
-            var list = exercises
-                .Select(e => new
-                {
-                    e.ExerciseId,
-                    Question = e.Question,
-                    Difficulty = e.Difficulty.ToString()
-                })
-                .ToList();
+            var result = exercises
+                            .Select(e => new { e.ExerciseId })
+                            .ToList();
 
-            return Json(list);
+
+            return Json(result);
+        }
+
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddExercise(int quizId, int exerciseId)
+        {
+            await _quizService.AddExerciseToQuiz(quizId, exerciseId);
+            return RedirectToAction(nameof(ViewQuizzes));
+        }
+
+        // GET /Quiz/GetAllExercises
+        [HttpGet]
+        public async Task<IActionResult> GetAllExercises()
+        {
+            var all = await _exerciseService.GetAllExercises();
+            var dto = all.Select(e => new { exerciseId = e.ExerciseId })
+                         .ToList();
+            return Json(dto);
         }
 
     }

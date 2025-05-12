@@ -1,5 +1,4 @@
 ﻿@model List<DuoClassLibrary.Models.Quizzes.Quiz>
-
 @{
     ViewData["Title"] = "Manage Quizzes";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -14,34 +13,58 @@
         </a>
     </div>
 
-    <ul class="list-group">
+    <ul id="quizList" class="list-group mb-4">
         @foreach (var quiz in Model)
         {
             <li class="list-group-item d-flex justify-content-between align-items-center bg-dark text-light"
-               data-quiz-id="@quiz.Id">                Quiz #@quiz.Id
+                data-quiz-id="@quiz.Id">
+                <span>Quiz #@quiz.Id</span>
                 <form asp-action="DeleteQuiz"
                       asp-controller="Quiz"
                       asp-route-id="@quiz.Id"
-                      method="post"
-                      class="m-0 p-0">
+                      method="post" class="m-0 p-0">
                     @Html.AntiForgeryToken()
-                    <button type="submit" class="btn btn-sm btn-outline-danger">
-                        Remove
-                    </button>
+                    <button type="submit" class="btn btn-sm btn-outline-danger">Remove</button>
                 </form>
             </li>
         }
     </ul>
-</div>
 
     <h5 class="mb-3">Selected Exercises</h5>
-
-    <div class="border rounded p-4 mb-3 dark-box" style="min-height: 200px;">
-        <!-- Selected exercises go here -->
+    <div id="selectedExercises" class="border rounded p-4 mb-3 dark-box" style="min-height: 200px;">
+        <em>Select a quiz above to see its exercises…</em>
     </div>
 
-    <div class="text-end">
-        <button class="btn btn-primary btn-sm">Add Exercise</button>
+    <div class="text-end mb-4">
+        <button id="showAddModal"
+                class="btn btn-primary btn-sm"
+                data-bs-toggle="modal"
+                data-bs-target="#addExerciseModal"
+                disabled>
+            Add Exercise
+        </button>
+    </div>
+
+</div>
+
+<div class="modal fade" id="addExerciseModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content bg-dark text-light">
+            <div class="modal-header">
+                <h5 class="modal-title">Select Exercise to Add</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <ul id="allExercisesList" class="list-group"></ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button"
+                        class="btn btn-secondary"
+                        data-bs-dismiss="modal">
+                    Cancel
+                </button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -62,69 +85,82 @@
             color: #f8f9fa;
         }
 
-        .btn-outline-danger {
-            color: #dc3545;
-            border-color: #dc3545;
-        }
-
-            .btn-outline-danger:hover {
-                background-color: #dc3545;
-                color: white;
-            }
-
-        .btn-outline-secondary {
-            color: #adb5bd;
-            border-color: #6c757d;
-        }
-
-            .btn-outline-secondary:hover {
-                background-color: #6c757d;
-                color: white;
-            }
-
-        .btn-primary {
-            background-color: #0d6efd;
-            border: none;
-        }
-
-            .btn-primary:hover {
-                background-color: #0b5ed7;
+            .list-group-item.active {
+                background-color: #0d6efd;
             }
     </style>
 }
 
 @section Scripts {
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
-          const container = document.querySelector(".dark-box");
-          document
-            .querySelectorAll("ul.list-group > li[data-quiz-id]")
-            .forEach(li => {
-              li.style.cursor = "pointer";
-              li.addEventListener("click", async () => {
-                const quizId = li.dataset.quizId;
-                const res = await fetch(`/Quiz/GetExercises?quizId=${quizId}`);
-                if (!res.ok) {
-                  container.innerHTML = "<p class='text-danger'>Error loading exercises.</p>";
-                  return;
-                }
-                const exercises = await res.json();
+        document.addEventListener("DOMContentLoaded", () => {
+          let selectedQuizId = null;
+          const items = document.querySelectorAll("#quizList li");
+          const selBox = document.getElementById("selectedExercises");
+          const addBtn = document.getElementById("showAddModal");
 
-                if (exercises.length === 0) {
-                  container.innerHTML = "<p><em>No exercises assigned.</em></p>";
-                } else {
-                  let html = '<ul class="list-group list-group-flush">';
-                  for (const ex of exercises) {
-                    html += `
-                      <li class="list-group-item bg-dark text-light">
-                        Exercise #${ex.exerciseId}
-                      </li>`;
-                  }
-                  html += "</ul>";
-                  container.innerHTML = html;
-                }
-              });
+          items.forEach(li => {
+            li.style.cursor = "pointer";
+            li.addEventListener("click", async () => {
+              items.forEach(x => x.classList.remove("active"));
+              li.classList.add("active");
+
+              selectedQuizId = li.dataset.quizId;
+              addBtn.disabled = false;
+
+              const res = await fetch(`/Quiz/GetExercises?quizId=${selectedQuizId}`);
+              if (!res.ok) {
+                selBox.innerHTML = "<p class='text-danger'>Error loading exercises.</p>";
+                return;
+              }
+              const exs = await res.json();
+              if (!exs.length) {
+                selBox.innerHTML = "<p><em>No exercises assigned</em></p>";
+              } else {
+                selBox.innerHTML = "<ul class='list-group'>" +
+                  exs.map(e => `<li class='list-group-item bg-dark text-light'>Exercise #${e.exerciseId}</li>`).join("") +
+                  "</ul>";
+              }
             });
+          });
+
+          addBtn.addEventListener("click", async () => {
+            if (!selectedQuizId) return;
+            const res = await fetch("/Quiz/GetAllExercises");
+            if (!res.ok) return;
+            const all = await res.json();
+            const assigned = Array.from(selBox.querySelectorAll("li"))
+                                  .map(li => +li.textContent.match(/#(\d+)/)[1]);
+
+            const list = document.getElementById("allExercisesList");
+            list.innerHTML = "";
+
+            all.forEach(ex => {
+              if (!assigned.includes(ex.exerciseId)) {
+                const li   = document.createElement("li");
+                const form = document.createElement("form");
+                const token = document.querySelector('input[name="__RequestVerificationToken"]').cloneNode();
+                const qid   = Object.assign(document.createElement("input"), { type: "hidden", name: "quizId",     value: selectedQuizId });
+                const eid   = Object.assign(document.createElement("input"), { type: "hidden", name: "exerciseId", value: ex.exerciseId });
+
+                li.className   = "list-group-item d-flex justify-content-between bg-secondary text-light";
+                li.textContent = `Exercise #${ex.exerciseId}`;
+
+                form.method = "post";
+                form.action = "/Quiz/AddExercise";
+                form.append(token, qid, eid,
+                  Object.assign(document.createElement("button"), {
+                    type: "submit",
+                    className: "btn btn-sm btn-outline-success",
+                    textContent: "Add"
+                  })
+                );
+
+                li.append(form);
+                list.append(li);
+              }
+            });
+          });
         });
     </script>
 }

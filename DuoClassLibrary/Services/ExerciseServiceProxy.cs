@@ -82,7 +82,7 @@ namespace DuoClassLibrary.Services
         {
             try
             {
-                var response = await httpClient.GetAsync($"{url}api/Exercise");
+                var response = await httpClient.GetAsync($"{url}api/Exercise/get-all");
                 response.EnsureSuccessStatusCode();
 
                 string responseJson = await response.Content.ReadAsStringAsync();
