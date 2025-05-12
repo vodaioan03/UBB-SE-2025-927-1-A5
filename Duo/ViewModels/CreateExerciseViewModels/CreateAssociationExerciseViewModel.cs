@@ -5,8 +5,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Windows.Input;
 using Duo.Commands;
-using Duo.Models;
-using Duo.Models.Exercises;
+using DuoClassLibrary.Models.Exercises;
+using DuoClassLibrary.Models;
 using Duo.ViewModels.Base;
 using Duo.ViewModels.ExerciseViewModels;
 
@@ -60,7 +60,7 @@ namespace Duo.ViewModels.CreateExerciseViewModels
         {
             try
             {
-                Exercise newExercise = new Models.Exercises.AssociationExercise(0, question, difficulty, GenerateAnswerList(LeftSideAnswers), GenerateAnswerList(RightSideAnswers));
+                Exercise newExercise = new DuoClassLibrary.Models.Exercises.AssociationExercise(0, question, difficulty, GenerateAnswerList(LeftSideAnswers), GenerateAnswerList(RightSideAnswers));
                 return newExercise;
             }
             catch (Exception ex)
