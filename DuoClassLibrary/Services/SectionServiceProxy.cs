@@ -64,8 +64,18 @@ namespace DuoClassLibrary.Services
             var response = await httpClient.GetAsync($"{url}/api/section/list/roadmap/{roadmapId}");
             response.EnsureSuccessStatusCode();
 
-            return await response.Content.ReadFromJsonAsync<List<Section>>() ?? new List<Section>();
+            var jsonResponse = await response.Content.ReadAsStringAsync();
+            var jsonDoc = JsonDocument.Parse(jsonResponse);
+            var resultElement = jsonDoc.RootElement.GetProperty("result");
+
+            var sections = JsonSerializer.Deserialize<List<Section>>(resultElement.ToString(), new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            });
+
+            return sections ?? new List<Section>();
         }
+
 
         public async Task<Section> GetSectionById(int sectionId)
         {

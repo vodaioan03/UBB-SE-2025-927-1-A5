@@ -137,21 +137,21 @@ namespace Duo.Api.Helpers
             using JsonDocument doc = JsonDocument.Parse(json);
             var root = doc.RootElement;
 
-            int id = root.GetProperty("Id").GetInt32();
+            // ID is optional since it's auto-generated
+            int id = root.TryGetProperty("id", out var idProp) ? idProp.GetInt32() : 0;
 
-            int? subjectId = root.TryGetProperty("SubjectId", out var subjectProp) && subjectProp.ValueKind != JsonValueKind.Null
+            int? subjectId = root.TryGetProperty("subjectId", out var subjectProp) && subjectProp.ValueKind != JsonValueKind.Null
                 ? subjectProp.GetInt32()
                 : null;
 
-            string title = root.GetProperty("Title").GetString();
-            string description = root.GetProperty("Description").GetString();
+            string title = root.GetProperty("title").GetString() ?? throw new InvalidOperationException("Title is required");
+            string description = root.GetProperty("description").GetString() ?? throw new InvalidOperationException("Description is required");
 
-            // Set RoadmapId to -1 if missing or null
-            int roadmapId = root.TryGetProperty("RoadmapId", out var roadmapProp) && roadmapProp.ValueKind != JsonValueKind.Null
+            int roadmapId = root.TryGetProperty("roadmapId", out var roadmapProp) && roadmapProp.ValueKind != JsonValueKind.Null
                 ? roadmapProp.GetInt32()
-                : -1;
+                : throw new InvalidOperationException("RoadmapId is required");
 
-            int? orderNumber = root.TryGetProperty("OrderNumber", out var orderProp) && orderProp.ValueKind != JsonValueKind.Null
+            int? orderNumber = root.TryGetProperty("orderNumber", out var orderProp) && orderProp.ValueKind != JsonValueKind.Null
                 ? orderProp.GetInt32()
                 : null;
 
@@ -163,35 +163,40 @@ namespace Duo.Api.Helpers
                 Description = description,
                 RoadmapId = roadmapId,
                 OrderNumber = orderNumber,
+                Roadmap = await repo.GetRoadmapByIdAsync(roadmapId)
             };
 
-            // Deserialize and attach quizzes
-            if (root.TryGetProperty("QuizIds", out var quizIdsElement) && quizIdsElement.ValueKind == JsonValueKind.Array)
+            // Handle nested quizzes
+            if (root.TryGetProperty("quizzes", out var quizzesElement) && quizzesElement.ValueKind == JsonValueKind.Array)
             {
-                foreach (var quizIdElement in quizIdsElement.EnumerateArray())
+                foreach (var quizElement in quizzesElement.EnumerateArray())
                 {
-                    int quizId = quizIdElement.GetInt32();
-                    var quiz = await repo.GetQuizByIdAsync(quizId);
-                    if (quiz == null)
+                    if (quizElement.TryGetProperty("id", out var quizIdProp))
                     {
-                        throw new InvalidOperationException($"Quiz with ID {quizId} not found.");
+                        int quizId = quizIdProp.GetInt32();
+                        var quiz = await repo.GetQuizByIdAsync(quizId);
+                        if (quiz == null)
+                        {
+                            throw new InvalidOperationException($"Quiz with ID {quizId} not found.");
+                        }
+                        section.Quizzes.Add(quiz);
                     }
-
-                    section.Quizzes.Add(quiz);
                 }
             }
 
-            // Deserialize and attach exam
-            if (root.TryGetProperty("ExamId", out var examIdElement) && examIdElement.ValueKind != JsonValueKind.Null)
+            // Handle nested exam
+            if (root.TryGetProperty("exam", out var examElement) && examElement.ValueKind == JsonValueKind.Object)
             {
-                int examId = examIdElement.GetInt32();
-                var exam = await repo.GetExamByIdAsync(examId);
-                if (exam == null)
+                if (examElement.TryGetProperty("id", out var examIdProp))
                 {
-                    throw new InvalidOperationException($"Exam with ID {examId} not found.");
+                    int examId = examIdProp.GetInt32();
+                    var exam = await repo.GetExamByIdAsync(examId);
+                    if (exam == null)
+                    {
+                        throw new InvalidOperationException($"Exam with ID {examId} not found.");
+                    }
+                    section.Exam = exam;
                 }
-
-                section.Exam = exam;
             }
 
             return section;

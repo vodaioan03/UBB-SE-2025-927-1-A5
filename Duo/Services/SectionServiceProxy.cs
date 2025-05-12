@@ -43,7 +43,12 @@ namespace Duo.Services
                     $"{this.url}/api/Section/add",
                     content).ConfigureAwait(false);
 
-            response.EnsureSuccessStatusCode();
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                throw new InvalidOperationException($"Failed to add section: {errorContent}");
+            }
+
             var responseBody = await response.Content.ReadFromJsonAsync<SectionAddResponse>().ConfigureAwait(false);
 
             if (responseBody == null)

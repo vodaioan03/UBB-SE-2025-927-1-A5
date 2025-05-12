@@ -1,4 +1,4 @@
-@{
+﻿@{
     ViewData["Title"] = "Create New Section";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
@@ -136,8 +136,8 @@
         }
     </style>
 }
-
 @section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         let selectedQuizzes = [];
         let selectedExam = null;
@@ -159,14 +159,13 @@
                     ul.append(li);
                 });
                 container.append(ul);
-
-                // Add click handler for remove buttons
-                $('.remove-quiz').on('click', function() {
-                    const quizId = $(this).data('quiz-id');
-                    selectedQuizzes = selectedQuizzes.filter(q => q.id !== quizId);
-                    renderSelectedQuizzes();
-                });
             }
+            // Add click handler for remove buttons
+            $('.remove-quiz').off('click').on('click', function() {
+                const quizId = $(this).data('quiz-id');
+                selectedQuizzes = selectedQuizzes.filter(q => q.id !== quizId);
+                renderSelectedQuizzes();
+            });
         }
 
         function renderSelectedExam() {
@@ -183,13 +182,12 @@
                         </button>
                     </div>
                 `);
-
-                // Add click handler for remove button
-                $('.remove-exam').on('click', function() {
-                    selectedExam = null;
-                    renderSelectedExam();
-                });
             }
+            // Add click handler for remove button
+            $('.remove-exam').off('click').on('click', function() {
+                selectedExam = null;
+                renderSelectedExam();
+            });
         }
 
         $(document).ready(function() {
@@ -200,7 +198,7 @@
             $('#addQuizBtn').on('click', function() {
                 quizModal.show();
                 $.ajax({
-                    url: 'https://localhost:7174/api/Quiz/get-all-available',
+                    url: 'https://localhost:7174/api/quiz/get-all-available',
                     method: 'GET',
                     xhrFields: {
                         withCredentials: true
@@ -229,7 +227,7 @@
                     },
                     error: function(xhr, status, error) {
                         console.error('Error loading quizzes:', error);
-                        $('#quiz-list-modal').html('<div class="alert alert-danger">Failed to load quizzes. Please try again.</div>');
+                        $('#quiz-list-modal').html('<div class="alert alert-danger">Failed to load quizzes. Please try again.');
                     }
                 });
             });
@@ -237,7 +235,7 @@
             $('#addExamBtn').on('click', function() {
                 examModal.show();
                 $.ajax({
-                    url: 'https://localhost:7174/api/Exam/get-all-available',
+                    url: 'https://localhost:7174/api/exam/get-all-available',
                     method: 'GET',
                     xhrFields: {
                         withCredentials: true
@@ -264,7 +262,7 @@
                     },
                     error: function(xhr, status, error) {
                         console.error('Error loading exams:', error);
-                        $('#exam-list-modal').html('<div class="alert alert-danger">Failed to load exams. Please try again.</div>');
+                        $('#exam-list-modal').html('<div class="alert alert-danger">Failed to load exams. Please try again.');
                     }
                 });
             });
@@ -288,12 +286,16 @@
                     title: subject,
                     description: "Section created from web interface",
                     roadmapId: 1,
-                    quizzes: selectedQuizzes.map(q => q.id),
-                    examId: selectedExam.id
+                    subjectId: 1,
+                    orderNumber: 1,  // Default order number, update if needed
+                    quizzes: selectedQuizzes.map(q => ({ id: q.id })),
+                    exam: { id: selectedExam.id }
                 };
 
+                console.log("Section Data to Send:", JSON.stringify(sectionData));
+
                 $.ajax({
-                    url: 'https://localhost:7174/api/Section/add',
+                    url: 'https://localhost:7174/api/section/add',
                     method: 'POST',
                     contentType: 'application/json',
                     xhrFields: {
@@ -307,8 +309,9 @@
                         window.location.href = '/Section/ManageSection';
                     },
                     error: function(xhr, status, error) {
-                        console.error('Error creating section:', error);
-                        alert('Failed to create section. Please try again.');
+                        console.error('Error creating section:', xhr.responseText);
+                        const errorMessage = xhr.responseJSON?.message || 'Failed to create section. Please try again.';
+                        alert(errorMessage);
                     }
                 });
             });
@@ -319,4 +322,3 @@
         });
     </script>
 }
-
