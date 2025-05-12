@@ -110,7 +110,7 @@
                 const formData = collectFormData(exerciseType);
                 
                 $.ajax({
-                    url: '/Exercise/CreateExercise',
+                    url: '/Exercise/Create',
                     type: 'POST',
                     contentType: 'application/json',
                     data: JSON.stringify(formData),

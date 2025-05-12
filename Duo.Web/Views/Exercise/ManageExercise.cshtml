@@ -95,10 +95,6 @@
                                 <td>@exercise.Type</td>
                                 <td>@exercise.Difficulty</td>
                                 <td>
-                                    <button class="btn btn-sm btn-outline-primary view-details"
-                                            data-id="@exercise.ExerciseId">
-                                        <i class="fas fa-eye"></i> Details
-                                    </button>
                                     <button class="btn btn-sm btn-outline-danger delete-exercise"
                                             data-id="@exercise.ExerciseId">
                                         <i class="fas fa-trash"></i> Remove
@@ -152,14 +148,6 @@
 @section Scripts {
     <script>
         $(document).ready(function() {
-            // View details handler
-            $('.view-details').click(function() {
-                const exerciseId = $(this).data('id');
-                $.get(`/Exercise/GetExerciseDetails?id=${exerciseId}`, function(data) {
-                    $('#exerciseDetailsContent').html(data);
-                    $('#exerciseDetailsModal').modal('show');
-                });
-            });
 
             // Delete confirmation handler
             let exerciseToDelete = null;

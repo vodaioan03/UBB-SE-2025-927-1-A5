@@ -75,15 +75,5 @@ namespace DuoWebApp.Controllers
             await exerciseService.DeleteExercise(id);
             return RedirectToAction("Manage");
         }
-
-        [HttpGet]
-        public async Task<IActionResult> GetExerciseDetails(int id)
-        {
-            var exercise = await exerciseService.GetExerciseById(id);
-            if (exercise == null)
-                return NotFound();
-
-            return PartialView("_ExerciseDetails", exercise);
-        }
     }
 }

@@ -14,6 +14,9 @@ var httpClient = new HttpClient(handler);
 builder.Services.AddSingleton<HttpClient>();
 builder.Services.AddScoped<ICourseServiceProxy, CourseServiceProxy>();
 builder.Services.AddScoped<ICourseService, CourseService>();
+builder.Services.AddScoped<IExerciseServiceProxy, ExerciseServiceProxy>();
+builder.Services.AddScoped<IExerciseService, ExerciseService>();
+
 
 var app = builder.Build();
 
