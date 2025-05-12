@@ -262,9 +262,10 @@ namespace Duo.Api.Repositories
                     UserId = userId,
                     ModuleId = moduleId,
                     Status = "completed",
-                    ImageClicked = false
+                    ImageClicked = true,
                 };
                 context.UserProgresses.Add(newProgress);
+                await context.SaveChangesAsync();
             }
 
             await Task.CompletedTask;
