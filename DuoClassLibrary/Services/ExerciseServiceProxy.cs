@@ -140,7 +140,7 @@ namespace DuoClassLibrary.Services
 
         public async Task<List<Exercise>> GetAllExercisesFromQuiz(int quizId)
         {
-            var response = await httpClient.GetAsync($"{url}api/Exercise/quiz/{quizId}");
+            var response = await httpClient.GetAsync($"{url}api/Exercise/get-exercises-by-quiz/{quizId}");
             response.EnsureSuccessStatusCode();
             string responseJson = await response.Content.ReadAsStringAsync();
             var exercises = JsonSerializationUtil.DeserializeExerciseList(responseJson);

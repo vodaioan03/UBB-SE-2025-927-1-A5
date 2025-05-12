@@ -1,13 +1,11 @@
-﻿using DuoClassLibrary.Models.Exercises;
-using DuoClassLibrary.Models.Quizzes;
+﻿using DuoClassLibrary.Models.Quizzes;
+using DuoClassLibrary.Models.Exercises;
+using System.Collections.Generic;
 
-namespace Duo.Web.Models
+public class ManageQuizViewModel
 {
-    public class ManageQuizViewModel
-    {
-        public Quiz Quiz { get; set; }
-        public List<Exercise> AssignedExercises { get; set; }
-        public List<Exercise> AllExercises { get; set; }
-    }
-
+    public List<Quiz> Quizzes { get; set; } = new();
+    public int? SelectedQuizId { get; set; }
+    public List<Exercise> AssignedExercises { get; set; } = new();
+    public List<Exercise> AvailableExercises { get; set; } = new();
 }

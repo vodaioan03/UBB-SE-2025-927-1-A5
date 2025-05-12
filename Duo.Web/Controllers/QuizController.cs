@@ -1,76 +1,79 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
+﻿// QuizController.cs
+
+using Microsoft.AspNetCore.Mvc;
 using DuoClassLibrary.Services;
 using DuoClassLibrary.Models.Quizzes;
+using DuoClassLibrary.Models.Exercises;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Duo.Web.Controllers
 {
     public class QuizController : Controller
     {
-        private readonly ILogger<QuizController> _logger;
         private readonly IQuizService _quizService;
         private readonly IExerciseService _exerciseService;
 
-
-        public QuizController(ILogger<QuizController> logger, IQuizService quizService, IExerciseService exerciseService)
+        public QuizController(IQuizService quizService,
+                              IExerciseService exerciseService)
         {
-            _logger = logger;
             _quizService = quizService;
             _exerciseService = exerciseService;
         }
 
-        // GET: /Quiz/ViewQuizzes
-        public async Task<IActionResult> ViewQuizzes()
+        // GET /Quiz/ViewQuizzes?selectedQuizId=5
+        [HttpGet]
+        public async Task<IActionResult> ViewQuizzes(int? selectedQuizId)
         {
-            List<Quiz> model = await _quizService.GetAllQuizzes();
-            return View(model);
+            var vm = new ManageQuizViewModel
+            {
+                Quizzes = await _quizService.GetAllQuizzes(),
+                SelectedQuizId = selectedQuizId
+            };
+
+            if (selectedQuizId.HasValue)
+            {
+                vm.AssignedExercises = await _exerciseService
+                   .GetAllExercisesFromQuiz(selectedQuizId.Value);
+
+                var all = await _exerciseService.GetAllExercises();
+                vm.AvailableExercises = all
+                   .Where(e => !vm.AssignedExercises
+                                  .Any(a => a.ExerciseId == e.ExerciseId))
+                   .ToList();
+            }
+
+            return View(vm);
         }
 
-        public IActionResult CreateQuiz()
+        // POST /Quiz/AddExercise
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddExercise(int quizId, int exerciseId)
         {
-            return View();
+            await _quizService.AddExerciseToQuiz(quizId, exerciseId);
+            return RedirectToAction(
+                nameof(ViewQuizzes),
+                new { selectedQuizId = quizId }
+            );
         }
 
-        // POST: /Quiz/DeleteQuiz/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
+        // POST /Quiz/RemoveExercise
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> RemoveExercise(int quizId, int exerciseId)
+        {
+            await _quizService.RemoveExerciseFromQuiz(quizId, exerciseId);
+            return RedirectToAction(
+                nameof(ViewQuizzes),
+                new { selectedQuizId = quizId }
+            );
+        }
+
+        // POST /Quiz/DeleteQuiz/5
+        [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteQuiz(int id)
         {
             await _quizService.DeleteQuiz(id);
             return RedirectToAction(nameof(ViewQuizzes));
         }
-
-        // GET: /Quiz/GetExercises?quizId=5
-        [HttpGet]
-        public async Task<IActionResult> GetExercises(int quizId)
-        {
-            var exercises = await _exerciseService.GetAllExercisesFromQuiz(quizId);
-            if (exercises == null) return NotFound();
-
-            var result = exercises
-                            .Select(e => new { e.ExerciseId })
-                            .ToList();
-
-
-            return Json(result);
-        }
-
-        [HttpPost, ValidateAntiForgeryToken]
-        public async Task<IActionResult> AddExercise(int quizId, int exerciseId)
-        {
-            await _quizService.AddExerciseToQuiz(quizId, exerciseId);
-            return RedirectToAction(nameof(ViewQuizzes));
-        }
-
-        // GET /Quiz/GetAllExercises
-        [HttpGet]
-        public async Task<IActionResult> GetAllExercises()
-        {
-            var all = await _exerciseService.GetAllExercises();
-            var dto = all.Select(e => new { exerciseId = e.ExerciseId })
-                         .ToList();
-            return Json(dto);
-        }
-
     }
 }
