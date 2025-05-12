@@ -17,8 +17,8 @@
     <ul class="list-group">
         @foreach (var quiz in Model)
         {
-            <li class="list-group-item d-flex justify-content-between align-items-center bg-dark text-light">
-                Quiz #@quiz.Id
+            <li class="list-group-item d-flex justify-content-between align-items-center bg-dark text-light"
+               data-quiz-id="@quiz.Id">                Quiz #@quiz.Id
                 <form asp-action="DeleteQuiz"
                       asp-controller="Quiz"
                       asp-route-id="@quiz.Id"
@@ -91,4 +91,40 @@
                 background-color: #0b5ed7;
             }
     </style>
+}
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+          const container = document.querySelector(".dark-box");
+          document
+            .querySelectorAll("ul.list-group > li[data-quiz-id]")
+            .forEach(li => {
+              li.style.cursor = "pointer";
+              li.addEventListener("click", async () => {
+                const quizId = li.dataset.quizId;
+                const res = await fetch(`/Quiz/GetExercises?quizId=${quizId}`);
+                if (!res.ok) {
+                  container.innerHTML = "<p class='text-danger'>Error loading exercises.</p>";
+                  return;
+                }
+                const exercises = await res.json();
+
+                if (exercises.length === 0) {
+                  container.innerHTML = "<p><em>No exercises assigned.</em></p>";
+                } else {
+                  let html = '<ul class="list-group list-group-flush">';
+                  for (const ex of exercises) {
+                    html += `
+                      <li class="list-group-item bg-dark text-light">
+                        Exercise #${ex.exerciseId}
+                      </li>`;
+                  }
+                  html += "</ul>";
+                  container.innerHTML = html;
+                }
+              });
+            });
+        });
+    </script>
 }

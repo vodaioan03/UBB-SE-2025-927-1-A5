@@ -9,11 +9,14 @@ namespace Duo.Web.Controllers
     {
         private readonly ILogger<QuizController> _logger;
         private readonly IQuizService _quizService;
+        private readonly IExerciseService _exerciseService;
 
-        public QuizController(ILogger<QuizController> logger, IQuizService quizService)
+
+        public QuizController(ILogger<QuizController> logger, IQuizService quizService, IExerciseService exerciseService)
         {
             _logger = logger;
             _quizService = quizService;
+            _exerciseService = exerciseService;
         }
 
         // GET: /Quiz/ViewQuizzes
@@ -35,6 +38,25 @@ namespace Duo.Web.Controllers
         {
             await _quizService.DeleteQuiz(id);
             return RedirectToAction(nameof(ViewQuizzes));
+        }
+
+        // GET: /Quiz/GetExercises?quizId=5
+        [HttpGet]
+        public async Task<IActionResult> GetExercises(int quizId)
+        {
+            var exercises = await _exerciseService.GetAllExercisesFromQuiz(quizId);
+            if (exercises == null) return NotFound();
+
+            var list = exercises
+                .Select(e => new
+                {
+                    e.ExerciseId,
+                    Question = e.Question,
+                    Difficulty = e.Difficulty.ToString()
+                })
+                .ToList();
+
+            return Json(list);
         }
 
     }

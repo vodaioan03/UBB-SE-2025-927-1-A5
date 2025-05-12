@@ -25,7 +25,16 @@ builder.Services
     });
 
 builder.Services
+    .AddHttpClient<IExerciseServiceProxy, ExerciseServiceProxy>(c =>
+    {
+        c.BaseAddress = new Uri(apiBase);
+    });
+
+builder.Services
     .AddScoped<ICourseService, CourseService>();
+
+builder.Services.AddScoped<IExerciseService, ExerciseService>();
+
 
 builder.Services.AddControllersWithViews();
 
