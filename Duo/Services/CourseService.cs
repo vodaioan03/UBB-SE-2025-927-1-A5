@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Duo.Models;
+using DuoClassLibrary.Models;
 using Duo.Services.Interfaces;
 
 namespace Duo.Services

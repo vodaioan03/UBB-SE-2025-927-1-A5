@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using Duo.Models.Quizzes;
-using Duo.Models.Quizzes.API;
+using DuoClassLibrary.Models.Quizzes;
+using DuoClassLibrary.Models.Quizzes.API;
 
 namespace Duo.Services.Interfaces
 {

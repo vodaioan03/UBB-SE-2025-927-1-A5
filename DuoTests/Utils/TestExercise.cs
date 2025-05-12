@@ -1,5 +1,5 @@
-﻿using Duo.Models.Exercises;
-using Duo.Models;
+﻿using DuoClassLibrary.Models.Exercises;
+using DuoClassLibrary.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;

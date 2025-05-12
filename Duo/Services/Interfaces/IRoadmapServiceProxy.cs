@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using Duo.Models.Roadmap;
+using DuoClassLibrary.Models.Roadmap;
 
 namespace Duo.Services.Interfaces
 {

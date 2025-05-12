@@ -179,6 +179,15 @@ namespace Duo.Api.Repositories
         /// <returns>True if the user has clicked the module image, otherwise false.</returns>
         public Task<bool> IsModuleImageClickedAsync(int userId, int moduleId);
 
+        /// <summary>
+        /// Marks a module as opened for a user asynchronously.
+        /// </summary>
+        /// <param name="userId">The unique identifier of the user. </param>
+        /// <param name="courseId"> The unique identifier of the course. </param>
+        /// <param name="moduleId"> The unique identifier of the module. </param>
+        /// <returns>A task </returns>
+        public Task<bool> BuyBonusModuleAsync(int userId, int moduleId);
+
         #endregion
 
         #region Exercises

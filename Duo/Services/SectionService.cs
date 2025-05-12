@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Duo.Models.Sections;
+using DuoClassLibrary.Models.Sections;
 using Duo.Services.Interfaces;
 
 namespace Duo.Services

@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 using System.Windows.Input;
-using Duo.Models;
+using DuoClassLibrary.Models;
 
 #pragma warning disable IDE0079
 #pragma warning disable CA1050

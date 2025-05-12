@@ -54,7 +54,11 @@
                             <a class="nav-link text-dark" asp-area="" asp-controller="Course" asp-action="ViewCourses">Courses</a>
                         </li>
                         <li class="nav-item">
+
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+
+                            <a class="nav-link text-dark" asp-area="" asp-controller="QuizAdmin" asp-action="Index">Quiz Admin</a>
+
                         </li>
                     </ul>
                     <div class="theme-toggle-wrapper d-none d-sm-flex">
@@ -86,6 +90,7 @@
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const themeToggle = document.getElementById('themeToggle');
@@ -138,5 +143,9 @@
             });
         });
     </script>
+
+    @RenderSection("Styles", required: false)
+
+
 </body>
 </html>

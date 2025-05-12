@@ -7,10 +7,10 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Duo.Commands;
-using Duo.Models;
-using Duo.Models.Exercises;
-using Duo.Models.Quizzes;
-using Duo.Services;
+using DuoClassLibrary.Models;
+using DuoClassLibrary.Models.Exercises;
+using DuoClassLibrary.Models.Quizzes;
+using DuoClassLibrary.Services;
 
 namespace Duo.ViewModels
 {

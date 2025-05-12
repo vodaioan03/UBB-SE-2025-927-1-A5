@@ -38,4 +38,8 @@
     <Folder Include="Repositories\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\DuoClassLibrary\DuoClassLibrary.csproj" />
+  </ItemGroup>
+
 </Project>
