@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Duo.Web.Models;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
 namespace Duo.Web.Controllers
@@ -12,14 +13,28 @@ namespace Duo.Web.Controllers
             _logger = logger;
         }
 
+        private List<ExerciseViewModel> GetMockExercises()
+        {
+            return new List<ExerciseViewModel>
+            {
+                new ExerciseViewModel { Id = 1, Description = "Match the items for Association Exercise 1" },
+                new ExerciseViewModel { Id = 2, Description = "Match the items for Association Exercise 2" },
+                new ExerciseViewModel { Id = 3, Description = "Match the items for Association Exercise 4" },
+                new ExerciseViewModel { Id = 4, Description = "Complete the sentence for Fill in the Blank Exercise 3" },
+            };
+                }
+
         public IActionResult ManageExam()
         {
-            return View("~/Views/Exam/ManageExam.cshtml");
+            ViewBag.Exercises = GetMockExercises();
+            return View();
         }
 
         public IActionResult AddExam()
         {
-            return View("~/Views/Exam/AddExam.cshtml");
+            ViewBag.Exercises = GetMockExercises();
+            return View();
         }
+
     }
 }

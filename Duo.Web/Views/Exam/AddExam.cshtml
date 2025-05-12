@@ -1,6 +1,7 @@
 ﻿@{
     ViewData["Title"] = "Create New Exam";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    var exercises = ViewBag.Exercises as List<ExerciseViewModel>;
 }
 
 <div class="container-fluid px-4">
@@ -9,16 +10,43 @@
     </div>
 
     <h5>Selected Exercises</h5>
-    <div class="border rounded p-4 mb-4 dark-box" style="min-height: 150px;">
-        <!-- Selected exercises go here -->
+    <div class="border rounded p-4 mb-4 dark-box" style="min-height: 150px;" id="selectedExercisesBox">
+        <!-- Selected exercises will appear here -->
     </div>
+
     <div class="text-end mb-4">
-        <button class="btn btn-primary">Add Exercise</button>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exerciseModal">Add Exercise</button>
     </div>
 
     <div class="text-end">
         <a href="@Url.Action("ManageExam", "Exam")" class="btn btn-secondary">Cancel</a>
         <button class="btn btn-primary">Save</button>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="exerciseModal" tabindex="-1" aria-labelledby="exerciseModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content bg-dark text-light">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exerciseModalLabel">Select Exercise</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <ul class="list-group" id="exerciseList">
+                    @foreach (var ex in exercises)
+                    {
+                        <li class="list-group-item bg-dark text-light exercise-item" data-id="@ex.Id" data-name="@ex.Description">
+                            Exercise #@ex.Id – @ex.Description
+                        </li>
+                    }
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="confirmAddExercise" disabled>Add</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -28,24 +56,65 @@
             background-color: #121212;
             color: #f8f9fa;
         }
+
         .dark-box {
             background-color: #1e1e1e;
             border-color: #444;
             color: #f8f9fa;
         }
+
         .btn-primary {
             background-color: #0d6efd;
             border: none;
         }
-        .btn-primary:hover {
-            background-color: #0b5ed7;
-        }
+
+            .btn-primary:hover {
+                background-color: #0b5ed7;
+            }
+
         .btn-secondary {
             background-color: #6c757d;
             border: none;
         }
-        .btn-secondary:hover {
-            background-color: #5a6268;
+
+            .btn-secondary:hover {
+                background-color: #5a6268;
+            }
+
+        .exercise-item.active {
+            background-color: #343a40;
         }
     </style>
+}
+
+@section Scripts {
+    <script>
+        let selectedItem = null;
+
+        document.querySelectorAll('.exercise-item').forEach(item => {
+            item.addEventListener('click', function () {
+                document.querySelectorAll('.exercise-item').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+                selectedItem = {
+                    id: this.dataset.id,
+                    name: this.dataset.name
+                };
+                document.getElementById('confirmAddExercise').disabled = false;
+            });
+        });
+
+        document.getElementById('confirmAddExercise').addEventListener('click', function () {
+            if (!selectedItem) return;
+
+            const container = document.getElementById('selectedExercisesBox');
+            const div = document.createElement('div');
+            div.classList.add('mb-2');
+            div.textContent = `Exercise #${selectedItem.id} – ${selectedItem.name}`;
+            container.appendChild(div);
+
+            bootstrap.Modal.getInstance(document.getElementById('exerciseModal')).hide();
+            selectedItem = null;
+            document.getElementById('confirmAddExercise').disabled = true;
+        });
+    </script>
 }
