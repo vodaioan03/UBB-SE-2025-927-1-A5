@@ -23,19 +23,29 @@
             </div>
             <a href="#" class="admin-card-btn">Add section</a>
         </div>
-        <div class="admin-card">
+        <div class="admin-card"
+             style="cursor:pointer;"
+             onclick="location.href='@Url.Action("ViewQuizzes","Quiz")'">
+
             <div class="admin-card-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="10"/>
-                    <path d="M8.5 12.5A.5.5 0 0 1 9 12a.5.5 0 0 1 .5.5.5.5 0 0 1-.5.5.5.5 0 0 1-.5-.5z"/>
-                    <path d="M12 8v4l3 3"/>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none"
+                     stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="M8.5 12.5A.5.5 0 0 1 9 12a.5.5 0 0 1 .5.5.5.5 0 0 1-.5.5.5.5 0 0 1-.5-.5z" />
+                    <path d="M12 8v4l3 3" />
                 </svg>
             </div>
+
             <div class="admin-card-content">
                 <div class="admin-card-title">Manage Quizzes</div>
                 <div class="admin-card-desc">here you can see and delete</div>
             </div>
-            <a href="#" class="admin-card-btn">Add quiz</a>
+
+            <a asp-controller="Quiz"
+               asp-action="CreateQuiz"
+               class="admin-card-btn">
+                Add Quiz
+            </a>
         </div>
         <div class="admin-card">
             <div class="admin-card-icon">
