@@ -166,14 +166,13 @@ namespace DuoClassLibrary.Services
             return await httpClient.GetFromJsonAsync<int>($"{url}/api/course/timeLimit?courseId={courseId}");
         }
 
-        public async Task<bool> BuyBonusModule(int userId, int moduleId, int courseId)
+        public async Task<bool> BuyBonusModule(int userId, int moduleId)
         {
             var requestContent = new StringContent(
                 JsonSerializer.Serialize(new
                 {
                     UserId = userId,
                     ModuleId = moduleId,
-                    CourseId = courseId
                 }),
                 Encoding.UTF8,
                 "application/json");
