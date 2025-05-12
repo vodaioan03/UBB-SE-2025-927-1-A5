@@ -1,4 +1,6 @@
-﻿@{
+﻿@model List<DuoClassLibrary.Models.Quizzes.Quiz>
+
+@{
     ViewData["Title"] = "Manage Quizzes";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
@@ -12,19 +14,21 @@
         </a>
     </div>
 
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <a href="@Url.Action("CreateQuiz", "QuizAdmin")" class="btn btn-primary">Add Quiz</a>
-    </div>
-
     <ul class="list-group">
-        @* Replace with dynamic quiz list later *@
-        @for (int i = 1; i <= 5; i++)
+        @foreach (var quiz in Model)
         {
             <li class="list-group-item d-flex justify-content-between align-items-center bg-dark text-light">
-                Quiz #@i
- 
-                
-                <button class="btn btn-sm btn-outline-danger">Remove</button>
+                Quiz #@quiz.Id
+                <form asp-action="DeleteQuiz"
+                      asp-controller="Quiz"
+                      asp-route-id="@quiz.Id"
+                      method="post"
+                      class="m-0 p-0">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                        Remove
+                    </button>
+                </form>
             </li>
         }
     </ul>
