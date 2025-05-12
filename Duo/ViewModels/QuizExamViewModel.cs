@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Duo.Models;
-using Duo.Models.Exercises;
-using Duo.Models.Quizzes;
-using Duo.Models.Sections;
-using Duo.Services;
+using DuoClassLibrary.Models;
+using DuoClassLibrary.Models.Exercises;
+using DuoClassLibrary.Models.Quizzes;
+using DuoClassLibrary.Models.Sections;
+using DuoClassLibrary.Services;
 using Duo.ViewModels.Base;
 
 namespace Duo.ViewModels

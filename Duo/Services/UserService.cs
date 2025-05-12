@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using Duo.Data;
-using Duo.Models;
+using DuoClassLibrary.Models;
 
 namespace Duo.Services
 {

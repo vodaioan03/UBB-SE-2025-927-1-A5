@@ -8,8 +8,8 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using Duo.Commands;
 using Duo.Helpers;
-using Duo.Models.Exercises;
-using Duo.Services;
+using DuoClassLibrary.Models.Exercises;
+using DuoClassLibrary.Services;
 using Duo.ViewModels.Base;
 using Duo.ViewModels.CreateExerciseViewModels;
 using Duo.Views.Components;
@@ -17,6 +17,7 @@ using Duo.Views.Components.CreateExerciseComponents;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
+using DuoClassLibrary.Models;
 
 namespace Duo.ViewModels
 {
@@ -239,7 +240,7 @@ namespace Duo.ViewModels
         {
             try
             {
-                Duo.Models.Difficulty difficulty = GetDifficulty(SelectedDifficulty);
+                Difficulty difficulty = GetDifficulty(SelectedDifficulty);
                 Exercise newExercise = CreateMultipleChoiceExerciseViewModel.CreateExercise(QuestionText, difficulty);
                 await exerciseService.CreateExercise(newExercise);
                 Debug.WriteLine(newExercise);
@@ -257,7 +258,7 @@ namespace Duo.ViewModels
         {
             try
             {
-                Duo.Models.Difficulty difficulty = GetDifficulty(SelectedDifficulty);
+                Difficulty difficulty = GetDifficulty(SelectedDifficulty);
                 Exercise newExercise = CreateAssociationExerciseViewModel.CreateExercise(QuestionText, difficulty);
                 await exerciseService.CreateExercise(newExercise);
                 Debug.WriteLine(newExercise);
@@ -275,7 +276,7 @@ namespace Duo.ViewModels
         {
             try
             {
-                Duo.Models.Difficulty difficulty = GetDifficulty(SelectedDifficulty);
+                Difficulty difficulty = GetDifficulty(SelectedDifficulty);
                 Exercise newExercise = CreateFlashcardExerciseViewModel.CreateExercise(QuestionText, difficulty);
                 await exerciseService.CreateExercise(newExercise);
                 Debug.WriteLine(newExercise);
@@ -293,7 +294,7 @@ namespace Duo.ViewModels
         {
             try
             {
-                Duo.Models.Difficulty difficulty = GetDifficulty(SelectedDifficulty);
+                DuoClassLibrary.Models.Difficulty difficulty = GetDifficulty(SelectedDifficulty);
                 Exercise newExercise = CreateFillInTheBlankExerciseViewModel.CreateExercise(QuestionText, difficulty);
                 await exerciseService.CreateExercise(newExercise);
                 Debug.WriteLine(newExercise);
@@ -307,23 +308,23 @@ namespace Duo.ViewModels
             }
         }
 
-        private Duo.Models.Difficulty GetDifficulty(string difficulty)
+        private Difficulty GetDifficulty(string difficulty)
         {
             try
             {
                 return difficulty switch
                 {
-                    "Easy" => Models.Difficulty.Easy,
-                    "Normal" => Models.Difficulty.Normal,
-                    "Hard" => Models.Difficulty.Hard,
-                    _ => Models.Difficulty.Normal
+                    "Easy" => Difficulty.Easy,
+                    "Normal" => Difficulty.Normal,
+                    "Hard" => Difficulty.Hard,
+                    _ => Difficulty.Normal
                 };
             }
             catch (Exception ex)
             {
                 Debug.WriteLine(ex);
                 RaiseErrorMessage("Failed to parse difficulty", ex.Message);
-                return Models.Difficulty.Normal;
+                return Difficulty.Normal;
             }
         }
     }

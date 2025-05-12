@@ -9,7 +9,7 @@ using Microsoft.UI.Xaml.Media;
 using Windows.UI;
 using Windows.UI.ViewManagement;
 using Duo.ViewModels.Base;
-using Duo.Models.Exercises;
+using DuoClassLibrary.Models.Exercises;
 
 namespace Duo.Views.Components
 {

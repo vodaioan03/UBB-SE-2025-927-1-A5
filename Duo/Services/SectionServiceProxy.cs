@@ -7,8 +7,8 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Azure;
-using Duo.Models.Sections;
-using Duo.Models.Sections.DTO;
+using DuoClassLibrary.Models.Sections;
+using DuoClassLibrary.Models.Sections.DTO;
 using Duo.Services.Interfaces;
 
 namespace Duo.Services
