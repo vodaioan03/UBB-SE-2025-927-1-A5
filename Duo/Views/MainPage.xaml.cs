@@ -8,6 +8,8 @@ using Duo.ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
+using DuoClassLibrary.Services;
+using DuoClassLibrary.Proxies;
 
 namespace Duo.Views
 {

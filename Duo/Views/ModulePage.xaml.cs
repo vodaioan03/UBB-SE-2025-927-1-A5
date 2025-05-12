@@ -6,6 +6,8 @@ using Microsoft.UI.Xaml.Controls;
 using Duo.Models;
 using Duo.ViewModels;
 using Duo.Services;
+using DuoClassLibrary.Services;
+using DuoClassLibrary.Proxies;
 
 namespace Duo.Views
 {
