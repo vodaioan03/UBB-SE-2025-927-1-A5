@@ -9,7 +9,7 @@
     mc:Ignorable="d"
     xmlns:components="using:Duo.Views.Components"
     xmlns:viewmodels="using:Duo.ViewModels"
-    xmlns:models="using:Duo.Models.Exercises"
+    xmlns:models="using:DuoClassLibrary.Models.Exercises"
     HorizontalAlignment="Stretch">
 
     <Page.DataContext>

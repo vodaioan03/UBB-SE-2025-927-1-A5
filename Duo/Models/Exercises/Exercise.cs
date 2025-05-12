@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
-using Duo.Models.Quizzes;
+using DuoClassLibrary.Models.Quizzes;
 
 namespace Duo.Models.Exercises;
 

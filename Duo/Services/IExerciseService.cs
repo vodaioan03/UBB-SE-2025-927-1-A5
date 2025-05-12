@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using Duo.Models.Exercises;
+using DuoClassLibrary.Models.Exercises;
 
 namespace Duo.Services
 {

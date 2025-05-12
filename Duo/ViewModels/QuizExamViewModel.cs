@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Duo.Models;
-using Duo.Models.Exercises;
-using Duo.Models.Quizzes;
-using Duo.Models.Sections;
-using Duo.Services;
+using DuoClassLibrary.Models;
+using DuoClassLibrary.Models.Exercises;
+using DuoClassLibrary.Models.Quizzes;
+using DuoClassLibrary.Models.Sections;
+using DuoClassLibrary.Services;
 using Duo.ViewModels.Base;
 
 namespace Duo.ViewModels
@@ -511,10 +511,10 @@ namespace Duo.ViewModels
                     return;
                 }
 
-                UserService userService = (UserService)App.ServiceProvider.GetService(typeof(UserService))
-                    ?? throw new InvalidOperationException("UserService not found.");
-                SectionService sectionService = (SectionService)App.ServiceProvider.GetService(typeof(SectionService))
-                    ?? throw new InvalidOperationException("SectionService not found.");
+                IUserService userService = (IUserService)App.ServiceProvider.GetService(typeof(IUserService))
+                    ?? throw new InvalidOperationException("IUserService not found.");
+                ISectionService sectionService = (ISectionService)App.ServiceProvider.GetService(typeof(ISectionService))
+                    ?? throw new InvalidOperationException("ISectionService not found.");
 
                 User user = await userService.GetByIdAsync(1)
                     ?? throw new InvalidOperationException("User not found.");
