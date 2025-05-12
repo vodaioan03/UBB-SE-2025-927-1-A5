@@ -307,7 +307,7 @@ namespace Duo.Api.Controllers
             {
                 if (!data.TryGetValue("userId", out var userIdObj) || !data.TryGetValue("moduleId", out var moduleIdObj))
                 {
-                    return this.BadRequest("Missing userId or courseId");
+                    return this.BadRequest("Missing userId or moduleId");
                 }
 
                 var userId = ((JsonElement)data["userId"]).GetInt32();
