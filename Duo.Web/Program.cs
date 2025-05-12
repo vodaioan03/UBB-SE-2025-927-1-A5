@@ -1,32 +1,75 @@
+using DuoClassLibrary.Services;
+using DuoClassLibrary.Services.Interfaces;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+var apiBase = builder.Configuration["Api:BaseUrl"];
+if (string.IsNullOrWhiteSpace(apiBase))
+{
+    throw new InvalidOperationException("Missing Api:BaseUrl in appsettings.json");
+}
+
 builder.Services.AddControllersWithViews();
-builder.Services.AddHttpClient();
-builder.Services.AddScoped<DuoClassLibrary.Services.Interfaces.ISectionServiceProxy, DuoClassLibrary.Services.SectionServiceProxy>();
-builder.Services.AddScoped<DuoClassLibrary.Services.ISectionService, DuoClassLibrary.Services.SectionService>();
-builder.Services.AddScoped<DuoClassLibrary.Services.IQuizServiceProxy, DuoClassLibrary.Services.QuizServiceProxy>();
-builder.Services.AddScoped<DuoClassLibrary.Services.IQuizService, DuoClassLibrary.Services.QuizService>();
+builder.Services.AddRazorPages();
+
+builder.Services.AddHttpClient<IQuizServiceProxy, QuizServiceProxy>(client =>
+{
+    client.BaseAddress = new Uri(apiBase);
+});
+
+builder.Services.AddHttpClient<ICourseServiceProxy, CourseServiceProxy>(client =>
+{
+    client.BaseAddress = new Uri(apiBase);
+});
+
+builder.Services.AddHttpClient<IExerciseServiceProxy, ExerciseServiceProxy>(client =>
+{
+    client.BaseAddress = new Uri(apiBase);
+});
+
+builder.Services.AddHttpClient<ISectionServiceProxy, SectionServiceProxy>(client =>
+{
+    client.BaseAddress = new Uri(apiBase);
+});
+
+builder.Services.AddScoped<IQuizService, QuizService>();
+builder.Services.AddScoped<ICourseService, CourseService>();
+builder.Services.AddScoped<ISectionService, SectionService>();
+builder.Services.AddScoped<IExerciseService, ExerciseService>();
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", builder =>
+    {
+        builder.WithOrigins("https://localhost:7037")
+               .AllowAnyHeader()
+               .AllowAnyMethod()
+               .AllowCredentials()
+               .WithExposedHeaders("Content-Type", "Accept");
+    });
+});
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
+app.UseCors("AllowFrontend");
+
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-
 app.UseRouting();
-
 app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+app.MapControllerRoute(
+    name: "courses",
+    pattern: "Course/{action=ViewCourses}/{id?}");
 
 app.Run();
