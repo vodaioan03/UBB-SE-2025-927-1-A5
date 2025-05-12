@@ -20,3 +20,60 @@ html {
 body {
   margin-bottom: 60px;
 }
+
+/* Custom styles that aren't covered by Bootstrap */
+.sidebar {
+    background-color: #f8f9fa;
+    border-right: 1px solid #dee2e6;
+}
+
+.nav-pills .nav-link.active {
+    background-color: #0d6efd;
+}
+
+.course-card .card-footer {
+    border-top: 1px solid rgba(0,0,0,.125);
+}
+
+.progress {
+    background-color: #e9ecef;
+}
+
+@media (max-width: 768px) {
+    .sidebar {
+        width: 70px !important;
+    }
+
+        .sidebar .menu-text {
+            display: none;
+        }
+
+        .sidebar .nav-link {
+            text-align: center;
+        }
+
+            .sidebar .nav-link i {
+                margin-right: 0;
+            }
+}
+
+.grid-view .col-md-4 {
+    flex: 0 0 33.333333%;
+    max-width: 33.333333%;
+}
+
+/* List View */
+.list-view .col-md-4 {
+    flex: 0 0 100%;
+    max-width: 100%;
+}
+
+.list-view .course-card {
+    display: flex;
+    flex-direction: row;
+}
+
+.list-view .course-img {
+    width: 200px;
+    height: auto;
+}
