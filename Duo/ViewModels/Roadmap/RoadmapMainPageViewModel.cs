@@ -5,10 +5,13 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Duo.Commands;
-using Duo.Models;
-using Duo.Models.Quizzes;
-using Duo.Models.Sections;
-using Duo.Services;
+using DuoClassLibrary.Models.Sections;
+using DuoClassLibrary.Models;
+using DuoClassLibrary.Models.Roadmaps;
+using DuoClassLibrary.DTOs;
+using DuoClassLibrary.Interfaces.Proxies;
+using DuoClassLibrary.Interfaces.Services;
+using DuoClassLibrary.Services;
 using Duo.ViewModels.Base;
 
 namespace Duo.ViewModels.Roadmap
@@ -16,7 +19,7 @@ namespace Duo.ViewModels.Roadmap
     public class RoadmapMainPageViewModel : ViewModelBase
     {
         private IRoadmapService roadmapService;
-        private Duo.Models.Roadmap.Roadmap roadmap;
+        private Roadmap roadmap;
         private IUserService userService;
         private User user;
         private BaseQuiz selectedQuiz;
