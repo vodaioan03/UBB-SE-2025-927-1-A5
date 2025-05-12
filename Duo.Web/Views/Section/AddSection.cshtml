@@ -135,7 +135,7 @@ function renderSelectedExam() {
 $('#addQuizBtn').on('click', function() {
     $('#quizModal').modal('show');
     $.ajax({
-        url: 'https://localhost:7174/api/Quiz/get-all',
+        url: 'https://localhost:7174/api/Quiz/get-all-available',
         method: 'GET',
         success: function(quizzes) {
             const list = $('#quiz-list-modal');
@@ -166,7 +166,7 @@ $('#addQuizBtn').on('click', function() {
 $('#addExamBtn').on('click', function() {
     $('#examModal').modal('show');
     $.ajax({
-        url: 'https://localhost:7174/api/Exam/get-all',
+        url: 'https://localhost:7174/api/Exam/get-all-available',
         method: 'GET',
         success: function(exams) {
             const list = $('#exam-list-modal');
