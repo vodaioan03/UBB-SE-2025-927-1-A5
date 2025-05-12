@@ -192,4 +192,10 @@
   <ItemGroup>
     <PRIResource Remove="ViewModels\NewFolder\**" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="DuoClassLibrary">
+      <HintPath>..\DuoClassLibrary\bin\Debug\net8.0\DuoClassLibrary.dll</HintPath>
+    </Reference>
+  </ItemGroup>
 </Project>

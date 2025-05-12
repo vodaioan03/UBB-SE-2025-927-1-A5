@@ -1,30 +1,17 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
 using System.Net.Http;
-using Windows.ApplicationModel;
-using Windows.ApplicationModel.Activation;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
 using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
-using Microsoft.UI.Xaml.Data;
-using Microsoft.UI.Xaml.Input;
-using Microsoft.UI.Xaml.Media;
-using Microsoft.UI.Xaml.Navigation;
-using Microsoft.UI.Xaml.Shapes;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Duo.Data;
 using Duo.ViewModels.ExerciseViewModels;
-using Duo.Services;
 using Duo.ViewModels;
 using Duo.ViewModels.Roadmap;
 using Duo.Helpers;
-using Duo.Services.Interfaces;
+using DuoClassLibrary.Interfaces.Services;
+using DuoClassLibrary.Interfaces.Proxies;
+using DuoClassLibrary.Services;
+using DuoClassLibrary.Proxies;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
