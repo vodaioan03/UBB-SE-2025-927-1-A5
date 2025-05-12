@@ -1,7 +1,8 @@
 ﻿using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using Duo.Models;
+using DuoClassLibrary.Models;
+using DuoClassLibrary.Models.Courses;
 using static Duo.ViewModels.CourseViewModel;
 
 namespace Duo.ViewModels

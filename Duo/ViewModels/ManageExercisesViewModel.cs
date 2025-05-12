@@ -1,16 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Duo.Commands;
-using Duo.Models;
-using Duo.Models.Exercises;
-using Duo.Services;
-using Duo.ViewModels.Base;
+using DuoClassLibrary.Models.Exercises;
+using DuoClassLibrary.Interfaces.Services;
 using Microsoft.UI.Dispatching;
 
 namespace Duo.ViewModels

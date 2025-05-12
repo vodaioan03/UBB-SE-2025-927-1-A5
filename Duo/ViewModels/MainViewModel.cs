@@ -5,9 +5,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Duo.Commands;
-using Duo.Models;
-using Duo.Services;
-using Windows.System.Threading;
+using DuoClassLibrary.Models;
+using DuoClassLibrary.Models.Courses;
+using DuoClassLibrary.Interfaces.Services;
+using DuoClassLibrary.Services;
+using DuoClassLibrary.Proxies;
 
 #pragma warning disable IDE0028, CS8618, CS8602, CS8601, IDE0060
 

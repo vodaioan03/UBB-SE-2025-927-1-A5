@@ -6,8 +6,9 @@ using System.Threading.Tasks;
 using System.Linq;
 using System.Windows.Input;
 using Duo.Commands;
-using Duo.Models.Exercises;
-using Duo.Models.Quizzes;
+using DuoClassLibrary.Models.Exercises;
+using DuoClassLibrary.Interfaces.Services;
+using DuoClassLibrary.Models.Quizzes;
 using Duo.Services;
 
 namespace Duo.ViewModels

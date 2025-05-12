@@ -7,10 +7,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Duo.Commands;
-using Duo.Models;
-using Duo.Services;
+using DuoClassLibrary.Models;
+using DuoClassLibrary.Models.Courses;
+using DuoClassLibrary.Interfaces.Services;
+using DuoClassLibrary.Services;
 using Duo.ViewModels.Helpers;
-using Windows.System;
+using DuoClassLibrary.Proxies;
 
 #pragma warning disable IDE0079 // Remove unnecessary suppression
 #pragma warning disable SA1010 // Opening square brackets should be spaced correctly
