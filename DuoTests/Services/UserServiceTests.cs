@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
-using Duo.Models;
-using Duo.Services;
+using DuoClassLibrary.Models;
+using DuoClassLibrary.Services;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 

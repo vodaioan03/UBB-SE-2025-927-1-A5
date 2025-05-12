@@ -2,7 +2,7 @@
 using Moq;
 using System;
 using System.Threading.Tasks;
-using Duo.Services;
+using DuoClassLibrary.Services;
 using Duo.Services.Interfaces;
 
 namespace Duo.Tests.Services
