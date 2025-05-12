@@ -110,7 +110,7 @@
                 const formData = collectFormData(exerciseType);
                 
                 $.ajax({
-                    url: '/Exercise/Create',
+                    url: '/Exercise/CreateExercise',
                     type: 'POST',
                     contentType: 'application/json',
                     data: JSON.stringify(formData),
@@ -118,7 +118,12 @@
                         window.location.href = '/Home';
                     },
                     error: function(xhr) {
-                        alert('Error saving exercise: ' + xhr.responseText);
+                        if (xhr.status === 400 && xhr.responseJSON) {
+                            // Display validation errors
+                            // Example: show errors next to fields
+                        } else {
+                            alert('Error saving exercise: ' + xhr.responseText);
+                        }
                     }
                 });
             });

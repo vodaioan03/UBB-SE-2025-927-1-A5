@@ -9,11 +9,11 @@ namespace DuoWebApp.Controllers
 {
     public class ExerciseController : Controller
     {
-        private readonly ILogger<ExerciseController> _logger;
+        private readonly IExerciseService exerciseService;
 
-        public ExerciseController(ILogger<ExerciseController> logger)
+        public ExerciseController(IExerciseService exerciseService)
         {
-            _logger = logger;
+            this.exerciseService = exerciseService;
         }
 
         public IActionResult CreateExercise()
@@ -22,6 +22,22 @@ namespace DuoWebApp.Controllers
             ViewBag.ExerciseTypes = ExerciseTypes.EXERCISE_TYPES;
             return View("~/Views/Exercise/CreateExercise.cshtml");
         }
+
+        [HttpPost]
+        public async Task<IActionResult> Create([FromBody] Exercise exercise)
+        {
+            if (!ModelState.IsValid)
+            {
+                // Return validation errors as JSON for AJAX
+                return BadRequest(ModelState);
+            }
+
+            await exerciseService.CreateExercise(exercise);
+
+            // Return success (could also return the created entity or a redirect URL)
+            return Ok(new { message = "Exercise created successfully" });
+        }
+
 
         public IActionResult ViewExercises()
         {
@@ -49,87 +65,21 @@ namespace DuoWebApp.Controllers
         [HttpGet]
         public async Task<IActionResult> Manage()
         {
-            //var exercises = await _exerciseService.GetAllExercises();
-            var exercises = new List<Exercise>
-            {
-                new FlashcardExercise(1, "What is the capital of France?", "Paris", Difficulty.Easy)
-                {
-                    Type = "Flashcard"
-                },
-                new MultipleChoiceExercise(
-                    2,
-                    "Which planet is known as the Red Planet?",
-                    Difficulty.Normal,
-                    new List<MultipleChoiceAnswerModel>
-                    {
-                        new MultipleChoiceAnswerModel("Earth", false),
-                        new MultipleChoiceAnswerModel("Mars", true), // Mars is correct
-                        new MultipleChoiceAnswerModel("Jupiter", false),
-                        new MultipleChoiceAnswerModel("Venus", false)
-                    }
-                )
-                {
-                    Type = "Multiple Choice"
-                },
-                new AssociationExercise(
-                    3,
-                    "Match the countries to their capitals.",
-                    Difficulty.Hard,
-                    new List<string> { "France", "Germany" },
-                    new List<string> { "Paris", "Berlin" }
-                )
-                {
-                    Type = "Association"
-                }
-            };
+            var exercises = await exerciseService.GetAllExercises();
             return View("~/Views/Exercise/ManageExercise.cshtml", exercises);
         }
 
         [HttpPost]
         public async Task<IActionResult> Delete(int id)
         {
-            //await _exerciseService.DeleteExercise(id);
-            return RedirectToAction("ManageExercise");
+            await exerciseService.DeleteExercise(id);
+            return RedirectToAction("Manage");
         }
 
         [HttpGet]
         public async Task<IActionResult> GetExerciseDetails(int id)
         {
-            //var exercise = await _exerciseService.GetExerciseById(id);
-            Exercise exercise = id switch
-            {
-                1 => new FlashcardExercise(1, "What is the capital of France?", "Paris", Difficulty.Easy)
-                {
-                    Type = "Flashcard"
-                },
-                2 => new MultipleChoiceExercise(
-                    2,
-                    "Which planet is known as the Red Planet?",
-                    Difficulty.Normal,
-                    new List<MultipleChoiceAnswerModel>
-                    {
-                        new MultipleChoiceAnswerModel("Earth", false),
-                        new MultipleChoiceAnswerModel("Mars", true), // Mars is correct
-                        new MultipleChoiceAnswerModel("Jupiter", false),
-                        new MultipleChoiceAnswerModel("Venus", false)
-                    }
-                )
-                {
-                    Type = "Multiple Choice"
-                },
-                3 => new AssociationExercise(
-                    3,
-                    "Match the countries to their capitals.",
-                    Difficulty.Hard,
-                    new List<string> { "France", "Germany" },
-                    new List<string> { "Paris", "Berlin" }
-                )
-                {
-                    Type = "Association"
-                },
-                _ => null
-            };
-
+            var exercise = await exerciseService.GetExerciseById(id);
             if (exercise == null)
                 return NotFound();
 
