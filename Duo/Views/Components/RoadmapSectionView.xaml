@@ -6,8 +6,8 @@
     xmlns:local="using:Duo.Views.Components"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:models="using:Duo.Models.Exercises"
-    xmlns:quizmodels="using:Duo.Models.Quizzes"
+    xmlns:models="using:DuoClassLibrary.Models.Exercises"
+    xmlns:quizmodels="using:DuoClassLibrary.Models.Quizzes"
     xmlns:viewmodel="using:Duo.ViewModels.Roadmap"
     mc:Ignorable="d">
 

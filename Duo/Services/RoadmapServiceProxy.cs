@@ -5,7 +5,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text;
 using System.Threading.Tasks;
-using Duo.Models.Roadmap;
+using DuoClassLibrary.Models.Roadmap;
 using Duo.Services.Interfaces;
 
 namespace Duo.Services

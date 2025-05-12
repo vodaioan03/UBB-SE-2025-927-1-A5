@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
-using Duo.Models.Exercises;
-using Duo.Services;
+using DuoClassLibrary.Models.Exercises;
+using DuoClassLibrary.Services;
 using Duo.ViewModels.Base;
 
 namespace Duo.ViewModels.ExerciseViewModels

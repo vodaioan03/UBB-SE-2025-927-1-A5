@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using Duo.Models.Sections;
+using DuoClassLibrary.Models.Sections;
 
 namespace Duo.Models.Roadmap;
 

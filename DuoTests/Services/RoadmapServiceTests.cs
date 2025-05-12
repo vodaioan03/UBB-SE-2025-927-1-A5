@@ -1,8 +1,8 @@
-using Duo.Models.Exercises;
-using Duo.Models.Quizzes;
-using Duo.Models.Roadmap;
-using Duo.Models.Sections;
-using Duo.Services;
+using DuoClassLibrary.Models.Exercises;
+using DuoClassLibrary.Models.Quizzes;
+using DuoClassLibrary.Models.Roadmap;
+using DuoClassLibrary.Models.Sections;
+using DuoClassLibrary.Services;
 using Duo.Services.Interfaces;
 using Moq;
 

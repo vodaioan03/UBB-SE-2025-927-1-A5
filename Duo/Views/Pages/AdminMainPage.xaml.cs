@@ -1,8 +1,8 @@
 using System;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Duo.Models.Quizzes;
-using Duo.Models.Exercises;
+using DuoClassLibrary.Models.Quizzes;
+using DuoClassLibrary.Models.Exercises;
 using Duo.Views.Components.Modals;
 
 namespace Duo.Views.Pages

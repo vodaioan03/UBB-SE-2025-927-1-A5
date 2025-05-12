@@ -3,9 +3,9 @@ using System.Net.Http;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Duo.Models;
+using DuoClassLibrary.Models;
 using Duo.ViewModels;
-using Duo.Services;
+using DuoClassLibrary.Services;
 
 namespace Duo.Views
 {

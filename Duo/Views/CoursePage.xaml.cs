@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using System;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Duo.Models;
+using DuoClassLibrary.Models;
 using Duo.ViewModels;
 using Microsoft.UI.Xaml.Navigation;
 
