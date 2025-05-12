@@ -539,6 +539,7 @@ namespace Duo.ViewModels
                     return;
                 }
 
+                CoinBalance = await coinsService.GetCoinBalanceAsync(currentUserId);
                 IsEnrolled = true;
                 ResetCourseProgressTracking();
                 OnPropertyChanged(nameof(IsEnrolled));
@@ -839,6 +840,7 @@ namespace Duo.ViewModels
                 {
                     await UpdatePurchasedModuleStatus(module, currentUserId);
                     await ShowModulePurchaseNotificationAsync(module, currentUserId);
+                    CoinBalance = await coinsService.GetCoinBalanceAsync(currentUserId);
                     OnPropertyChanged(nameof(ModuleRoadmap));
                     OnPropertyChanged(nameof(CoinBalance));
                 }
