@@ -319,7 +319,11 @@ namespace Duo.Api.Controllers
             }
             catch (Exception e)
             {
-                return BadRequest(new { message = e.Message });
+                // Log the exception internally
+                Console.Error.WriteLine($"Error in CompleteModule: {e}");
+                
+                // Return a generic error message to the client
+                return BadRequest(new { message = "An error occurred while processing your request." });
             }
         }
     }
