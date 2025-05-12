@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
 using Duo.Api.DTO.Requests;
 using Duo.Api.Models;
 using Duo.Api.Repositories;
@@ -100,7 +101,7 @@ namespace Duo.Api.Controllers
         /// </summary>
         /// <param name="id">The ID of the module to remove.</param>
         /// <returns>ActionResult with operation result.</returns>
-        [HttpDelete("delete/{id}")]
+        [HttpDelete("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -128,7 +129,7 @@ namespace Duo.Api.Controllers
         /// </summary>
         /// <param name="id">The ID of the module to retrieve.</param>
         /// <returns>ActionResult with the module data or error message.</returns>
-        [HttpGet("get-module-by-id/{id}")]
+        [HttpGet("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -154,7 +155,7 @@ namespace Duo.Api.Controllers
         /// Gets a list of all modules in the system.
         /// </summary>
         /// <returns>ActionResult with list of modules or error message.</returns>
-        [HttpGet("get-all")]
+        [HttpGet("list")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> ListModules()
@@ -178,7 +179,7 @@ namespace Duo.Api.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [HttpGet("get-all/by-course/{courseId}")]
+        [HttpGet("list/by-course/{courseId}")]
         public async Task<IActionResult> ListModulesByCourseId([FromRoute] int courseId)
         {
             try
@@ -200,7 +201,7 @@ namespace Duo.Api.Controllers
         /// <param name="id">The ID of the module to update.</param>
         /// <param name="request">The updated module data.</param>
         /// <returns>ActionResult with operation result.</returns>
-        [HttpPatch("modify/{id}")]
+        [HttpPatch("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -236,7 +237,7 @@ namespace Duo.Api.Controllers
         /// <param name="userId">The ID of the user.</param>
         /// <param name="moduleId">The ID of the module.</param>
         /// <returns>True if completed, false otherwise.</returns>
-        [HttpGet("get-completion-status")]
+        [HttpGet("is-completed")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> IsModuleCompleted([FromQuery] int userId, [FromQuery] int moduleId)
@@ -252,7 +253,7 @@ namespace Duo.Api.Controllers
             }
         }
 
-        [HttpPost("add-open-module")]
+        [HttpPost("open")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> OpenModule([FromBody] OpenModuleRequest request)
@@ -274,7 +275,7 @@ namespace Duo.Api.Controllers
             }
         }
 
-        [HttpGet("get-open-status")]
+        [HttpGet("isOpen")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> IsModuleOpen([FromQuery] int userId, [FromQuery] int moduleId)
@@ -296,5 +297,34 @@ namespace Duo.Api.Controllers
             }
         }
         #endregion
+
+        [HttpPost("complete")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> CompleteModule([FromBody] Dictionary<string, object> data)
+        {
+            try
+            {
+                if (!data.TryGetValue("userId", out var userIdObj) || !data.TryGetValue("moduleId", out var moduleIdObj))
+                {
+                    return this.BadRequest("Missing userId or moduleId");
+                }
+
+                var userId = ((JsonElement)data["userId"]).GetInt32();
+                var moduleId = ((JsonElement)data["moduleId"]).GetInt32();
+
+                await repository.CompleteModuleAsync(userId, moduleId);
+
+                return Ok(new { message = "Module completed successfully!" });
+            }
+            catch (Exception e)
+            {
+                // Log the exception internally
+                Console.Error.WriteLine($"Error in CompleteModule: {e}");
+                
+                // Return a generic error message to the client
+                return BadRequest(new { message = "An error occurred while processing your request." });
+            }
+        }
     }
 }

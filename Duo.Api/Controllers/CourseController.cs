@@ -278,6 +278,56 @@ namespace Duo.Api.Controllers
             return Ok(timeLimit);
         }
 
+
+        [HttpPost("buyBonusModule")]
+        public async Task<IActionResult> BuyBonusModule([FromBody] Dictionary<string, object> data)
+        {
+            try
+            {
+                if (!data.TryGetValue("UserId", out var userIdObj) || !data.TryGetValue("ModuleId", out var moduleIdObj))
+                {
+                    return this.BadRequest("Missing userId or courseId");
+                }
+
+                var userId = ((JsonElement)data["UserId"]).GetInt32();
+                var moduleId = ((JsonElement)data["ModuleId"]).GetInt32();
+
+                // Check if the user has enough coins
+                var user = await this.repository.GetUserByIdAsync(userId);
+                if (user == null)
+                {
+                    return this.NotFound("User not found");
+                }
+
+                var module = await this.repository.GetModuleByIdAsync(moduleId);
+                if (module == null)
+                {
+                    return this.NotFound("Module not found");
+                }
+
+                if (user.CoinBalance < module.Cost)
+                {
+                    return this.BadRequest("Not enough coins");
+                }
+
+                var succes = await this.repository.BuyBonusModuleAsync(userId, moduleId);
+                if (!succes)
+                {
+                    return this.BadRequest("Failed to buy bonus module");
+                }
+
+                // Deduct the cost from the user's coin balance
+                user.CoinBalance -= module.Cost;
+                await this.repository.UpdateUserAsync(user);
+
+                return this.Ok();
+            }
+            catch (Exception ex)
+            {
+                return this.BadRequest(ex.Message);
+            }
+        }
+
         #endregion
     }
 }
