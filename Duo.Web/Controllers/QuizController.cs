@@ -17,15 +17,11 @@ namespace Duo.Web.Controllers
             return View(); 
         }
 
-        public IActionResult Index()
+        public IActionResult CreateQuiz()
         {
-            return RedirectToAction("ViewQuizzes");
+            return View(); 
         }
 
-        public IActionResult Manage()
-        {
-            return View("ViewQuizzes"); 
-        }
 
     }
 }
