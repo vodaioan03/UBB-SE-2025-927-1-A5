@@ -834,7 +834,7 @@ namespace Duo.ViewModels
                     return;
                 }
 
-                bool purchaseSuccessful = await courseService.BuyBonusModuleAsync(currentUserId, module.ModuleId, CurrentCourse.CourseId);
+                bool purchaseSuccessful = await courseService.BuyBonusModuleAsync(currentUserId, module.ModuleId);
 
                 if (purchaseSuccessful)
                 {

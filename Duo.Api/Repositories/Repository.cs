@@ -361,6 +361,21 @@ namespace Duo.Api.Repositories
             return progress?.ImageClicked ?? false;
         }
 
+        public async Task<bool> BuyBonusModuleAsync(int userId, int moduleId)
+        {
+            var result = await this.context.UserProgresses.AddAsync(new UserProgress
+            {
+                UserId = userId,
+                ModuleId = moduleId,
+            });
+            await this.context.SaveChangesAsync();
+            if (result.Entity != null)
+            {
+                return true;
+            }
+            return false;
+        }
+
         #endregion
 
         #region Exercises
