@@ -65,7 +65,7 @@ namespace DuoClassLibrary.Services
 
         public async Task<List<Exam>> GetAllExams()
         {
-            var result = await httpClient.GetAsync($"{url}exam/list");
+            var result = await httpClient.GetAsync($"{url}quiz/list");
             if (result == null)
             {
                 throw new QuizServiceProxyException("Received null response when fetching available exams.");
@@ -137,8 +137,10 @@ namespace DuoClassLibrary.Services
 
         public async Task<Exam> GetExamFromSectionAsync(int sectionId)
         {
-            var result = await httpClient.GetFromJsonAsync<Exam>($"{url}exam/get-from-section?sectionId={sectionId}");
-            return result ?? throw new QuizServiceProxyException($"Received null response for exam from section {sectionId}.");
+            var result = await httpClient.GetAsync($"{url}Exam/get-from-section?sectionId={sectionId}");
+            result.EnsureSuccessStatusCode();
+            string responseJson = await result.Content.ReadAsStringAsync();
+            return JsonSerializationUtil.DeserializeExamWithTypedExercises(responseJson);
         }
 
         public async Task DeleteQuizAsync(int quizId)
@@ -193,7 +195,7 @@ namespace DuoClassLibrary.Services
 
         public async Task RemoveExerciseFromQuizAsync(int quizId, int exerciseId)
         {
-            var response = await httpClient.DeleteAsync($"{url}quiz/remove-exercise?quizId={quizId}&exerciseId={exerciseId}");
+            var response = await httpClient.DeleteAsync($"{url}quiz/delete-exercise?quizId={quizId}&exerciseId={exerciseId}");
             response.EnsureSuccessStatusCode();
         }
 

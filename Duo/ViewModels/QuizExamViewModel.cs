@@ -549,7 +549,7 @@ namespace Duo.ViewModels
                         RaiseErrorMessage("Progression Error", "Current quiz is not set.");
                         return;
                     }
-                    if (user.NumberOfCompletedQuizzesInSection == currentSectionQuizzes.Count())
+                    if (user.NumberOfCompletedQuizzesInSection == currentSectionQuizzes.Count() || user.NumberOfCompletedQuizzesInSection > currentSectionQuizzes.Count())
                     {
                         RaiseErrorMessage("Progression Error", "All quizzes in section already completed.");
                         return;
