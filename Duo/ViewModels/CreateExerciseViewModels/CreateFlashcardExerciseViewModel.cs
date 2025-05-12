@@ -1,6 +1,6 @@
 ﻿using System;
-using Duo.Models;
-using Duo.Models.Exercises;
+using DuoClassLibrary.Models;
+using DuoClassLibrary.Models.Exercises;
 using Duo.ViewModels.Base;
 using Duo.ViewModels.ExerciseViewModels;
 

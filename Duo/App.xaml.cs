@@ -20,11 +20,11 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Duo.Data;
 using Duo.ViewModels.ExerciseViewModels;
-using Duo.Services;
+using DuoClassLibrary.Services;
 using Duo.ViewModels;
 using Duo.ViewModels.Roadmap;
 using Duo.Helpers;
-using Duo.Services.Interfaces;
+using DuoClassLibrary.Services.Interfaces;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.

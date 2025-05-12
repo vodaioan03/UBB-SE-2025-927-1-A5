@@ -1,12 +1,12 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Duo.Services;
-using Duo.Models.Exercises;
-using Duo.Models.Quizzes;
+using DuoClassLibrary.Services;
+using DuoClassLibrary.Models.Exercises;
+using DuoClassLibrary.Models.Quizzes;
 using Moq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System;
-using Duo.Models;
+using DuoClassLibrary.Models;
 using System.Diagnostics.CodeAnalysis;
 using DuoTests.Utils;
 

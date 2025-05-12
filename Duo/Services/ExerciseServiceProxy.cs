@@ -8,8 +8,8 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Duo.Helpers;
-using Duo.Models.Exercises;
-using Duo.Models.Exercises.DTO;
+using DuoClassLibrary.Models.Exercises;
+using DuoClassLibrary.Models.Exercises.DTO;
 
 namespace Duo.Services
 {

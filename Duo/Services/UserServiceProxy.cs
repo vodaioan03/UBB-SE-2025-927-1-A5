@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
-using Duo.Models;
-using Duo.Models.Quizzes;
+using DuoClassLibrary.Models;
+using DuoClassLibrary.Models.Quizzes;
 
 namespace Duo.Services
 {

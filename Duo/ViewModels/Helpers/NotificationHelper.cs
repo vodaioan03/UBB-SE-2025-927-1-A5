@@ -1,7 +1,7 @@
 ﻿namespace Duo.ViewModels.Helpers
 {
     using System;
-    using Duo.Services;
+    using DuoClassLibrary.Services;
     using Duo.ViewModels;
 
     /// <summary>
@@ -20,7 +20,7 @@
         private readonly CourseViewModel parentViewModel;
 
         /// <summary>Timer service for managing notification display duration</summary>
-        private readonly IDispatcherTimerService timer;
+        private readonly Services.IDispatcherTimerService timer;
 
         #endregion
 
@@ -34,7 +34,7 @@
         /// <exception cref="ArgumentNullException">
         /// Thrown when either parentViewModel or timerService is null
         /// </exception>
-        public NotificationHelper(CourseViewModel parentViewModel, IDispatcherTimerService timerService)
+        public NotificationHelper(CourseViewModel parentViewModel, Services.IDispatcherTimerService timerService)
         {
             this.parentViewModel = parentViewModel ?? throw new ArgumentNullException(nameof(parentViewModel));
             this.timer = timerService ?? throw new ArgumentNullException(nameof(timerService));

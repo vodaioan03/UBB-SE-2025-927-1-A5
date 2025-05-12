@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
-using Duo.Models;
-using Duo.Models.Exercises;
+using DuoClassLibrary.Models;
+using DuoClassLibrary.Models.Exercises;
 using Duo.Models.Quizzes;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -51,7 +51,7 @@ namespace Duo.Views.Components.Modals
                 // Association exercise - using fully qualified namespace
                 var firstList = new List<string> { "Dog", "Cat" };
                 var secondList = new List<string> { "Bark", "Meow" };
-                exercises.Add(new Duo.Models.Exercises.AssociationExercise(3, "Match animals with their sounds", Difficulty.Hard, firstList, secondList));
+                exercises.Add(new DuoClassLibrary.Models.Exercises.AssociationExercise(3, "Match animals with their sounds", Difficulty.Hard, firstList, secondList));
             }
             catch (Exception ex)
             {

@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
-using Duo.Models;
-using Duo.Models.Exercises;
+using DuoClassLibrary.Models;
+using DuoClassLibrary.Models.Exercises;
 using Duo.Models.Quizzes;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -42,29 +42,29 @@ namespace Duo.Views.Components.Modals
             UpdateExerciseCount();
         }
 
-        private List<Duo.Models.Exercises.Exercise> CreateSampleExercises()
+        private List<Exercise> CreateSampleExercises()
         {
-            var exercises = new List<Duo.Models.Exercises.Exercise>();
+            var exercises = new List<Exercise>();
 
             try
             {
                 // Fill in the blank exercises
-                exercises.Add(new Duo.Models.Exercises.FillInTheBlankExercise(1, "The capital of France is ___.", Duo.Models.Difficulty.Normal, new List<string> { "Paris" }));
-                exercises.Add(new Duo.Models.Exercises.FillInTheBlankExercise(2, "The largest planet in our solar system is ___.", Duo.Models.Difficulty.Normal, new List<string> { "Jupiter" }));
+                exercises.Add(new FillInTheBlankExercise(1, "The capital of France is ___.", Difficulty.Normal, new List<string> { "Paris" }));
+                exercises.Add(new FillInTheBlankExercise(2, "The largest planet in our solar system is ___.", Difficulty.Normal, new List<string> { "Jupiter" }));
 
                 // Association exercise
                 var firstList = new List<string> { "H2O", "CO2" };
                 var secondList = new List<string> { "Water", "Carbon Dioxide" };
-                exercises.Add(new Duo.Models.Exercises.AssociationExercise(3, "Match chemical formulas with their names", Duo.Models.Difficulty.Hard, firstList, secondList));
+                exercises.Add(new DuoClassLibrary.Models.Exercises.AssociationExercise(3, "Match chemical formulas with their names", Difficulty.Hard, firstList, secondList));
 
                 // Multiple choice exercise
-                var choices = new List<Duo.Models.Exercises.MultipleChoiceAnswerModel>
+                var choices = new List<DuoClassLibrary.Models.Exercises.MultipleChoiceAnswerModel>
                 {
-                    new Duo.Models.Exercises.MultipleChoiceAnswerModel("Mercury", true),
-                    new Duo.Models.Exercises.MultipleChoiceAnswerModel("Venus", false),
-                    new Duo.Models.Exercises.MultipleChoiceAnswerModel("Mars", false)
+                    new DuoClassLibrary.Models.Exercises.MultipleChoiceAnswerModel("Mercury", true),
+                    new DuoClassLibrary.Models.Exercises.MultipleChoiceAnswerModel("Venus", false),
+                    new DuoClassLibrary.Models.Exercises.MultipleChoiceAnswerModel("Mars", false)
                 };
-                exercises.Add(new Duo.Models.Exercises.MultipleChoiceExercise(4, "Which is the closest planet to the Sun?", Duo.Models.Difficulty.Normal, choices));
+                exercises.Add(new DuoClassLibrary.Models.Exercises.MultipleChoiceExercise(4, "Which is the closest planet to the Sun?", Difficulty.Normal, choices));
             }
             catch (Exception ex)
             {

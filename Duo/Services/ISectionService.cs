@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using Duo.Models.Sections;
+using DuoClassLibrary.Models.Sections;
 
 namespace Duo.Services
 {

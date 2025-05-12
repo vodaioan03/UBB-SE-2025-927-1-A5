@@ -4,8 +4,8 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Duo.Commands;
-using Duo.Models;
-using Duo.Services;
+using DuoClassLibrary.Models;
+using DuoClassLibrary.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml.Controls;
 using Windows.System;
@@ -25,7 +25,7 @@ namespace Duo.ViewModels
 
         public ICommand ModuleImageClickCommand { get; set; }
 
-        public ModuleViewModel(Models.Module module, ICourseViewModel courseVM, int userId = 1,
+        public ModuleViewModel(Module module, ICourseViewModel courseVM, int userId = 1,
                     ICourseService? courseServiceOverride = null,
                     ICoinsService? coinsServiceOverride = null)
         {
@@ -146,13 +146,13 @@ namespace Duo.ViewModels
                 if (user == null)
                 {
                     Console.WriteLine($"User with ID {UserId} not found. Creating...");
-                    await userService.CreateUserAsync(new Models.User(UserId, $"DefaultUser{UserId}"));
+                    await userService.CreateUserAsync(new DuoClassLibrary.Models.User(UserId, $"DefaultUser{UserId}"));
                 }
             }
             catch (KeyNotFoundException)
             {
                 Console.WriteLine($"User with ID {UserId} not found (exception). Creating...");
-                await userService.CreateUserAsync(new Models.User(UserId, $"DefaultUser{UserId}"));
+                await userService.CreateUserAsync(new DuoClassLibrary.Models.User(UserId, $"DefaultUser{UserId}"));
             }
             catch (Exception ex)
             {

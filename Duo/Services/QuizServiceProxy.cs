@@ -7,12 +7,12 @@ using System.Text.Json;
 using System.Diagnostics;
 using System.Text;
 using Duo.Exceptions;
-using Duo.Models.Quizzes;
-using Duo.Models.Quizzes.API;
+using DuoClassLibrary.Models.Quizzes;
+using DuoClassLibrary.Models.Quizzes.API;
 using Duo.Services.Interfaces;
 using Duo.Helpers;
 using Azure;
-using Duo.Models.Exercises;
+using DuoClassLibrary.Models.Exercises;
 
 namespace Duo.Services
 {
