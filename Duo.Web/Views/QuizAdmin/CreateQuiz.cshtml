@@ -24,7 +24,51 @@
     </ul>
 
     <div class="text-end">
-        <a href="@Url.Action("ViewQuizzes", "QuizAdmin")" class="btn btn-secondary">Cancel</a>
+        <a href="@Url.Action("Index", "QuizAdmin")" class="btn btn-secondary">Cancel</a>
         <button class="btn btn-primary">Save</button>
     </div>
 </div>
+
+@section Styles {
+    <style>
+        body {
+            background-color: #121212;
+            color: #f8f9fa;
+        }
+
+        .list-group-item {
+            background-color: #1e1e1e;
+            border-color: #333;
+            color: #f8f9fa;
+        }
+
+        .btn-outline-danger {
+            color: #dc3545;
+            border-color: #dc3545;
+        }
+
+            .btn-outline-danger:hover {
+                background-color: #dc3545;
+                color: white;
+            }
+
+        .btn-primary {
+            background-color: #0d6efd;
+            border: none;
+        }
+
+            .btn-primary:hover {
+                background-color: #0b5ed7;
+            }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            border: none;
+        }
+
+            .btn-secondary:hover {
+                background-color: #5a6268;
+            }
+    </style>
+}
+
