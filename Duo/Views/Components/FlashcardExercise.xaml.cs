@@ -5,7 +5,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
-using Duo.Models.Exercises;
+using DuoClassLibrary.Models.Exercises;
+using DuoClassLibrary.Interfaces.Services;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
@@ -37,11 +38,11 @@ namespace Duo.Views.Components
         private const string BLANK_PLACEHOLDER = "___"; // Placeholder for fill-in-the-blank
 
         // Total time for timer (in seconds) based on difficulty
-        private int GetTimerDurationByDifficulty(Duo.Models.Difficulty difficulty)
+        private int GetTimerDurationByDifficulty(Difficulty difficulty)
         {
             switch (difficulty)
             {
-                case Duo.Models.Difficulty.Easy:
+                case Difficulty.Easy:
                     return 15; // 15 seconds for easy
                 case Duo.Models.Difficulty.Hard:
                     return 45; // 45 seconds for hard
