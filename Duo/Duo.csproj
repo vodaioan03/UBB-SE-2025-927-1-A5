@@ -198,4 +198,8 @@
       <HintPath>..\DuoClassLibrary\bin\Debug\net8.0\DuoClassLibrary.dll</HintPath>
     </Reference>
   </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DuoClassLibrary\DuoClassLibrary.csproj" />
+  </ItemGroup>
 </Project>

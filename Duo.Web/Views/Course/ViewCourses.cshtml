@@ -1,728 +1,128 @@
-﻿@{
+﻿@model List<DuoClassLibrary.Models.Course>
+@using System.Text.Json
+@{
     ViewData["Title"] = "Courses";
+    var coursesJson = JsonSerializer.Serialize(Model.Select(c => new
+    {
+        id = c.CourseId,
+        title = c.Title,
+        description = c.Description,
+        type = c.IsPremium ? "Premium" : "Free",
+        image = c.ImageUrl,
+        duration = TimeSpan.FromSeconds(c.TimeToComplete).ToString(@"h\h\ m\m"),
+        difficulty = c.Difficulty
+    }));
 }
 
-<div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>Courses</h1>
-        <div>
-            <button class="btn btn-primary me-2">
-                <i class="bi bi-plus-circle"></i> New Course
-            </button>
-            <div class="btn-group me-2">
-                <button type="button" class="btn btn-outline-secondary" id="darkModeToggle">
-                    <i class="bi bi-moon-stars"></i>
-                </button>
-            </div>
-            <div class="btn-group">
-                <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
-                    <i class="bi bi-funnel"></i> Filters
-                </button>
-                <div class="dropdown-menu dropdown-menu-end p-3" style="width: 300px;">
-                    <h5 class="dropdown-header">Course Type</h5>
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" value="" id="flexCheckPremium" checked>
-                        <label class="form-check-label" for="flexCheckPremium">
-                            Premium
-                        </label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" value="" id="flexCheckFree" checked>
-                        <label class="form-check-label" for="flexCheckFree">
-                            Free
-                        </label>
-                    </div>
+<div class="container">
+    <h1 class="mb-4">Courses</h1>
 
-                    <h5 class="dropdown-header mt-3">Enrollment</h5>
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" value="" id="flexCheckEnrolled" checked>
-                        <label class="form-check-label" for="flexCheckEnrolled">
-                            Enrolled
-                        </label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" value="" id="flexCheckNotEnrolled" checked>
-                        <label class="form-check-label" for="flexCheckNotEnrolled">
-                            Not Enrolled
-                        </label>
-                    </div>
-
-                    <h5 class="dropdown-header mt-3">Difficulty</h5>
-                    <div class="form-check">
-                        <input class="form-check-input difficulty-filter" type="checkbox" value="beginner" id="flexCheckBeginner" checked>
-                        <label class="form-check-label" for="flexCheckBeginner">
-                            Beginner
-                        </label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input difficulty-filter" type="checkbox" value="intermediate" id="flexCheckIntermediate" checked>
-                        <label class="form-check-label" for="flexCheckIntermediate">
-                            Intermediate
-                        </label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input difficulty-filter" type="checkbox" value="advanced" id="flexCheckAdvanced" checked>
-                        <label class="form-check-label" for="flexCheckAdvanced">
-                            Advanced
-                        </label>
-                    </div>
-
-                    <div class="d-grid gap-2 mt-3">
-                        <button class="btn btn-sm btn-outline-secondary" id="resetFilters">
-                            Reset Filters
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <div class="mb-4">
+        <input type="text" id="searchInput" class="form-control" placeholder="Search courses..." onkeyup="handleSearch()">
     </div>
 
-    <div class="row mb-3">
-        <div class="col-md-6">
-            <div class="input-group">
-                <span class="input-group-text"><i class="bi bi-search"></i></span>
-                <input type="text" class="form-control" placeholder="Search courses..." id="courseSearch">
-            </div>
-        </div>
-        <div class="col-md-6 text-end">
-            <div class="btn-group" role="group" id="viewToggle">
-                <button type="button" class="btn btn-outline-secondary active" data-view="grid">
-                    <i class="bi bi-grid-3x3-gap"></i> Grid
-                </button>
-                <button type="button" class="btn btn-outline-secondary" data-view="list">
-                    <i class="bi bi-list-ul"></i> List
-                </button>
-            </div>
-        </div>
+    <div class="mb-4">
+        <select id="filterSelect" class="form-select" onchange="handleFilterChange()">
+            <option value="All">All</option>
+            <option value="Free">Free</option>
+            <option value="Premium">Premium</option>
+        </select>
     </div>
 
-    <div class="row" id="coursesContainer">
-        <!-- Course cards will be loaded here -->
-    </div>
+    <div class="row" id="courseContainer"></div>
 
-    <nav aria-label="Page navigation" class="mt-4">
-        <ul class="pagination justify-content-center" id="pagination">
-            <!-- Pagination will be generated dynamically -->
-        </ul>
+    <nav>
+        <ul class="pagination justify-content-center mt-4" id="pagination"></ul>
     </nav>
 </div>
 
-@section Styles {
-    <style>
-        /* Light mode styles */
-        body {
-            background-color: #ffffff;
-            color: #212529;
-            transition: background-color 0.3s, color 0.3s;
-        }
-
-        .course-card {
-            transition: transform 0.2s;
-            height: 100%;
-            margin-bottom: 20px;
-            background-color: #ffffff;
-            border: 1px solid #dee2e6;
-        }
-
-            .course-card:hover {
-                transform: translateY(-5px);
-                box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-            }
-
-        .course-img {
-            height: 160px;
-            object-fit: cover;
-        }
-
-        .badge-enrolled {
-            background-color: #198754;
-        }
-
-        .badge-not-enrolled {
-            background-color: #6c757d;
-        }
-
-        .badge-beginner {
-            background-color: #0dcaf0;
-        }
-
-        .badge-intermediate {
-            background-color: #ffc107;
-        }
-
-        .badge-advanced {
-            background-color: #fd7e14;
-        }
-
-        /* List view styles */
-        .list-view .course-card {
-            display: flex;
-            flex-direction: row;
-        }
-
-        .list-view .course-img {
-            width: 200px;
-            height: auto;
-            border-radius: 0.25rem 0 0 0.25rem;
-        }
-
-        .list-view .card-body {
-            flex: 1;
-        }
-
-        .list-view .col-md-4 {
-            flex: 0 0 100%;
-            max-width: 100%;
-        }
-
-        /* Dark mode styles */
-        body.dark-mode {
-            background-color: #212529;
-            color: #f8f9fa;
-        }
-
-            body.dark-mode .card,
-            body.dark-mode .dropdown-menu {
-                background-color: #2c3034;
-                border-color: #495057;
-            }
-
-            body.dark-mode .card-body,
-            body.dark-mode .dropdown-item {
-                color: #f8f9fa;
-            }
-
-            body.dark-mode .form-control,
-            body.dark-mode .input-group-text {
-                background-color: #343a40;
-                border-color: #495057;
-                color: #f8f9fa;
-            }
-
-            body.dark-mode .page-link {
-                background-color: #343a40;
-                border-color: #495057;
-                color: #f8f9fa;
-            }
-
-            body.dark-mode .page-item.active .page-link {
-                background-color: #0d6efd;
-                border-color: #0d6efd;
-            }
-
-            body.dark-mode .text-muted {
-                color: #adb5bd !important;
-            }
-
-            body.dark-mode .dropdown-menu,
-            body.dark-mode .dropdown-header,
-            body.dark-mode .form-check-label {
-                color: #f8f9fa !important;
-            }
-
-        .list-view .course-title-container {
-            width: 250px; /* Fixed width for title */
-            min-width: 250px; /* Prevent shrinking */
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0 15px;
-            border-right: 1px solid rgba(0,0,0,0.1);
-            background-color: rgba(0,0,0,0.03);
-        }
-
-        body.dark-mode .list-view .course-title-container {
-            border-bottom-color: rgba(255,255,255,0.1);
-        }
-
-        .list-view .course-title {
-            display: -webkit-box;
-            -webkit-line-clamp: 3;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            width: 100%;
-            font-size: 1.1rem;
-            font-weight: 500;
-            line-height: 1.3;
-            margin: 0;
-        }
-
-        .list-view .card-body {
-            flex: 1;
-            min-width: 0; /* Important for text truncation */
-        }
-
-        /* Grid view title */
-        .grid-view .course-title-container {
-            height: 18vh;
-            min-height: 18vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0 10px;
-            text-align: center;
-            background-color: rgba(0,0,0,0.03);
-        }
-
-        .grid-view .course-title {
-            display: -webkit-box;
-            -webkit-line-clamp: 3;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            width: 100%;
-            font-size: 1.1rem;
-            line-height: 1.3;
-            max-height: 18vh;
-            padding: 5px 0;
-        }
-
-        .btn-enroll {
-            background-color: #0d6efd;
-            color: white;
-        }
-
-        .btn-continue {
-            background-color: transparent;
-            border-color: #0d6efd;
-            color: #0d6efd;
-        }
-
-        /* Dark mode overrides */
-        body.dark-mode .btn-enroll {
-            background-color: #1a73e8;
-            color: white;
-        }
-
-        body.dark-mode .btn-continue {
-            background-color: #8ab4f8;
-            border-color: #8ab4f8;
-            color: white;
-        }
-
-        body.dark-mode .btn-continue:hover {
-            background-color: rgba(138, 180, 248, 0.1);
-        }
-    </style>
-}
-
 @section Scripts {
     <script>
-        $(document).ready(function() {
-            // Configuration
-            const itemsPerPage = 6;
-            let currentPage = 1;
-            let currentView = 'grid';
-            let allCourses = [];
-            let filteredCourses = [];
+        let allCourses = @Html.Raw(coursesJson);
+        let filteredCourses = [...allCourses];
+        const coursesPerPage = 6;
+        let currentPage = 1;
 
-            // Initialize
-            loadCourses();
-            setupEventHandlers();
-            initDarkMode();
+        function renderCourses() {
+            const courseContainer = document.getElementById("courseContainer");
+            courseContainer.innerHTML = "";
+            const startIndex = (currentPage - 1) * coursesPerPage;
+            const endIndex = startIndex + coursesPerPage;
+            const paginatedCourses = filteredCourses.slice(startIndex, endIndex);
 
-            function loadCourses() {
-                allCourses = [
-                    {
-                        id: 1,
-                        title: "Advanced ASP.NET Core",
-                        description: "Master advanced concepts in ASP.NET Core development",
-                        image: "https://via.placeholder.com/300x160?text=ASP.NET",
-                        type: "Premium",
-                        enrolled: true,
-                        duration: "8 weeks",
-                        lessons: 24,
-                        progress: 75,
-                        difficulty: "advanced"
-                    },
-                    {
-                        id: 2,
-                        title: "JavaScript Fundamentals",
-                        description: "Learn the basics of JavaScript programming",
-                        image: "https://via.placeholder.com/300x160?text=JavaScript",
-                        type: "Free",
-                        enrolled: false,
-                        duration: "4 weeks",
-                        lessons: 12,
-                        progress: 0,
-                        difficulty: "beginner"
-                    },
-                    {
-                        id: 3,
-                        title: "Database Design",
-                        description: "Principles of relational database design",
-                        image: "https://via.placeholder.com/300x160?text=Database",
-                        type: "Premium",
-                        enrolled: true,
-                        duration: "6 weeks",
-                        lessons: 18,
-                        progress: 30,
-                        difficulty: "intermediate"
-                    },
-                    {
-                        id: 4,
-                        title: "UI/UX Design",
-                        description: "Introduction to user interface and experience design",
-                        image: "https://via.placeholder.com/300x160?text=UI/UX",
-                        type: "Free",
-                        enrolled: false,
-                        duration: "5 weeks",
-                        lessons: 15,
-                        progress: 0,
-                        difficulty: "beginner"
-                    },
-                    {
-                        id: 5,
-                        title: "DevOps Essentials",
-                        description: "Learn CI/CD pipelines and deployment strategies",
-                        image: "https://via.placeholder.com/300x160?text=DevOps",
-                        type: "Premium",
-                        enrolled: true,
-                        duration: "7 weeks",
-                        lessons: 21,
-                        progress: 10,
-                        difficulty: "intermediate"
-                    },
-                    {
-                        id: 6,
-                        title: "Mobile App Development",
-                        description: "Build cross-platform mobile applications",
-                        image: "https://via.placeholder.com/300x160?text=Mobile",
-                        type: "Premium",
-                        enrolled: false,
-                        duration: "9 weeks",
-                        lessons: 27,
-                        progress: 0,
-                        difficulty: "advanced"
-                    },
-                    {
-                        id: 7,
-                        title: "LISP",
-                        description: "Master advanced concepts in LISP development",
-                        image: "https://via.placeholder.com/300x160?text=LISP",
-                        type: "Free",
-                        enrolled: true,
-                        duration: "9 weeks",
-                        lessons: 12,
-                        progress: 33,
-                        difficulty: "advanced"
-                    },
-                    {
-                        id: 8,
-                        title: "JavaScript In Detail",
-                        description: "Learn the details of JavaScript programming",
-                        image: "https://via.placeholder.com/300x160?text=JavaScript-In-Detail",
-                        type: "Free",
-                        enrolled: false,
-                        duration: "4 weeks",
-                        lessons: 12,
-                        progress: 0,
-                        difficulty: "intermediate"
-                    },
-                    {
-                        id: 9,
-                        title: "Database Design 2",
-                        description: "Principles of relational database design 2",
-                        image: "https://via.placeholder.com/300x160?text=Database2",
-                        type: "Free",
-                        enrolled: true,
-                        duration: "4 weeks",
-                        lessons: 14,
-                        progress: 2,
-                        difficulty: "intermediate"
-                    },
-                    {
-                        id: 10,
-                        title: "UI/UX Design 2",
-                        description: "Introduction to user interface and experience design 2",
-                        image: "https://via.placeholder.com/300x160?text=UI/UX2",
-                        type: "Premium",
-                        enrolled: false,
-                        duration: "7 weeks",
-                        lessons: 20,
-                        progress: 11,
-                        difficulty: "intermediate"
-                    },
-                    {
-                        id: 11,
-                        title: "DevOps Essentials 2",
-                        description: "Learn CI/CD pipelines and deployment strategies2",
-                        image: "https://via.placeholder.com/300x160?text=DevOps2",
-                        type: "Premium",
-                        enrolled: true,
-                        duration: "7 weeks",
-                        lessons: 13,
-                        progress: 80,
-                        difficulty: "advanced"
-                    },
-                    {
-                        id: 12,
-                        title: "Mobile App Development In Kotlin",
-                        description: "Build mobile applications in Kotlin",
-                        image: "https://via.placeholder.com/300x160?text=Mobile-Kotlin",
-                        type: "Premium",
-                        enrolled: false,
-                        duration: "12 weeks",
-                        lessons: 30,
-                        progress: 100,
-                        difficulty: "advanced"
-                    }
-                ];
-                filteredCourses = [...allCourses];
-                renderCourses();
-                renderPagination();
+            if (paginatedCourses.length === 0) {
+                courseContainer.innerHTML = "<p>No courses found.</p>";
+                return;
             }
 
-            function setupEventHandlers() {
-                // View toggle
-                $('#viewToggle .btn').click(function() {
-                    $('#viewToggle .btn').removeClass('active');
-                    $(this).addClass('active');
-                    currentView = $(this).data('view');
-                    renderCourses();
-                });
-
-                // Pagination
-                $('#pagination').on('click', 'a.page-link', function(e) {
-                    e.preventDefault();
-                    const page = $(this).data('page');
-                    if (page === 'prev') {
-                        currentPage = Math.max(1, currentPage - 1);
-                    } else if (page === 'next') {
-                        currentPage = Math.min(totalPages(), currentPage + 1);
-                    } else {
-                        currentPage = parseInt(page);
-                    }
-                    renderCourses();
-                    renderPagination();
-                });
-
-                // Filter courses
-                $('.form-check-input').change(function() {
-                    filterAndRenderCourses();
-                });
-
-                // Search functionality
-                $('#courseSearch').on('input', function() {
-                    filterAndRenderCourses();
-                });
-
-                // Reset filters
-                $('#resetFilters').click(function() {
-                    $('.form-check-input').prop('checked', true);
-                    $('#courseSearch').val('');
-                    filterAndRenderCourses();
-                });
-
-                // Dark mode toggle
-                $('#darkModeToggle').click(function() {
-                    $('body').toggleClass('dark-mode');
-                    localStorage.setItem('darkMode', $('body').hasClass('dark-mode'));
-                    updateDarkModeIcon();
-                });
-            }
-
-            function initDarkMode() {
-                const darkMode = localStorage.getItem('darkMode') === 'true';
-                if (darkMode) {
-                    $('body').addClass('dark-mode');
-                }
-                updateDarkModeIcon();
-            }
-
-            function updateDarkModeIcon() {
-                const isDark = $('body').hasClass('dark-mode');
-                $('#darkModeToggle').html(
-                    isDark ? '<i class="bi bi-sun"></i>' : '<i class="bi bi-moon-stars"></i>'
-                );
-            }
-
-            function filterAndRenderCourses() {
-                const showPremium = $('#flexCheckPremium').is(':checked');
-                const showFree = $('#flexCheckFree').is(':checked');
-                const showEnrolled = $('#flexCheckEnrolled').is(':checked');
-                const showNotEnrolled = $('#flexCheckNotEnrolled').is(':checked');
-                const showBeginner = $('#flexCheckBeginner').is(':checked');
-                const showIntermediate = $('#flexCheckIntermediate').is(':checked');
-                const showAdvanced = $('#flexCheckAdvanced').is(':checked');
-                const searchQuery = $('#courseSearch').val().toLowerCase();
-
-                filteredCourses = allCourses.filter(course => {
-                    // Filter by type
-                    if ((course.type === 'Premium' && !showPremium) ||
-                        (course.type === 'Free' && !showFree)) {
-                        return false;
-                    }
-
-                    // Filter by enrollment
-                    if ((course.enrolled && !showEnrolled) ||
-                        (!course.enrolled && !showNotEnrolled)) {
-                        return false;
-                    }
-
-                    // Filter by difficulty
-                    if ((course.difficulty === 'beginner' && !showBeginner) ||
-                        (course.difficulty === 'intermediate' && !showIntermediate) ||
-                        (course.difficulty === 'advanced' && !showAdvanced)) {
-                        return false;
-                    }
-
-                    // Filter by search
-                    if (searchQuery &&
-                        !course.title.toLowerCase().includes(searchQuery) &&
-                        !course.description.toLowerCase().includes(searchQuery)) {
-                        return false;
-                    }
-
-                    return true;
-                });
-
-                currentPage = 1; // Reset to first page when filtering
-                renderCourses();
-                renderPagination();
-            }
-
-            function totalPages() {
-                return Math.ceil(filteredCourses.length / itemsPerPage);
-            }
-
-            function getPaginatedCourses() {
-                const start = (currentPage - 1) * itemsPerPage;
-                const end = start + itemsPerPage;
-                return filteredCourses.slice(start, end);
-            }
-
-            function renderCourses() {
-                const coursesToShow = getPaginatedCourses();
-                const $container = $('#coursesContainer');
-                $container.empty();
-
-                if (coursesToShow.length === 0) {
-                    $container.html('<div class="col-12"><div class="alert alert-info">No courses match your filters.</div></div>');
-                    return;
-                }
-
-                coursesToShow.forEach(course => {
-                    const progressBar = course.enrolled ? `
-                        <div class="mt-2">
-                            <div class="d-flex justify-content-between small mb-1">
-                                <span>Progress: ${course.progress}%</span>
-                                <span>${course.lessons} lessons</span>
-                            </div>
-                            <div class="progress" style="height: 6px;">
-                                <div class="progress-bar" role="progressbar" style="width: ${course.progress}%"
-                                    aria-valuenow="${course.progress}" aria-valuemin="0" aria-valuemax="100"></div>
+            paginatedCourses.forEach(course => {
+                const courseCard = document.createElement("div");
+                courseCard.className = "col-md-4 mb-4";
+                courseCard.innerHTML = `
+                    <div class="card h-100">
+                        <img src="${course.image}" class="card-img-top" alt="${course.title}">
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title">${course.title}</h5>
+                            <p class="card-text">${course.description}</p>
+                            <div class="mt-auto">
+                                <span class="badge ${course.type === "Premium" ? "bg-warning" : "bg-success"}">${course.type}</span>
+                                <span class="badge bg-info text-dark">${course.difficulty}</span>
+                                <span class="badge bg-secondary">${course.duration}</span>
                             </div>
                         </div>
-                    ` : `<div class="mt-2 small">Duration: ${course.duration}</div>`;
-
-
-        const courseCard = `
-            <div class="col-md-${currentView === 'grid' ? '4' : '12'}">
-                <div class="card course-card ${currentView === 'list' ? 'flex-row' : ''} mb-4">
-                    <div class="course-title-container ${currentView}">
-                        <div class="course-title align-items-center text-center">${course.title}</div>
                     </div>
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div>
-                                <span class="badge ${course.type === 'Premium' ? 'bg-warning' : 'bg-success'}">
-                                    ${course.type}
-                                </span>
-                                <span class="badge badge-${course.difficulty} ms-1">
-                                    ${course.difficulty}
-                                </span>
-                            </div>
-                        </div>
-                        <p class="card-text text-muted mt-2">${course.description}</p>
-                        ${progressBar}
-                    </div>
-                    <div class="card-footer bg-transparent ${currentView === 'list' ? 'border-top-0' : ''}">
-                        <div class="d-flex justify-content-between align-items-center gap-2">
-                            <span class="badge ${course.enrolled ? 'badge-enrolled' : 'badge-not-enrolled'}">
-                                ${course.enrolled ? 'Enrolled' : 'Not Enrolled'}
-                            </span>
-                            <button class="btn btn-sm ${course.enrolled ? 'btn-continue' : 'btn-enroll'}">
-                                ${course.enrolled ? 'Continue' : 'Enroll Now'}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
+                `;
+                courseContainer.appendChild(courseCard);
+            });
+        }
 
-                    $container.append(courseCard);
-                });
+        function renderPagination() {
+            const pagination = document.getElementById("pagination");
+            pagination.innerHTML = "";
+            const pageCount = Math.ceil(filteredCourses.length / coursesPerPage);
 
-                // Apply view-specific classes
-                $container.toggleClass('list-view', currentView === 'list');
+            for (let i = 1; i <= pageCount; i++) {
+                const pageItem = document.createElement("li");
+                pageItem.className = `page-item ${i === currentPage ? "active" : ""}`;
+                pageItem.innerHTML = `
+                    <button class="page-link" onclick="changePage(${i})">${i}</button>
+                `;
+                pagination.appendChild(pageItem);
             }
+        }
 
-            function renderPagination() {
-                const total = totalPages();
-                const $pagination = $('#pagination');
-                $pagination.empty();
+        function changePage(page) {
+            currentPage = page;
+            renderCourses();
+            renderPagination();
+        }
 
-                if (total <= 1) return; // No pagination needed for 1 page
+        function handleFilterChange() {
+            const filter = document.getElementById("filterSelect").value;
+            filterCourses();
+        }
 
-                // Previous button
-                $pagination.append(`
-                    <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
-                        <a class="page-link" href="#" data-page="prev">Previous</a>
-                    </li>
-                `);
+        function handleSearch() {
+            filterCourses();
+        }
 
-                // Page numbers (showing closest pages)
-                const maxVisiblePages = 3;
-                let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-                let endPage = Math.min(total, startPage + maxVisiblePages - 1);
+        function filterCourses() {
+            const searchQuery = document.getElementById("searchInput").value.toLowerCase();
+            const filter = document.getElementById("filterSelect").value;
 
-                // Adjust if we're at the end
-                if (endPage - startPage + 1 < maxVisiblePages) {
-                    startPage = Math.max(1, endPage - maxVisiblePages + 1);
-                }
+            filteredCourses = allCourses.filter(course => {
+                const matchesSearch = course.title.toLowerCase().includes(searchQuery) ||
+                                      course.description.toLowerCase().includes(searchQuery);
+                const matchesFilter = filter === "All" || course.type === filter;
+                return matchesSearch && matchesFilter;
+            });
 
-                // Always show first page if not in range
-                if (startPage > 1) {
-                    $pagination.append(`
-                        <li class="page-item ${currentPage === 1 ? 'active' : ''}">
-                            <a class="page-link" href="#" data-page="1">1</a>
-                        </li>
-                    `);
-                    if (startPage > 2) {
-                        $pagination.append('<li class="page-item disabled"><span class="page-link">...</span></li>');
-                    }
-                }
+            currentPage = 1;
+            renderCourses();
+            renderPagination();
+        }
 
-                // Middle pages
-                for (let i = startPage; i <= endPage; i++) {
-                    $pagination.append(`
-                        <li class="page-item ${currentPage === i ? 'active' : ''}">
-                            <a class="page-link" href="#" data-page="${i}">${i}</a>
-                        </li>
-                    `);
-                }
-
-                // Always show last page if not in range
-                if (endPage < total) {
-                    if (endPage < total - 1) {
-                        $pagination.append('<li class="page-item disabled"><span class="page-link">...</span></li>');
-                    }
-                    $pagination.append(`
-                        <li class="page-item ${currentPage === total ? 'active' : ''}">
-                            <a class="page-link" href="#" data-page="${total}">${total}</a>
-                        </li>
-                    `);
-                }
-
-                // Next button
-                $pagination.append(`
-                    <li class="page-item ${currentPage === total ? 'disabled' : ''}">
-                        <a class="page-link" href="#" data-page="next">Next</a>
-                    </li>
-                `);
-            }
-        });
+        renderCourses();
+        renderPagination();
     </script>
 }
