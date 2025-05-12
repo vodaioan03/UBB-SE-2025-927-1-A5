@@ -1,12 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
-using Duo.Models.Exercises;
-using Duo.Models.Quizzes;
+using DuoClassLibrary.Models.Exercises;
+using DuoClassLibrary.Models.Quizzes;
 using Duo.Views.Components.Modals;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
