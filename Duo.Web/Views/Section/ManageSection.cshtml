@@ -1,4 +1,4 @@
-@{
+﻿@{
     ViewData["Title"] = "Manage Sections";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
@@ -12,71 +12,193 @@
     </div>
 
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <a href="@Url.Action(" AddSection", "Section" )" class="btn btn-primary">Add Section</a>
+        <a href="@Url.Action("AddSection", "Section" )" class="btn btn-primary">Add Section</a>
     </div>
 
-    <ul class="list-group">
-        @for (int i = 1; i <= 3; i++)
-        {
-        <li class="list-group-item d-flex justify-content-between align-items-center bg-dark text-light">
-            Section #@i
-            <button class="btn btn-sm btn-outline-danger">Remove</button>
-        </li>
-        }
+    <ul class="list-group" id="section-list">
+        <li class="list-group-item text-center text-muted">Loading sections...</li>
     </ul>
 
     <div class="mt-4">
         <h5>Selected Quizzes</h5>
-        <div class="border rounded p-4 dark-box" style="min-height: 200px;">
-            <!-- Selected quizzes go here -->
+        <div class="border rounded p-4 dark-box" style="min-height: 200px;" id="quiz-list">
+            <div class="text-muted">Select a section to view its quizzes.</div>
         </div>
     </div>
 </div>
 
 @section Styles {
-<style>
-    body {
-        background-color: #121212;
-        color: #f8f9fa;
-    }
-
-    .dark-box {
-        background-color: #1e1e1e;
-        border-color: #444;
-        color: #f8f9fa;
-    }
-
-    .list-group-item {
-        color: #f8f9fa;
-    }
-
-    .btn-outline-danger {
-        color: #dc3545;
-        border-color: #dc3545;
-    }
-
-        .btn-outline-danger:hover {
-            background-color: #dc3545;
-            color: white;
+    <style>
+        body {
+            background-color: #121212;
+            color: #f8f9fa;
         }
 
-    .btn-outline-secondary {
-        color: #adb5bd;
-        border-color: #6c757d;
-    }
-
-        .btn-outline-secondary:hover {
-            background-color: #6c757d;
-            color: white;
+        .dark-box {
+            background-color: #1e1e1e;
+            border-color: #444;
+            color: #f8f9fa;
         }
 
-    .btn-primary {
-        background-color: #0d6efd;
-        border: none;
-    }
-
-        .btn-primary:hover {
-            background-color: #0b5ed7;
+        .list-group-item {
+            color: #f8f9fa;
+            cursor: pointer;
         }
-</style>
+
+        .btn-outline-danger {
+            color: #dc3545;
+            border-color: #dc3545;
+        }
+
+            .btn-outline-danger:hover {
+                background-color: #dc3545;
+                color: white;
+            }
+
+        .btn-outline-secondary {
+            color: #adb5bd;
+            border-color: #6c757d;
+        }
+
+            .btn-outline-secondary:hover {
+                background-color: #6c757d;
+                color: white;
+            }
+
+        .btn-primary {
+            background-color: #0d6efd;
+            border: none;
+        }
+
+            .btn-primary:hover {
+                background-color: #0b5ed7;
+            }
+
+        .section-item {
+            background-color: #1e1e1e;
+            border-color: #444;
+            color: #f8f9fa;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            border-radius: 8px;
+        }
+
+            .section-item:hover {
+                background-color: #333;
+            }
+    </style>
 }
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            // Load sections
+            function loadSections() {
+                $.ajax({
+                    url: 'https://localhost:7174/api/section/get-all',
+                    method: 'GET',
+                    xhrFields: {
+                        withCredentials: true
+                    },
+                    headers: {
+                        'Accept': 'application/json'
+                    },
+                    success: function (sections) {
+                        console.log("Loaded sections:", sections);
+                        var sectionList = $('#section-list');
+                        sectionList.empty();
+
+                        if (!Array.isArray(sections) || sections.length === 0) {
+                            sectionList.append('<li class="list-group-item text-center text-muted">No sections available.</li>');
+                            return;
+                        }
+
+                        sections.forEach(function (section) {
+                            var li = $('<li class="section-item"></li>');
+                            li.text(`${section.title} (${section.orderNumber || "No order"})`);
+                            li.data('section-id', section.id);
+
+                            var removeBtn = $('<button class="btn btn-sm btn-outline-danger ms-2">Remove</button>');
+                            removeBtn.data('section-id', section.id);
+
+                            li.append(removeBtn);
+                            sectionList.append(li);
+                        });
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Error loading sections:', error);
+                        $('#section-list').html('<li class="list-group-item text-center text-danger">Failed to load sections. Please try again.</li>');
+                    }
+                });
+            }
+
+            // Initial load
+            loadSections();
+
+            // Remove section handler
+            $('#section-list').on('click', '.btn-outline-danger', function (e) {
+                e.stopPropagation();
+                var sectionId = $(this).data('section-id');
+
+                if (confirm('Are you sure you want to remove this section?')) {
+                    $.ajax({
+                        url: `https://localhost:7174/api/section/${sectionId}`,
+                        method: 'DELETE',
+                        xhrFields: {
+                            withCredentials: true
+                        },
+                        headers: {
+                            'Accept': 'application/json'
+                        },
+                        success: function () {
+                            // Reload sections after delete
+                            loadSections();
+                            $('#quiz-list').empty().append('<div class="text-muted">Select a section to view its quizzes.</div>');
+                        },
+                        error: function (xhr, status, error) {
+                            console.error('Error removing section:', error);
+                            alert('Failed to remove section. Please try again.');
+                        }
+                    });
+                }
+            });
+
+            // Click handler for section to load quizzes
+            $('#section-list').on('click', '.section-item', function (e) {
+                if ($(e.target).hasClass('btn-outline-danger')) return; // Ignore remove button click
+                var sectionId = $(this).data('section-id');
+
+                $.ajax({
+                    url: `https://localhost:7174/api/quiz/get-all-by-section?sectionId=${sectionId}`,
+                    method: 'GET',
+                    xhrFields: {
+                        withCredentials: true
+                    },
+                    headers: {
+                        'Accept': 'application/json'
+                    },
+                    success: function (quizzes) {
+                        var quizList = $('#quiz-list');
+                        quizList.empty();
+                        if (quizzes.length === 0) {
+                            quizList.append('<div class="text-muted">No quizzes for this section.</div>');
+                        } else {
+                            quizzes.forEach(function (quiz) {
+                                quizList.append(`<div class="list-group-item section-item">Quiz #${quiz.orderNumber || quiz.id} (ID: ${quiz.id})</div>`);
+                            });
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Error loading quizzes:', error);
+                        $('#quiz-list').html('<div class="alert alert-danger">Failed to load quizzes. Please try again.</div>');
+                    }
+                });
+            });
+        });
+    </script>
+}
+

@@ -16,7 +16,7 @@
         <!-- Selected quizzes go here -->
     </div>
     <div class="text-end mb-4">
-        <button class="btn btn-primary">Add Quiz</button>
+        <button class="btn btn-primary" id="addQuizBtn" type="button">Add Quiz</button>
     </div>
 
     <h5>Final Exam</h5>
@@ -24,12 +24,42 @@
         <!-- Selected exam goes here -->
     </div>
     <div class="text-end mb-4">
-        <button class="btn btn-primary">Select Exam</button>
+        <button class="btn btn-primary" id="addExamBtn" type="button">Select Exam</button>
     </div>
 
     <div class="text-end">
         <a href="@Url.Action("ManageSection", "Section")" class="btn btn-secondary">Cancel</a>
-        <button class="btn btn-primary">Save</button>
+        <button class="btn btn-primary" id="saveBtn">Save</button>
+    </div>
+</div>
+
+<!-- Quiz Modal -->
+<div class="modal fade" id="quizModal" tabindex="-1" aria-labelledby="quizModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content bg-dark text-light">
+            <div class="modal-header">
+                <h5 class="modal-title" id="quizModalLabel">Select Quiz</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <ul class="list-group" id="quiz-list-modal"></ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Exam Modal -->
+<div class="modal fade" id="examModal" tabindex="-1" aria-labelledby="examModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content bg-dark text-light">
+            <div class="modal-header">
+                <h5 class="modal-title" id="examModalLabel">Select Exam</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <ul class="list-group" id="exam-list-modal"></ul>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -69,5 +99,224 @@
             .btn-secondary:hover {
                 background-color: #5a6268;
             }
+
+        .list-group-item {
+            background-color: #1e1e1e;
+            border-color: #444;
+            color: #f8f9fa;
+        }
+
+        .list-group-item:hover {
+            background-color: #2d2d2d;
+            cursor: pointer;
+        }
+
+        .btn-danger {
+            background-color: #dc3545;
+            border: none;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .btn-danger:hover {
+            background-color: #bb2d3b;
+        }
+
+        .remove-quiz, .remove-exam {
+            opacity: 0.8;
+            transition: opacity 0.2s;
+        }
+
+        .remove-quiz:hover, .remove-exam:hover {
+            opacity: 1;
+        }
+
+        .fas {
+            margin-right: 0.25rem;
+        }
     </style>
 }
+
+@section Scripts {
+    <script>
+        let selectedQuizzes = [];
+        let selectedExam = null;
+
+        function renderSelectedQuizzes() {
+            const container = $('.border.rounded.p-4.mb-4.dark-box').eq(0);
+            container.empty();
+            if (selectedQuizzes.length === 0) {
+                container.append('<div class="text-muted">No quizzes selected.</div>');
+            } else {
+                const ul = $('<ul class="list-group"></ul>');
+                selectedQuizzes.forEach(q => {
+                    const li = $(`<li class="list-group-item bg-dark text-light d-flex justify-content-between align-items-center">
+                        <span>${q.id}: ${q.title || 'Quiz'}</span>
+                        <button class="btn btn-danger btn-sm remove-quiz" data-quiz-id="${q.id}">
+                            <i class="fas fa-times"></i> Remove
+                        </button>
+                    </li>`);
+                    ul.append(li);
+                });
+                container.append(ul);
+
+                // Add click handler for remove buttons
+                $('.remove-quiz').on('click', function() {
+                    const quizId = $(this).data('quiz-id');
+                    selectedQuizzes = selectedQuizzes.filter(q => q.id !== quizId);
+                    renderSelectedQuizzes();
+                });
+            }
+        }
+
+        function renderSelectedExam() {
+            const container = $('.border.rounded.p-4.mb-4.dark-box').eq(1);
+            container.empty();
+            if (!selectedExam) {
+                container.append('<div class="text-muted">No exam selected.</div>');
+            } else {
+                container.append(`
+                    <div class="bg-dark text-light p-2 rounded d-flex justify-content-between align-items-center">
+                        <span>${selectedExam.id}: ${selectedExam.title || 'Exam'}</span>
+                        <button class="btn btn-danger btn-sm remove-exam">
+                            <i class="fas fa-times"></i> Remove
+                        </button>
+                    </div>
+                `);
+
+                // Add click handler for remove button
+                $('.remove-exam').on('click', function() {
+                    selectedExam = null;
+                    renderSelectedExam();
+                });
+            }
+        }
+
+        $(document).ready(function() {
+            // Initialize modals
+            const quizModal = new bootstrap.Modal(document.getElementById('quizModal'));
+            const examModal = new bootstrap.Modal(document.getElementById('examModal'));
+
+            $('#addQuizBtn').on('click', function() {
+                quizModal.show();
+                $.ajax({
+                    url: 'https://localhost:7174/api/Quiz/get-all-available',
+                    method: 'GET',
+                    xhrFields: {
+                        withCredentials: true
+                    },
+                    headers: {
+                        'Accept': 'application/json'
+                    },
+                    success: function(quizzes) {
+                        const list = $('#quiz-list-modal');
+                        list.empty();
+                        if (quizzes.length === 0) {
+                            list.append('<li class="list-group-item bg-dark text-light text-center">No quizzes available.</li>');
+                        } else {
+                            quizzes.forEach(q => {
+                                const li = $(`<li class="list-group-item bg-dark text-light" style="cursor:pointer;">${q.id}: ${q.title || 'Quiz'}</li>`);
+                                li.on('click', function() {
+                                    if (!selectedQuizzes.some(sq => sq.id === q.id)) {
+                                        selectedQuizzes.push(q);
+                                        renderSelectedQuizzes();
+                                    }
+                                    quizModal.hide();
+                                });
+                                list.append(li);
+                            });
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error loading quizzes:', error);
+                        $('#quiz-list-modal').html('<div class="alert alert-danger">Failed to load quizzes. Please try again.</div>');
+                    }
+                });
+            });
+
+            $('#addExamBtn').on('click', function() {
+                examModal.show();
+                $.ajax({
+                    url: 'https://localhost:7174/api/Exam/get-all-available',
+                    method: 'GET',
+                    xhrFields: {
+                        withCredentials: true
+                    },
+                    headers: {
+                        'Accept': 'application/json'
+                    },
+                    success: function(exams) {
+                        const list = $('#exam-list-modal');
+                        list.empty();
+                        if (exams.length === 0) {
+                            list.append('<li class="list-group-item bg-dark text-light text-center">No exams available.</li>');
+                        } else {
+                            exams.forEach(e => {
+                                const li = $(`<li class="list-group-item bg-dark text-light" style="cursor:pointer;">${e.id}: ${e.title || 'Exam'}</li>`);
+                                li.on('click', function() {
+                                    selectedExam = e;
+                                    renderSelectedExam();
+                                    examModal.hide();
+                                });
+                                list.append(li);
+                            });
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error loading exams:', error);
+                        $('#exam-list-modal').html('<div class="alert alert-danger">Failed to load exams. Please try again.</div>');
+                    }
+                });
+            });
+
+            $('#saveBtn').on('click', function() {
+                const subject = $('input[type="text"]').val();
+                if (!subject) {
+                    alert('Please enter a subject');
+                    return;
+                }
+                if (selectedQuizzes.length === 0) {
+                    alert('Please select at least one quiz');
+                    return;
+                }
+                if (!selectedExam) {
+                    alert('Please select an exam');
+                    return;
+                }
+
+                const sectionData = {
+                    title: subject,
+                    description: "Section created from web interface",
+                    roadmapId: 1,
+                    quizzes: selectedQuizzes.map(q => q.id),
+                    examId: selectedExam.id
+                };
+
+                $.ajax({
+                    url: 'https://localhost:7174/api/Section/add',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    xhrFields: {
+                        withCredentials: true
+                    },
+                    headers: {
+                        'Accept': 'application/json'
+                    },
+                    data: JSON.stringify(sectionData),
+                    success: function(response) {
+                        window.location.href = '/Section/ManageSection';
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error creating section:', error);
+                        alert('Failed to create section. Please try again.');
+                    }
+                });
+            });
+
+            // Initial render
+            renderSelectedQuizzes();
+            renderSelectedExam();
+        });
+    </script>
+}
+
