@@ -72,6 +72,18 @@ namespace Duo.Api
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
+            // Add CORS
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowFrontend", builder =>
+                {
+                    builder.WithOrigins("https://localhost:7037")
+                           .AllowAnyHeader()
+                           .AllowAnyMethod()
+                           .AllowCredentials();
+                });
+            });
+
             // Configure the database context with a connection string.
             var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__WebApiDatabase");
             Console.WriteLine("Connection string: " + connectionString);
@@ -92,6 +104,9 @@ namespace Duo.Api
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
+
+            // Enable CORS
+            app.UseCors("AllowFrontend");
 
             // Enable HTTPS redirection and authorization.
             app.UseHttpsRedirection();
