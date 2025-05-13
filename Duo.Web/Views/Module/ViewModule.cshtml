@@ -1,7 +1,6 @@
 ﻿@model ModuleViewModel
 
 <div class="container py-4 text-white bg-dark rounded">
-
     <!-- Header: Timer | Coin Balance | Back -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <!-- Timer -->
@@ -25,7 +24,7 @@
     <h1 class="fw-bold mb-3">@Model.Module.Title</h1>
     <p class="text-muted">@Model.Module.Description</p>
 
-    <!-- Image -->
+    @* <!-- Image -->
     @if (!string.IsNullOrEmpty(Model.Module.ImageUrl))
     {
         <div class="text-center my-4">
@@ -47,6 +46,5 @@
     else
     {
         <div class="text-success fw-bold text-end mb-3">✅ Completed</div>
-    }
-
+    } *@
 </div>

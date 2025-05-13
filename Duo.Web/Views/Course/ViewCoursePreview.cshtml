@@ -81,7 +81,13 @@
                         <strong>@moduleViewModel.Module.Title</strong>
                         <p class="mb-0 text-muted">@moduleViewModel.Module.ShortDescription</p>
                     </div>
-                    @if (moduleViewModel.IsLockedBonus)
+                    @if (moduleViewModel.IsUnlocked && moduleViewModel.IsCompleted)
+                    {
+                        <div class="d-flex align-items-center">
+                            <span class="text-success fw-semibold">Completed</span>
+                        </div>
+                    }
+                    @if (moduleViewModel.IsUnlocked && !moduleViewModel.IsCompleted && moduleViewModel.Module.Cost > 0)
                     {
                         <div class="d-flex align-items-center">
                             <span class="text-warning fw-semibold">@moduleViewModel.Module.Cost</span>

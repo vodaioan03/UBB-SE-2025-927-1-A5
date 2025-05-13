@@ -33,6 +33,9 @@ builder.Services
 builder.Services
     .AddScoped<ICourseService, CourseService>();
 
+builder.Services.AddScoped<ICoinsServiceProxy, CoinsServiceProxy>(); 
+builder.Services.AddScoped<ICoinsService, CoinsService>(); 
+
 builder.Services.AddScoped<IExerciseService, ExerciseService>();
 
 
