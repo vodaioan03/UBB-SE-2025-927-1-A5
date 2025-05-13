@@ -35,6 +35,17 @@ builder.Services
 
 builder.Services.AddScoped<IExerciseService, ExerciseService>();
 
+builder.Services.AddHttpClient<RoadmapServiceProxy>();
+builder.Services.AddScoped<IRoadmapService, RoadmapService>();
+builder.Services.AddScoped<IRoadmapServiceProxy, RoadmapServiceProxy>();
+builder.Services.AddScoped<ISectionService, SectionService>();
+builder.Services.AddScoped<ISectionServiceProxy, SectionServiceProxy>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddHttpClient<IUserServiceProxy, UserServiceProxy>(client =>
+{
+    client.BaseAddress = new Uri(apiBase);
+});
+
 
 builder.Services.AddControllersWithViews();
 
