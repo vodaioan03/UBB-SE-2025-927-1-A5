@@ -9,8 +9,11 @@
 <div class="container-fluid px-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h2>Create New Quiz</h2>
-        <a asp-controller="Quiz" asp-action="ViewQuizzes"
-           class="btn btn-outline-secondary btn-sm">← Back</a>
+        <a asp-controller="Admin"
+           asp-action="Index"
+           class="btn btn-outline-secondary btn-sm">
+            ← Back
+        </a>
     </div>
 
     @if (!ViewData.ModelState.IsValid)
@@ -105,22 +108,26 @@
             document.getElementById('exerciseModalContent').innerHTML = html;
         });
 
-        async function removeExercise(exerciseId) {
+                async function removeExercise(exerciseId) {
             const response = await fetch('/Quiz/RemoveSelectedExercise', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Content-Type': 'application/json',
                     'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
                 },
-                body: `exerciseId=${exerciseId}`
+                body: JSON.stringify({ exerciseId })
             });
 
             if (response.ok) {
+                const result = await response.json();
                 document.getElementById(`exercise-${exerciseId}`).remove();
+                const hidden = document.querySelector(`input[type="hidden"][name="SelectedExerciseIds"][value="${exerciseId}"]`);
+                if (hidden) hidden.remove();
             } else {
                 alert("Failed to remove exercise.");
             }
         }
+
     </script>
 }
 

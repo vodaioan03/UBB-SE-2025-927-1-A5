@@ -124,7 +124,7 @@ namespace Duo.Web.Controllers
             TempData["SelectedExerciseIds"] = selectedIds;
             TempData.Keep("SelectedExerciseIds");
 
-            return Ok(); 
+            return Json(new { success = true, remainingIds = selectedIds });
         }
 
         // POST
@@ -139,14 +139,16 @@ namespace Duo.Web.Controllers
             }
 
             var quiz = new Quiz(0, null, null);
-            int newQuizId = await _quizService.CreateQuiz(quiz);
+            await _quizService.CreateQuiz(quiz); 
+
+            var allQuizzes = await _quizService.GetAllQuizzes();
+            int newQuizId = allQuizzes.Max(q => q.Id); 
 
             foreach (var id in SelectedExerciseIds)
                 await _quizService.AddExerciseToQuiz(newQuizId, id);
 
             return RedirectToAction("ViewQuizzes", new { selectedQuizId = newQuizId });
         }
-
 
 
         private async Task SetCreateQuizViewData()
