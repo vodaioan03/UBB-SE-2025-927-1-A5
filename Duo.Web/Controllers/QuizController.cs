@@ -26,34 +26,48 @@ namespace Duo.Web.Controllers
         [HttpGet]
         public async Task<IActionResult> ViewQuizzes(int? selectedQuizId)
         {
+            var allQuizzes = await _quizService.GetAllQuizzes();
+
             var vm = new ManageQuizViewModel
             {
-                Quizzes = await _quizService.GetAllQuizzes(),
+                Quizzes = allQuizzes,
                 SelectedQuizId = selectedQuizId
             };
 
             if (selectedQuizId.HasValue && selectedQuizId > 0)
             {
+                var quizExists = allQuizzes.Any(q => q.Id == selectedQuizId.Value);
+                if (!quizExists)
+                {
+                    TempData["Warning"] = $"Quiz with ID {selectedQuizId} no longer exists.";
+                    vm.SelectedQuizId = null;
+                    vm.AssignedExercises = new List<Exercise>();
+                    vm.AvailableExercises = new List<Exercise>();
+                    return View(vm);
+                }
+
                 try
                 {
                     vm.AssignedExercises = await _exerciseService
-                   .GetAllExercisesFromQuiz(selectedQuizId.Value);
+                        .GetAllExercisesFromQuiz(selectedQuizId.Value);
 
                     var all = await _exerciseService.GetAllExercises();
                     vm.AvailableExercises = all
-                       .Where(e => !vm.AssignedExercises
-                                      .Any(a => a.ExerciseId == e.ExerciseId))
-                       .ToList();
+                        .Where(e => !vm.AssignedExercises.Any(a => a.ExerciseId == e.ExerciseId))
+                        .ToList();
                 }
                 catch (HttpRequestException ex)
                 {
-                    // Optional: Log the error
                     Console.WriteLine($"Failed to fetch exercises for quiz ID {selectedQuizId}: {ex.Message}");
                     vm.AssignedExercises = new List<Exercise>();
+                    vm.AvailableExercises = new List<Exercise>();
+                    TempData["Error"] = "Could not load exercises for this quiz.";
                 }
             }
+
             return View(vm);
         }
+
 
         // POST /Quiz/AddExercise
         [HttpPost, ValidateAntiForgeryToken]
