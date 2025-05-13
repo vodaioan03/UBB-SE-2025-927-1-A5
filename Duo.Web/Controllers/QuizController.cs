@@ -32,18 +32,26 @@ namespace Duo.Web.Controllers
                 SelectedQuizId = selectedQuizId
             };
 
-            if (selectedQuizId.HasValue)
+            if (selectedQuizId.HasValue && selectedQuizId > 0)
             {
-                vm.AssignedExercises = await _exerciseService
+                try
+                {
+                    vm.AssignedExercises = await _exerciseService
                    .GetAllExercisesFromQuiz(selectedQuizId.Value);
 
-                var all = await _exerciseService.GetAllExercises();
-                vm.AvailableExercises = all
-                   .Where(e => !vm.AssignedExercises
-                                  .Any(a => a.ExerciseId == e.ExerciseId))
-                   .ToList();
+                    var all = await _exerciseService.GetAllExercises();
+                    vm.AvailableExercises = all
+                       .Where(e => !vm.AssignedExercises
+                                      .Any(a => a.ExerciseId == e.ExerciseId))
+                       .ToList();
+                }
+                catch (HttpRequestException ex)
+                {
+                    // Optional: Log the error
+                    Console.WriteLine($"Failed to fetch exercises for quiz ID {selectedQuizId}: {ex.Message}");
+                    vm.AssignedExercises = new List<Exercise>();
+                }
             }
-
             return View(vm);
         }
 
@@ -121,11 +129,9 @@ namespace Duo.Web.Controllers
 
         // POST
         [HttpPost, ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateQuizConfirmed()
+        public async Task<IActionResult> CreateQuizConfirmed(List<int> SelectedExerciseIds)
         {
-            var selectedIds = TempData["SelectedExerciseIds"] as List<int> ?? new();
-
-            if (!selectedIds.Any())
+            if (SelectedExerciseIds == null || !SelectedExerciseIds.Any())
             {
                 ModelState.AddModelError("", "Please select at least one exercise.");
                 await SetCreateQuizViewData();
@@ -135,12 +141,13 @@ namespace Duo.Web.Controllers
             var quiz = new Quiz(0, null, null);
             int newQuizId = await _quizService.CreateQuiz(quiz);
 
-            foreach (var id in selectedIds)
+            foreach (var id in SelectedExerciseIds)
                 await _quizService.AddExerciseToQuiz(newQuizId, id);
 
-            TempData.Remove("SelectedExerciseIds");
             return RedirectToAction("ViewQuizzes", new { selectedQuizId = newQuizId });
         }
+
+
 
         private async Task SetCreateQuizViewData()
         {

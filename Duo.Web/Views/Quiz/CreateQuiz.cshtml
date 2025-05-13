@@ -26,6 +26,11 @@
     <form asp-controller="Quiz" asp-action="CreateQuizConfirmed" method="post">
         @Html.AntiForgeryToken()
 
+        @foreach (var id in selectedExerciseIds)
+        {
+            <input type="hidden" name="SelectedExerciseIds" value="@id" />
+        }
+
         <h5 class="mb-3">Selected Exercises</h5>
         <div class="border rounded p-4 mb-3 dark-box" style="min-height:200px">
             @if (!selectedExerciseIds.Any())

@@ -81,6 +81,7 @@
                 <h5 class="modal-title">Select Exercise to Add</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
+
             <form asp-action="AddExercise" method="post">
                 @Html.AntiForgeryToken()
                 <input type="hidden" name="quizId" value="@Model.SelectedQuizId" />
@@ -109,6 +110,7 @@
                         }
                     }
                 </div>
+
 
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary"
