@@ -195,7 +195,7 @@ namespace DuoClassLibrary.Services
 
         public async Task RemoveExerciseFromQuizAsync(int quizId, int exerciseId)
         {
-            var response = await httpClient.DeleteAsync($"{url}quiz/delete-exercise?quizId={quizId}&exerciseId={exerciseId}");
+            var response = await httpClient.DeleteAsync($"{url}quiz/remove-exercise?quizId={quizId}&exerciseId={exerciseId}");
             response.EnsureSuccessStatusCode();
         }
 
