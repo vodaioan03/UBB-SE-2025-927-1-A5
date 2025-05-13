@@ -3,36 +3,52 @@ using DuoClassLibrary.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-builder.Services.AddControllersWithViews();
-var handler = new HttpClientHandler
+var apiBase = builder.Configuration["Api:BaseUrl"];
+if (string.IsNullOrWhiteSpace(apiBase))
 {
-    ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true
-};
-var httpClient = new HttpClient(handler);
+    throw new InvalidOperationException("Missing Api:BaseUrl in appsettings.json");
+}
 
-builder.Services.AddSingleton<HttpClient>();
-builder.Services.AddScoped<ICourseServiceProxy, CourseServiceProxy>();
-builder.Services.AddScoped<ICourseService, CourseService>();
-builder.Services.AddScoped<IExerciseServiceProxy, ExerciseServiceProxy>();
+builder.Services
+    .AddHttpClient<IQuizServiceProxy, QuizServiceProxy>(client =>
+    {
+        client.BaseAddress = new Uri(apiBase);
+    });
+
+builder.Services
+    .AddSingleton<IQuizService, QuizService>();
+
+builder.Services
+    .AddHttpClient<ICourseServiceProxy, CourseServiceProxy>(client =>
+    {
+        client.BaseAddress = new Uri(apiBase);
+    });
+
+builder.Services
+    .AddHttpClient<IExerciseServiceProxy, ExerciseServiceProxy>(c =>
+    {
+        c.BaseAddress = new Uri(apiBase);
+    });
+
+builder.Services
+    .AddScoped<ICourseService, CourseService>();
+
 builder.Services.AddScoped<IExerciseService, ExerciseService>();
 
 
+builder.Services.AddControllersWithViews();
+
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-
 app.UseRouting();
-
 app.UseAuthorization();
 
 app.MapControllerRoute(
