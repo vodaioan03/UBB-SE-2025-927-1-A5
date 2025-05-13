@@ -61,7 +61,9 @@
             </div>
             <a href="#" class="admin-card-btn">Add exam</a>
         </div>
-        <div class="admin-card">
+        <div class="admin-card"
+            style="cursor:pointer;"
+            onclick="location.href='@Url.Action("Manage","Exercise")'">
             <div class="admin-card-icon">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M18 3v4H6V3h12zm-3 8v4H9v-4h6zm5-8H4v16h16V3z"/>
@@ -71,7 +73,12 @@
                 <div class="admin-card-title">Manage Exercises</div>
                 <div class="admin-card-desc">here you can see and delete</div>
             </div>
-            <a href="#" class="admin-card-btn">Add exercise</a>
+            <a asp-controller="Exercise"
+               asp-action="CreateExercise"
+               class="admin-card-btn"
+               onclick="event.stopPropagation();">
+                Add exercise
+            </a>
         </div>
     </div>
 </div> 

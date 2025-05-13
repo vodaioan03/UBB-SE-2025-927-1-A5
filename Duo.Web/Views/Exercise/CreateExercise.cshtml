@@ -108,6 +108,9 @@
                 e.preventDefault();
                 const exerciseType = $('#exerciseType').val();
                 const formData = collectFormData(exerciseType);
+
+                console.log(formData); // Debugging line
+                console.log(JSON.stringify(formData))
                 
                 $.ajax({
                     url: '/Exercise/Create',
