@@ -102,6 +102,7 @@ namespace DuoClassLibrary.Services
         {
             var response = await httpClient.GetAsync($"{url}/api/Section/{sectionId}?id={sectionId}");
             response.EnsureSuccessStatusCode();
+            string s = await response.Content.ReadAsStringAsync();
             var section = await response.Content.ReadFromJsonAsync<Section>();
             if (section == null)
             {

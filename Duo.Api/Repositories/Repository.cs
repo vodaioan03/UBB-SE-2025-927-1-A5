@@ -1097,7 +1097,10 @@ namespace Duo.Api.Repositories
         /// <returns>The section with the specified ID, or null if not found.</returns>
         public async Task<Section?> GetSectionByIdAsync(int id)
         {
-            return await context.Sections.FindAsync(id);
+            return await context.Sections.
+                Include(section => section.Quizzes).
+                Include(section => section.Exam).
+                FirstOrDefaultAsync(section => section.Id == id);
         }
 
         /// <summary>

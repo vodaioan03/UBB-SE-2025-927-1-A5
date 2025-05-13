@@ -144,7 +144,7 @@ namespace Duo.Api.Controllers
                     return NotFound(new { message = "Section not found!" });
                 }
 
-                return Ok(new { result = section, message = "Successfully retrieved section!" });
+                return Ok(section);
             }
             catch (Exception e)
             {
