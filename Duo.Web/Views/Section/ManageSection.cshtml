@@ -1,3 +1,4 @@
+@model List<DuoClassLibrary.Models.Sections.Section>
 @{
     ViewData["Title"] = "Manage Sections";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -12,16 +13,26 @@
     </div>
 
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <a href="@Url.Action(" AddSection", "Section" )" class="btn btn-primary">Add Section</a>
+        <a href="@Url.Action("AddSection", "Section")" class="btn btn-primary">Add Section</a>
     </div>
 
     <ul class="list-group">
-        @for (int i = 1; i <= 3; i++)
+        @if (Model != null && Model.Count > 0)
         {
-        <li class="list-group-item d-flex justify-content-between align-items-center bg-dark text-light">
-            Section #@i
-            <button class="btn btn-sm btn-outline-danger">Remove</button>
-        </li>
+            foreach (var s in Model)
+            {
+                <li class="list-group-item d-flex justify-content-between align-items-center bg-dark text-light">
+                    @s.Title
+                    <form asp-action="DeleteSection" asp-controller="Section" method="post" style="display:inline; margin:0;">
+                        <input type="hidden" name="id" value="@s.Id" />
+                        <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure you want to delete this section?');">Remove</button>
+                    </form>
+                </li>
+            }
+        }
+        else
+        {
+            <li class="list-group-item text-center text-muted">No sections found.</li>
         }
     </ul>
 
