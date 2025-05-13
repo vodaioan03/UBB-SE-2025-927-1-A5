@@ -59,4 +59,9 @@ app.MapControllerRoute(
     name: "courses",
     pattern: "Course/{action=ViewCourses}/{id?}");
 
+app.MapControllerRoute(
+    name: "exercises",
+    pattern: "Exercise/{action=Index}/{id?}",
+    defaults: new { controller = "Exercise" });
+
 app.Run();
