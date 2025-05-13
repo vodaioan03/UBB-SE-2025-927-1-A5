@@ -1,7 +1,8 @@
-﻿// Controllers/ExerciseController.cs
-using DuoClassLibrary.Models.Exercises;
 using DuoClassLibrary.Services;
 using Microsoft.AspNetCore.Mvc;
+using DuoClassLibrary.Models;
+using DuoClassLibrary.Models.Exercises;
+using System.Text.Json;
 
 namespace Duo.Web.Controllers;
 public class ExerciseController : Controller
@@ -45,43 +46,86 @@ public class ExerciseController : Controller
         return View("~/Views/Exercise/FlashcardExercise.cshtml");
     }
 
-    [HttpPost]
-    public async Task<IActionResult> SubmitExercise(int exerciseId, string selectedChoice, List<string> answers, List<AssociationPair> pairs, string answer)
+    public IActionResult CreateExercise()
     {
-        var exercise = await _exerciseService.GetExerciseById(exerciseId);
-        bool isCorrect = false;
+        ViewBag.Difficulties = Enum.GetValues(typeof(Difficulty)).Cast<Difficulty>().ToArray();
+        ViewBag.ExerciseTypes = ExerciseTypes.EXERCISE_TYPES;
+        return View("~/Views/Exercise/CreateExercise.cshtml");
+    }
 
-        switch (exercise.Type)
+    [HttpPost]
+    public async Task<IActionResult> Create([FromBody] JsonElement exerciseJson)
+    {
+        if (!ModelState.IsValid)
         {
-            case "MultipleChoice":
-                var mcModel = exercise as MultipleChoiceExercise;
-                isCorrect = mcModel.ValidateAnswer(new List<string> { selectedChoice });
-                return Content($"Your answer: {selectedChoice}, Correct: {isCorrect}");
+            return BadRequest(ModelState);
+        }
 
-            case "FillInTheBlank":
-                var fibModel = exercise as FillInTheBlankExercise;
-                isCorrect = fibModel.ValidateAnswer(answers);
-                return Content($"Your answers: {string.Join(", ", answers)}, Correct: {isCorrect}");
+        string json = exerciseJson.GetRawText();
 
-            case "Flashcard":
-                var fcModel = exercise as FlashcardExercise;
-                isCorrect = fcModel.ValidateAnswer(answer);
-                return Content($"Your answer: {answer}, Correct: {isCorrect}");
+        using var doc = JsonDocument.Parse(json);
+        if (!doc.RootElement.TryGetProperty("Type", out var typeProp))
+        {
+            return BadRequest("Missing 'type' discriminator.");
+        }
 
+        var type = typeProp.GetString();
+
+        Exercise? exercise = type switch
+        {
+            "Flashcard" => JsonSerializer.Deserialize<FlashcardExercise>(json),
+            "MultipleChoice" => JsonSerializer.Deserialize<MultipleChoiceExercise>(json),
+            "FillInTheBlank" => JsonSerializer.Deserialize<FillInTheBlankExercise>(json),
+            "Association" => JsonSerializer.Deserialize<AssociationExercise>(json),
+            _ => null
+        };
+
+        if (exercise == null)
+        {
+            return this.BadRequest("Invalid payload.");
+        }
+
+        await _exerciseService.CreateExercise(exercise);
+
+        // Return success (could also return the created entity or a redirect URL)
+        return Ok(new { message = "Exercise created successfully" });
+    }
+
+
+    public IActionResult ViewExercises()
+    {
+        return View("~/Views/Exercise/ManageExercise.cshtml");
+    }
+
+    [HttpGet]
+    public IActionResult GetExerciseForm(string type)
+    {
+        switch (type)
+        {
             case "Association":
-                var assocModel = exercise as AssociationExercise;
-                var userPairs = pairs.Select(p => (p.Item, p.Match)).ToList();
-                isCorrect = assocModel.ValidateAnswer(userPairs);
-                return Content($"Your pairs: {string.Join(", ", pairs.Select(p => $"{p.Item} -> {p.Match}"))}, Correct: {isCorrect}");
-
+                return PartialView("_AssociationExerciseForm");
+            case "Fill in the blank":
+                return PartialView("_FillInTheBlankExerciseForm");
+            case "Multiple Choice":
+                return PartialView("_MultipleChoiceExerciseForm");
+            case "Flashcard":
+                return PartialView("_FlashcardExerciseForm", new FlashcardExercise());
             default:
-                return Content("Unsupported exercise type.");
+                return NotFound();
         }
     }
-}
 
-public class AssociationPair
-{
-    public string Item { get; set; }
-    public string Match { get; set; }
+    [HttpGet]
+    public async Task<IActionResult> Manage()
+    {
+        var exercises = await _exerciseService.GetAllExercises();
+        return View("~/Views/Exercise/ManageExercise.cshtml", exercises);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Delete(int id)
+    {
+        await _exerciseService.DeleteExercise(id);
+        return RedirectToAction("Manage");
+    }
 }

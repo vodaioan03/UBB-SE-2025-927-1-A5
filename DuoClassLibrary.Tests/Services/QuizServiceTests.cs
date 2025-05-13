@@ -1,12 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Duo.Exceptions;
+using DuoClassLibrary.Exceptions;
 using DuoClassLibrary.Models.Exercises;
 using DuoClassLibrary.Models.Quizzes;
 using DuoClassLibrary.Models.Quizzes.API;
 using DuoClassLibrary.Services;
-using Duo.Services.Interfaces;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 
@@ -28,7 +27,7 @@ namespace Duo.Tests.Services
         private class TestExercise : Exercise
         {
             public TestExercise(int id)
-                : base(id, $"Q{id}", Models.Difficulty.Easy)
+                : base(id, $"Q{id}", DuoClassLibrary.Models.Difficulty.Easy)
             {
             }
         }

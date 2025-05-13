@@ -10,8 +10,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		CodeCoverage.runsettings = CodeCoverage.runsettings
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DuoTests", "..\DuoTests\DuoTests.csproj", "{0D1B5015-E591-E0BC-EB6A-0926FAC848C8}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DuoClassLibrary", "..\DuoClassLibrary\DuoClassLibrary.csproj", "{FE04E854-2986-4744-9E27-520559F2D50D}"
 EndProject
 Global
@@ -32,13 +30,6 @@ Global
 		{EAE0BA8F-C13E-4604-A7C6-0112250324DA}.Release|x64.ActiveCfg = Release|x64
 		{EAE0BA8F-C13E-4604-A7C6-0112250324DA}.Release|x64.Build.0 = Release|x64
 		{EAE0BA8F-C13E-4604-A7C6-0112250324DA}.Release|x64.Deploy.0 = Release|x64
-		{0D1B5015-E591-E0BC-EB6A-0926FAC848C8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0D1B5015-E591-E0BC-EB6A-0926FAC848C8}.Debug|x64.ActiveCfg = Debug|x64
-		{0D1B5015-E591-E0BC-EB6A-0926FAC848C8}.Debug|x64.Build.0 = Debug|x64
-		{0D1B5015-E591-E0BC-EB6A-0926FAC848C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0D1B5015-E591-E0BC-EB6A-0926FAC848C8}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0D1B5015-E591-E0BC-EB6A-0926FAC848C8}.Release|x64.ActiveCfg = Release|x64
-		{0D1B5015-E591-E0BC-EB6A-0926FAC848C8}.Release|x64.Build.0 = Release|x64
 		{FE04E854-2986-4744-9E27-520559F2D50D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{FE04E854-2986-4744-9E27-520559F2D50D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FE04E854-2986-4744-9E27-520559F2D50D}.Debug|x64.ActiveCfg = Debug|Any CPU
