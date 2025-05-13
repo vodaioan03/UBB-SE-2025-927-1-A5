@@ -29,18 +29,20 @@ namespace Duo.Web.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateExam([FromBody] List<int> selectedExerciseIds)
         {
-            var exam = new Exam(0, null);
+            var newExam = new Exam(0, null);
+            Exam createdExam = await _quizService.CreateExamAsync(newExam);
 
-
-            await _quizService.CreateExamAsync(exam);
+            var allExams = await _quizService.GetAllExams();
+            int newExamId = allExams.Max(q => q.Id);
 
             foreach (var id in selectedExerciseIds)
             {
-                await _quizService.AddExerciseToExamAsync(exam.Id, id);
+                await _quizService.AddExerciseToExamAsync(newExamId, id);
             }
 
             return RedirectToAction("ManageExam");
         }
+
 
         // GET: /Exam/ManageExam
         public async Task<IActionResult> ManageExam()
@@ -94,10 +96,10 @@ namespace Duo.Web.Controllers
                 .Select(dto => new MultipleChoiceExercise
                 {
                     ExerciseId = dto.ExerciseId,
-                    Question = dto.Question
+                    Question = dto.Question,
+                    Type = "MultipleChoice"
                 })
-
-                .ToList();
+                .ToList<Exercise>();
 
             return PartialView("_SelectedExercisesPartial", proxyExercises);
         }

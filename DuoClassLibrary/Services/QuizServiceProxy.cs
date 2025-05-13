@@ -65,7 +65,7 @@ namespace DuoClassLibrary.Services
 
         public async Task<List<Exam>> GetAllExams()
         {
-            var result = await httpClient.GetAsync($"{url}quiz/list");
+            var result = await httpClient.GetAsync($"{url}exam/list");
             if (result == null)
             {
                 throw new QuizServiceProxyException("Received null response when fetching available exams.");
@@ -217,12 +217,15 @@ namespace DuoClassLibrary.Services
             response.EnsureSuccessStatusCode();
         }
 
-        public async Task CreateExamAsync(Exam exam)
+        public async Task<Exam> CreateExamAsync(Exam exam)
         {
             string serialized = JsonSerializationUtil.SerializeExamWithTypedExercises(exam);
             var response = await httpClient.PostAsync($"{url}exam/add", new StringContent(serialized, Encoding.UTF8, "application/json"));
             response.EnsureSuccessStatusCode();
+            string responseJson = await response.Content.ReadAsStringAsync();
+            return JsonSerializationUtil.DeserializeExamWithTypedExercises(responseJson);
         }
+
 
         public async Task<QuizResult> GetResultAsync(int quizId)
         {

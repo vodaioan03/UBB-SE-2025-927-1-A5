@@ -1,8 +1,7 @@
-﻿AddExam.cshtml:
-@{
+﻿@{
     ViewData["Title"] = "Create New Exam";
     Layout = "~/Views/Shared/_Layout.cshtml";
-    var exercises = ViewBag.AllExercises as List<DuoClassLibrary.Models.Exercises.Exercise>;
+    var exercises = ViewBag.AllExercises as List<DuoClassLibrary.Models.Exercises.Exercise> ?? new List<DuoClassLibrary.Models.Exercises.Exercise>();
 
 }
 

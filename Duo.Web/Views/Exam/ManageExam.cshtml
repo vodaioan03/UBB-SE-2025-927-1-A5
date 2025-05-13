@@ -2,7 +2,7 @@
     ViewData["Title"] = "Manage Exams";
     Layout = "~/Views/Shared/_Layout.cshtml";
     var exams = ViewBag.Exams as List<DuoClassLibrary.Models.Quizzes.Exam>;
-    var allExercises = ViewBag.AllExercises as List<DuoClassLibrary.Models.Exercises.Exercise>;
+    var exercises = ViewBag.AllExercises as List<DuoClassLibrary.Models.Exercises.Exercise>;
 }
 
 <div class="container-fluid px-4">
@@ -51,7 +51,7 @@
             </div>
             <div class="modal-body">
                 <ul class="list-group" id="exerciseList">
-                    @foreach (var ex in allExercises)
+                    @foreach (var ex in exercises)
                     {
                         <li class="list-group-item bg-dark text-light exercise-item" data-id="@ex.ExerciseId" data-name="@ex.Question">
                             Exercise #@ex.ExerciseId – @ex.Question
@@ -161,7 +161,7 @@
                 bootstrap.Modal.getInstance(document.getElementById('exerciseModal')).hide();
                 document.getElementById('confirmAddExercise').disabled = true;
 
-                return fetch(`/Exam/GetExercisesForExam/${selectedExamId}`)
+                return fetch(`/Exercise/exam/${selectedExamId}`)
                     .then(res => res.text())
                     .then(html => {
                         document.getElementById('selectedExercisesBox').innerHTML = html;
