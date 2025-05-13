@@ -1,4 +1,5 @@
 ﻿using Duo.Web.Models;
+using DuoClassLibrary.Models;
 using DuoClassLibrary.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -59,7 +60,26 @@ namespace Duo.Web.Controllers
         //[Route("Module/{id:int}")]
         public IActionResult Index()
         {
-            return View("~/Views/Module/Index.cshtml");
+            return View(
+                new ModuleViewModel
+                {
+                    // Initialize properties as needed  
+                    // For example, you can set default values or fetch them from a service  
+                    Module = new Module
+                    {
+                        ModuleId = 0,
+                        Title = "Sample Module",
+                        Description = "This is a sample module description.",
+                        ImageUrl = "https://example.com/sample.jpg",
+                        CourseId = 1
+                    },
+                    CourseId = 0,
+                    TimeSpent = "00:00:00",
+                    CoinBalance = "0",
+                    IsCompleted = false,
+                    IsUnlocked = false
+                }
+            );
         }
     }
 }

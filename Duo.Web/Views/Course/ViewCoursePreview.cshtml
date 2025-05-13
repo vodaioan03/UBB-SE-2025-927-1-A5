@@ -102,6 +102,6 @@
 
 <script>
 	function onModuleClick(moduleId) {
-		alert("Module ID: " + moduleId);
+		window.location.href = '@Url.Action("Index", "Module")' + '/' + moduleId;   
 	}
 </script>
