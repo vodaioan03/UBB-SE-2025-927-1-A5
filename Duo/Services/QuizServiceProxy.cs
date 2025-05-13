@@ -212,7 +212,8 @@ namespace Duo.Services
 
         public async Task UpdateExamAsync(Exam exam)
         {
-            var response = await httpClient.PutAsJsonAsync($"{url}Exam/update", exam);
+            string serialized = JsonSerializationUtil.SerializeExamWithTypedExercises(exam);
+            var response = await httpClient.PutAsync($"{url}Exam/update", new StringContent(serialized, Encoding.UTF8, "application/json"));
             response.EnsureSuccessStatusCode();
         }
 
