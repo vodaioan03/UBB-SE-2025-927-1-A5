@@ -82,66 +82,69 @@ namespace Duo.Web.Controllers
         public async Task<IActionResult> CreateQuiz()
         {
             ViewBag.AvailableExercises = await _exerciseService.GetAllExercises();
-
             TempData["SelectedExerciseIds"] = new List<int>();
-
+            await SetCreateQuizViewData();
             return View();
         }
 
-        // POST: Add selected exercise
+        // POST: Add a selected exercise
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> AddSelectedExercise(int exerciseId)
         {
-            var selectedIds = TempData["SelectedExerciseIds"] as List<int> ?? new List<int>();
+            var selectedIds = TempData["SelectedExerciseIds"] as List<int> ?? new();
             if (!selectedIds.Contains(exerciseId))
                 selectedIds.Add(exerciseId);
 
             TempData["SelectedExerciseIds"] = selectedIds;
-
-            ViewBag.AvailableExercises = await _exerciseService.GetAllExercises();
-            ModelState.Clear();
-
+            await SetCreateQuizViewData();
             return View("CreateQuiz");
         }
 
-        // POST: Remove selected exercise
+        // POST
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> RemoveSelectedExercise(int exerciseId)
         {
-            var selectedIds = TempData["SelectedExerciseIds"] as List<int> ?? new List<int>();
+            var selectedIds = TempData["SelectedExerciseIds"] as List<int> ?? new();
             selectedIds.Remove(exerciseId);
 
             TempData["SelectedExerciseIds"] = selectedIds;
-
-            ViewBag.AvailableExercises = await _exerciseService.GetAllExercises();
-            ModelState.Clear();
-
+            await SetCreateQuizViewData();
             return View("CreateQuiz");
         }
 
-        // POST: Save and create the quiz
+
+        // POST
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateQuizConfirmed()
         {
-            var selectedIds = TempData["SelectedExerciseIds"] as List<int> ?? new List<int>();
+            var selectedIds = TempData["SelectedExerciseIds"] as List<int> ?? new();
 
             if (!selectedIds.Any())
             {
                 ModelState.AddModelError("", "Please select at least one exercise.");
-                ViewBag.AvailableExercises = await _exerciseService.GetAllExercises();
+                await SetCreateQuizViewData();
                 return View("CreateQuiz");
             }
 
-            var newQuiz = new Quiz(0, sectionId: null, orderNumber: null);
-            int newQuizId = await _quizService.CreateQuiz(newQuiz);
+            var quiz = new Quiz(0, null, null);
+            int newQuizId = await _quizService.CreateQuiz(quiz);
 
-            foreach (var exerciseId in selectedIds)
-            {
-                await _quizService.AddExerciseToQuiz(newQuizId, exerciseId);
-            }
+            foreach (var id in selectedIds)
+                await _quizService.AddExerciseToQuiz(newQuizId, id);
 
-            TempData["SuccessMessage"] = $"Quiz #{newQuizId} created successfully!";
-            return RedirectToAction(nameof(ViewQuizzes), new { selectedQuizId = newQuizId });
+            TempData.Remove("SelectedExerciseIds");
+            return RedirectToAction("ViewQuizzes", new { selectedQuizId = newQuizId });
         }
+
+
+        private async Task SetCreateQuizViewData()
+        {
+            var allExercises = await _exerciseService.GetAllExercises();
+            var selectedIds = TempData.Peek("SelectedExerciseIds") as List<int> ?? new();
+
+            ViewBag.AvailableExercises = allExercises;
+            TempData.Keep("SelectedExerciseIds");
+        }
+
     }
 }
