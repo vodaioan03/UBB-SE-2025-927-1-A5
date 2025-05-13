@@ -66,6 +66,7 @@ namespace DuoClassLibrary.Services
         public async Task<List<Exam>> GetAllExams()
         {
             var result = await httpClient.GetAsync($"{url}quiz/get-all");
+
             if (result == null)
             {
                 throw new QuizServiceProxyException("Received null response when fetching available exams.");
