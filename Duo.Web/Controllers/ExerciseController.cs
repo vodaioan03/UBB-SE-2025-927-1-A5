@@ -1,104 +1,132 @@
-using Duo.Web.Controllers;
+using DuoClassLibrary.Services;
 using Microsoft.AspNetCore.Mvc;
 using DuoClassLibrary.Models;
 using DuoClassLibrary.Models.Exercises;
-using System.Threading.Tasks;
-using DuoClassLibrary.Services;
 using System.Text.Json;
 
-namespace DuoWebApp.Controllers
+
+namespace Duo.Web.Controllers;
+public class ExerciseController : Controller
 {
-    public class ExerciseController : Controller
+    private readonly ILogger<ExerciseController> _logger;
+    private readonly IExerciseService _exerciseService;
+
+    public ExerciseController(ILogger<ExerciseController> logger, IExerciseService exerciseService)
     {
-        private readonly IExerciseService exerciseService;
+        _logger = logger;
+        _exerciseService = exerciseService;
+    }
 
-        public ExerciseController(IExerciseService exerciseService)
+    public IActionResult Index()
+    {
+        // Return the index view that lists all exercises
+        return View("~/Views/Exercise/Index.cshtml");
+    }
+
+    public IActionResult AssociationExercise()
+    {
+        // Using mock data in the view for now
+        return View("~/Views/Exercise/AssociationExercise.cshtml");
+    }
+
+    public IActionResult FillBlanksExercise()
+    {
+        // Using mock data in the view for now
+        return View("~/Views/Exercise/FillBlanksExercise.cshtml");
+    }
+
+    public IActionResult MultipleChoiceExercise()
+    {
+        // Using mock data in the view for now
+        return View("~/Views/Exercise/MultipleChoiceExercise.cshtml");
+    }
+
+    public IActionResult FlashcardExercise()
+    {
+        // Using mock data in the view for now
+        return View("~/Views/Exercise/FlashcardExercise.cshtml");
+    }
+
+    public IActionResult CreateExercise()
+    {
+        ViewBag.Difficulties = Enum.GetValues(typeof(Difficulty)).Cast<Difficulty>().ToArray();
+        ViewBag.ExerciseTypes = ExerciseTypes.EXERCISE_TYPES;
+        return View("~/Views/Exercise/CreateExercise.cshtml");
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Create([FromBody] JsonElement exerciseJson)
+    {
+        if (!ModelState.IsValid)
         {
-            this.exerciseService = exerciseService;
+            return BadRequest(ModelState);
         }
 
-        public IActionResult CreateExercise()
+        string json = exerciseJson.GetRawText();
+
+        using var doc = JsonDocument.Parse(json);
+        if (!doc.RootElement.TryGetProperty("Type", out var typeProp))
         {
-            ViewBag.Difficulties = Enum.GetValues(typeof(Difficulty)).Cast<Difficulty>().ToArray();
-            ViewBag.ExerciseTypes = ExerciseTypes.EXERCISE_TYPES;
-            return View("~/Views/Exercise/CreateExercise.cshtml");
+            return BadRequest("Missing 'type' discriminator.");
         }
 
-        [HttpPost]
-        public async Task<IActionResult> Create([FromBody] JsonElement exerciseJson)
+        var type = typeProp.GetString();
+
+        Exercise? exercise = type switch
         {
-            if (!ModelState.IsValid)
-            {
-                // Return validation errors as JSON for AJAX
-                return BadRequest(ModelState);
-            }
+            "Flashcard" => JsonSerializer.Deserialize<FlashcardExercise>(json),
+            "MultipleChoice" => JsonSerializer.Deserialize<MultipleChoiceExercise>(json),
+            "FillInTheBlank" => JsonSerializer.Deserialize<FillInTheBlankExercise>(json),
+            "Association" => JsonSerializer.Deserialize<AssociationExercise>(json),
+            _ => null
+        };
 
-            string json = exerciseJson.GetRawText();
-
-            using var doc = JsonDocument.Parse(json);
-            if (!doc.RootElement.TryGetProperty("Type", out var typeProp))
-            {
-                return BadRequest("Missing 'type' discriminator.");
-            }
-
-            var type = typeProp.GetString();
-
-            Exercise? exercise = type switch
-            {
-                "Flashcard" => JsonSerializer.Deserialize<FlashcardExercise>(json),
-                "MultipleChoice" => JsonSerializer.Deserialize<MultipleChoiceExercise>(json),
-                "FillInTheBlank" => JsonSerializer.Deserialize<FillInTheBlankExercise>(json),
-                "Association" => JsonSerializer.Deserialize<AssociationExercise>(json),
-                _ => null
-            };
-
-            if (exercise == null)
-            {
-                return this.BadRequest("Invalid payload.");
-            }
-
-            await exerciseService.CreateExercise(exercise);
-
-            // Return success (could also return the created entity or a redirect URL)
-            return Ok(new { message = "Exercise created successfully" });
+        if (exercise == null)
+        {
+            return this.BadRequest("Invalid payload.");
         }
 
+        await _exerciseService.CreateExercise(exercise);
 
-        public IActionResult ViewExercises()
-        {
-            return View("~/Views/Exercise/ManageExercise.cshtml");
-        }
+        // Return success (could also return the created entity or a redirect URL)
+        return Ok(new { message = "Exercise created successfully" });
+    }
 
-        [HttpGet]
-        public IActionResult GetExerciseForm(string type)
-        {
-            switch (type)
-            {
-                case "Association":
-                    return PartialView("_AssociationExerciseForm");
-                case "Fill in the blank":
-                    return PartialView("_FillInTheBlankExerciseForm");
-                case "Multiple Choice":
-                    return PartialView("_MultipleChoiceExerciseForm");
-                case "Flashcard":
-                    return PartialView("_FlashcardExerciseForm", new FlashcardExercise());
-                default:
-                    return NotFound();
-            }
-        }
 
-        [HttpGet]
-        public async Task<IActionResult> Manage()
-        {
-            var exercises = await exerciseService.GetAllExercises();
-            return View("~/Views/Exercise/ManageExercise.cshtml", exercises);
-        }
+    public IActionResult ViewExercises()
+    {
+        return View("~/Views/Exercise/ManageExercise.cshtml");
+    }
 
-        [HttpPost]
-        public async Task<IActionResult> Delete(int id)
+    [HttpGet]
+    public IActionResult GetExerciseForm(string type)
+    {
+        switch (type)
         {
-            await exerciseService.DeleteExercise(id);
-            return RedirectToAction("Manage");
+            case "Association":
+                return PartialView("_AssociationExerciseForm");
+            case "Fill in the blank":
+                return PartialView("_FillInTheBlankExerciseForm");
+            case "Multiple Choice":
+                return PartialView("_MultipleChoiceExerciseForm");
+            case "Flashcard":
+                return PartialView("_FlashcardExerciseForm", new FlashcardExercise());
+            default:
+                return NotFound();
         }
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> Manage()
+    {
+        var exercises = await _exerciseService.GetAllExercises();
+        return View("~/Views/Exercise/ManageExercise.cshtml", exercises);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Delete(int id)
+    {
+        await _exerciseService.DeleteExercise(id);
+        return RedirectToAction("Manage");
     }
 }

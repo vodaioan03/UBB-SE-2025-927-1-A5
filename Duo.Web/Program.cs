@@ -79,10 +79,17 @@ builder.Services.AddHttpClient<IExerciseServiceProxy, ExerciseServiceProxy>(clie
     client.BaseAddress = new Uri(apiBase);
 });
 
-builder.Services.AddHttpClient<ISectionServiceProxy, SectionServiceProxy>(client =>
+builder.Services.AddHttpClient<RoadmapServiceProxy>();
+builder.Services.AddScoped<IRoadmapService, RoadmapService>();
+builder.Services.AddScoped<IRoadmapServiceProxy, RoadmapServiceProxy>();
+builder.Services.AddScoped<ISectionService, SectionService>();
+builder.Services.AddScoped<ISectionServiceProxy, SectionServiceProxy>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddHttpClient<IUserServiceProxy, UserServiceProxy>(client =>
 {
     client.BaseAddress = new Uri(apiBase);
 });
+
 
 // Register services
 builder.Services.AddScoped<IQuizService, QuizService>();
@@ -114,6 +121,11 @@ app.MapControllerRoute(
     pattern: "Course/{action=ViewCourses}/{id?}");
 
 app.MapControllerRoute(
+    name: "exercises",
+    pattern: "Exercise/{action=Index}/{id?}",
+    defaults: new { controller = "Exercise" });
+
+app.MapControllerRoute(
     name: "coursePreview",
     pattern: "Course/{id?}",
     defaults: new { controller = "Course", action = "CoursePreview" });
@@ -123,4 +135,9 @@ app.MapControllerRoute(
     pattern: "Module/{id:int}",
     defaults: new { controller = "Module", action = "Index" });
 
+app.MapControllerRoute(
+    name: "quiz",
+    pattern: "Quiz/{action=ViewQuizzes}/{id?}",
+    defaults: new { controller = "Quiz" });
+    
 app.Run();

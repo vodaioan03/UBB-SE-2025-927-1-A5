@@ -1,0 +1,141 @@
+@model List<DuoWebApp.ViewModels.SectionUnlockViewModel>
+
+@{
+    ViewData["Title"] = "Roadmap Sections";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <style>
+        .quiz-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            margin-right: 10px;
+            border: 1px solid #000;
+            opacity: 1;
+        }
+
+            .quiz-circle.locked {
+                opacity: 0.5;
+                background-color: #6c757d !important;
+            }
+
+            .quiz-circle.unlocked {
+                background-color: #198754 !important;
+            }
+
+            .quiz-circle.completed {
+                background-color: #0d6efd !important;
+            }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+
+        @if (Model == null || !Model.Any())
+        {
+            <div class="alert alert-info" role="alert">
+                No sections found for this roadmap.
+            </div>
+        }
+        else
+        {
+            <div class="row">
+                @foreach (var sectionVm in Model.OrderBy(s => s.Section.OrderNumber))
+                {
+                    <div class="col-12 mb-3">
+                        <div class="card @(sectionVm.IsUnlocked ? "" : "border-secondary")">
+                            <div class="card-body">
+                                <h5 class="card-title">
+                                    @sectionVm.Section.Title
+                                    @if (!sectionVm.IsUnlocked)
+                                    {
+                                        <span class="badge bg-secondary ms-2">Locked</span>
+                                    }
+                                </h5>
+                                <p class="card-text">@sectionVm.Section.Description</p>
+                                <div class="d-flex flex-wrap">
+                                    @foreach (var quizVm in sectionVm.Quizzes)
+                                    {
+                                        var quizClass = "quiz-circle";
+                                        if (quizVm.IsUnlocked)
+                                            quizClass += " unlocked";
+                                        else
+                                            quizClass += " locked";
+
+                                        string quizName = quizVm.Quiz.GetType().GetProperty("Name") != null
+                                            ? (string)quizVm.Quiz.GetType().GetProperty("Name").GetValue(quizVm.Quiz)
+                                            : quizVm.Quiz.ToString();
+
+                                        string shortName = $"Q{quizVm.Quiz.Id}";
+                                        string quizUrl = Url.Action("Preview", "Quiz", new { id = quizVm.Quiz.Id }); // adjust controller/action if needed
+
+                <div class="quiz-wrapper">
+                                            @if (quizVm.IsUnlocked)
+                                            {
+                            <a href="@quizUrl" title="Quiz: @quizName">
+                                <div class="@quizClass">
+                                                        @shortName
+                                </div>
+                            </a>
+                                            }
+                                            else
+                                            {
+                            <div class="@quizClass" title="Quiz: @quizName">
+                                                    @shortName
+                            </div>
+                                            }
+
+
+                </div>
+                                    }
+
+
+                                    @if (sectionVm.Exam is not null)
+                                    {
+                                        var exam = sectionVm.Exam; // Now 'exam' is non-nullable within this block
+                                        var examClass = sectionVm.IsExamUnlocked ? "quiz-circle unlocked" : "quiz-circle locked";
+                                        string examName = exam.GetType().GetProperty("Name") != null
+                                        ? (string)exam.GetType().GetProperty("Name")?.GetValue(exam)
+                                        : exam.ToString();
+                                        string examShortName = $"E{exam.Id}";
+                                        <div class="@examClass" title="Exam: @examName">
+                                            @examShortName
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="quiz-circle locked" title="No exam available">
+                                            N/A
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger mt-3" role="alert">
+                @TempData["ErrorMessage"]
+            </div>
+        }
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
