@@ -74,6 +74,20 @@ namespace Duo.Api.Controllers
                 string json = rawJson.GetRawText();
                 var section = await JsonSerializationUtil.DeserializeSection(json, this.repository);
 
+                // Validate required fields
+                if (string.IsNullOrEmpty(section.Title))
+                    return BadRequest(new { message = "Title is required" });
+                if (string.IsNullOrEmpty(section.Description))
+                    return BadRequest(new { message = "Description is required" });
+                if (section.RoadmapId <= 0)
+                    return BadRequest(new { message = "Valid RoadmapId is required" });
+
+                // Set order number if not provided
+                if (!section.OrderNumber.HasValue)
+                {
+                    section.OrderNumber = await GetLastOrderNumberAsync(section.RoadmapId);
+                }
+
                 await this.repository.AddSectionAsync(section);
                 return Ok(new { message = "Section added successfully!", id = section.Id });
             }
