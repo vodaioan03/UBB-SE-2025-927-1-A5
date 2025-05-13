@@ -81,28 +81,67 @@ namespace Duo.Web.Controllers
         [HttpGet]
         public async Task<IActionResult> CreateQuiz()
         {
-            var vm = new CreateQuizViewModel
-            {
-                AvailableExercises = await _exerciseService.GetAllExercises()
-            };
-            return View(vm);
+            ViewBag.AvailableExercises = await _exerciseService.GetAllExercises();
+
+            TempData["SelectedExerciseIds"] = new List<int>();
+
+            return View();
         }
 
-        // POST: /Quiz/CreateQuiz
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateQuiz(CreateQuizViewModel vm)
+        // POST: Add selected exercise
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddSelectedExercise(int exerciseId)
         {
-            var newQuiz = new Quiz(0, null, null);
-            int newQuizId = await _quizService.CreateQuiz(newQuiz);
+            var selectedIds = TempData["SelectedExerciseIds"] as List<int> ?? new List<int>();
+            if (!selectedIds.Contains(exerciseId))
+                selectedIds.Add(exerciseId);
 
-            if (vm.SelectedExerciseIds != null)
+            TempData["SelectedExerciseIds"] = selectedIds;
+
+            ViewBag.AvailableExercises = await _exerciseService.GetAllExercises();
+            ModelState.Clear();
+
+            return View("CreateQuiz");
+        }
+
+        // POST: Remove selected exercise
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> RemoveSelectedExercise(int exerciseId)
+        {
+            var selectedIds = TempData["SelectedExerciseIds"] as List<int> ?? new List<int>();
+            selectedIds.Remove(exerciseId);
+
+            TempData["SelectedExerciseIds"] = selectedIds;
+
+            ViewBag.AvailableExercises = await _exerciseService.GetAllExercises();
+            ModelState.Clear();
+
+            return View("CreateQuiz");
+        }
+
+        // POST: Save and create the quiz
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateQuizConfirmed()
+        {
+            var selectedIds = TempData["SelectedExerciseIds"] as List<int> ?? new List<int>();
+
+            if (!selectedIds.Any())
             {
-                foreach (var exId in vm.SelectedExerciseIds)
-                    await _quizService.AddExerciseToQuiz(newQuizId, exId);
+                ModelState.AddModelError("", "Please select at least one exercise.");
+                ViewBag.AvailableExercises = await _exerciseService.GetAllExercises();
+                return View("CreateQuiz");
             }
 
-            return RedirectToAction(nameof(ViewQuizzes));
+            var newQuiz = new Quiz(0, sectionId: null, orderNumber: null);
+            int newQuizId = await _quizService.CreateQuiz(newQuiz);
+
+            foreach (var exerciseId in selectedIds)
+            {
+                await _quizService.AddExerciseToQuiz(newQuizId, exerciseId);
+            }
+
+            TempData["SuccessMessage"] = $"Quiz #{newQuizId} created successfully!";
+            return RedirectToAction(nameof(ViewQuizzes), new { selectedQuizId = newQuizId });
         }
     }
 }
