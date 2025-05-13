@@ -81,12 +81,10 @@ namespace Duo.Web.Controllers
         [HttpGet]
         public async Task<IActionResult> CreateQuiz()
         {
-            var selected = new List<int>();
-            TempData["SelectedExerciseIds"] = selected;
-            TempData.Keep("SelectedExerciseIds");
+            TempData["SelectedExerciseIds"] = new List<int>();
+            TempData.Keep("SelectedExerciseIds"); 
 
-            var allExercises = await _exerciseService.GetAllExercises();
-            ViewBag.AvailableExercises = allExercises;
+            await SetCreateQuizViewData(); 
 
             return View();
         }
@@ -150,10 +148,21 @@ namespace Duo.Web.Controllers
         {
             var allExercises = await _exerciseService.GetAllExercises();
             var selectedIds = TempData.Peek("SelectedExerciseIds") as List<int> ?? new();
+
             ViewBag.AvailableExercises = allExercises;
             TempData.Keep("SelectedExerciseIds");
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetAvailableExercisesModal()
+        {
+            var allExercises = await _exerciseService.GetAllExercises();
+            var selectedIds = TempData["SelectedExerciseIds"] as List<int> ?? new();
+            TempData.Keep("SelectedExerciseIds");
+
+            var available = allExercises.Where(e => !selectedIds.Contains(e.ExerciseId)).ToList();
+            return PartialView("_AddExerciseModal", available);
+        }
 
     }
 }
