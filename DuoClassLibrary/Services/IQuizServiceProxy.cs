@@ -27,7 +27,7 @@ namespace DuoClassLibrary.Services
         Task RemoveExerciseFromExamAsync(int examId, int exerciseId);
         Task DeleteExamAsync(int examId);
         Task UpdateExamAsync(Exam exam);
-        Task<Exam> CreateExamAsync(Exam exam);
+        Task CreateExamAsync(Exam exam);
         Task<QuizResult> GetResultAsync(int quizId);
         Task SubmitQuizAsync(QuizSubmission submission);
     }

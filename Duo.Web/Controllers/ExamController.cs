@@ -1,107 +1,40 @@
-﻿using DuoClassLibrary.Models.Exercises;
-using DuoClassLibrary.Models.Quizzes;
-using DuoClassLibrary.Models.Quizzes.API;
-using DuoClassLibrary.Services;
+﻿using Duo.Web.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
 namespace Duo.Web.Controllers
 {
     public class ExamController : Controller
     {
-        private readonly IExerciseServiceProxy _exerciseService;
-        private readonly IQuizServiceProxy _quizService;
+        private readonly ILogger<ExamController> _logger;
 
-        public ExamController(IExerciseServiceProxy exerciseService, IQuizServiceProxy quizService)
+        public ExamController(ILogger<ExamController> logger)
         {
-            _exerciseService = exerciseService;
-            _quizService = quizService;
+            _logger = logger;
         }
 
-        // GET: /Exam/AddExam
-        public async Task<IActionResult> AddExam()
+        private List<ExerciseViewModel> GetMockExercises()
         {
-            var allExercises = await _exerciseService.GetAllExercises();
-            ViewBag.AllExercises = allExercises;
-            return View();
-        }
-
-        // POST: /Exam/CreateExam
-        [HttpPost]
-        public async Task<IActionResult> CreateExam([FromBody] List<int> selectedExerciseIds)
-        {
-            var newExam = new Exam(0, null);
-            Exam createdExam = await _quizService.CreateExamAsync(newExam);
-
-            var allExams = await _quizService.GetAllExams();
-            int newExamId = allExams.Max(q => q.Id);
-
-            foreach (var id in selectedExerciseIds)
+            return new List<ExerciseViewModel>
             {
-                await _quizService.AddExerciseToExamAsync(newExamId, id);
-            }
+                new ExerciseViewModel { Id = 1, Description = "Match the items for Association Exercise 1" },
+                new ExerciseViewModel { Id = 2, Description = "Match the items for Association Exercise 2" },
+                new ExerciseViewModel { Id = 3, Description = "Match the items for Association Exercise 4" },
+                new ExerciseViewModel { Id = 4, Description = "Complete the sentence for Fill in the Blank Exercise 3" },
+            };
+                }
 
-            return RedirectToAction("ManageExam");
-        }
-
-
-        // GET: /Exam/ManageExam
-        public async Task<IActionResult> ManageExam()
+        public IActionResult ManageExam()
         {
-            var exams = await _quizService.GetAllExams();
-            var allExercises = await _exerciseService.GetAllExercises();
-
-            ViewBag.Exams = exams;
-            ViewBag.AllExercises = allExercises;
-
+            ViewBag.Exercises = GetMockExercises();
             return View();
         }
 
-        // GET: /Exam/GetExercisesForExam/{id}
-        [HttpGet]
-        public async Task<IActionResult> GetExercisesForExam(int id)
+        public IActionResult AddExam()
         {
-            var exercises = await _exerciseService.GetAllExercisesFromExam(id);
-            return PartialView("_SelectedExercisesPartial", exercises);
+            ViewBag.Exercises = GetMockExercises();
+            return View();
         }
 
-        // POST: /Exam/Delete
-        [HttpPost]
-        public async Task<IActionResult> Delete(int id)
-        {
-            await _quizService.DeleteExamAsync(id);
-            return RedirectToAction("ManageExam");
-        }
-
-        // POST: /Exam/RemoveExerciseFromExam
-        [HttpPost]
-        public async Task<IActionResult> RemoveExerciseFromExam([FromBody] ExamExerciseDto dto)
-        {
-            await _quizService.RemoveExerciseFromExamAsync(dto.ExamId, dto.ExerciseId);
-            return Ok();
-        }
-
-        // POST: /Exam/AddExerciseToExam
-        [HttpPost]
-        public async Task<IActionResult> AddExerciseToExam([FromBody] ExamExerciseDto dto)
-        {
-            await _quizService.AddExerciseToExamAsync(dto.ExamId, dto.ExerciseId);
-            return Ok();
-        }
-
-        // POST: /Exam/RenderSelectedExercises
-        [HttpPost]
-        public IActionResult RenderSelectedExercises([FromBody] List<ExerciseDto> selectedExercises)
-        {
-            var proxyExercises = selectedExercises
-                .Select(dto => new MultipleChoiceExercise
-                {
-                    ExerciseId = dto.ExerciseId,
-                    Question = dto.Question,
-                    Type = "MultipleChoice"
-                })
-                .ToList<Exercise>();
-
-            return PartialView("_SelectedExercisesPartial", proxyExercises);
-        }
     }
 }
