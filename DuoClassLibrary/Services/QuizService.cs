@@ -11,7 +11,7 @@ namespace DuoClassLibrary.Services
     public class QuizService : IQuizService
     {
         private readonly IQuizServiceProxy serviceProxy;
-            
+
         /// <summary>
         /// For production: accepts the concrete proxy, up-casts to the interface.
         /// </summary>
@@ -128,11 +128,10 @@ namespace DuoClassLibrary.Services
 
         public async Task<int> CreateExam(Exam exam)
         {
-            var createdExam = await serviceProxy.CreateExamAsync(exam);
-            return createdExam.Id;
+            // ValidationHelper.ValidateExam(exam);
+            await serviceProxy.CreateExamAsync(exam).ConfigureAwait(false);
+                return exam.Id;
         }
-
-
 
         public async Task SubmitQuizAsync(QuizSubmission submission)
         {
