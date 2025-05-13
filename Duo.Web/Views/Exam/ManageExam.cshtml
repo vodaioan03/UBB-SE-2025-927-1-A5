@@ -1,7 +1,8 @@
 ﻿@{
     ViewData["Title"] = "Manage Exams";
     Layout = "~/Views/Shared/_Layout.cshtml";
-    var exercises = ViewBag.Exercises as List<ExerciseViewModel>;
+    var exams = ViewBag.Exams as List<DuoClassLibrary.Models.Quizzes.Exam>;
+    var allExercises = ViewBag.AllExercises as List<DuoClassLibrary.Models.Exercises.Exercise>;
 }
 
 <div class="container-fluid px-4">
@@ -16,12 +17,15 @@
         <a href="@Url.Action("AddExam", "Exam")" class="btn btn-primary">Add Exam</a>
     </div>
 
-    <ul class="list-group">
-        @for (int i = 1; i <= 3; i++)
+    <ul class="list-group" id="examList">
+        @foreach (var exam in exams)
         {
             <li class="list-group-item d-flex justify-content-between align-items-center bg-dark text-light">
-                Exam #@i
-                <button class="btn btn-sm btn-outline-danger">Remove</button>
+                <span class="exam-item" data-id="@exam.Id">Exam #@exam.Id</span>
+                <form asp-action="Delete" asp-controller="Exam" method="post" class="m-0">
+                    <input type="hidden" name="id" value="@exam.Id" />
+                    <button type="submit" class="btn btn-sm btn-outline-danger">Remove</button>
+                </form>
             </li>
         }
     </ul>
@@ -29,10 +33,10 @@
     <div class="mt-4">
         <h5>Selected Exercises</h5>
         <div class="border rounded p-4 dark-box" style="min-height: 200px;" id="selectedExercisesBox">
-            <!-- Selected exercises go here -->
+            <p class="text-muted">Select an exam to view exercises.</p>
         </div>
         <div class="text-end mt-3">
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exerciseModal">Add Exercise</button>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exerciseModal" id="openAddExerciseModal" disabled>Add Exercise</button>
         </div>
     </div>
 </div>
@@ -47,12 +51,13 @@
             </div>
             <div class="modal-body">
                 <ul class="list-group" id="exerciseList">
-                    @foreach (var ex in exercises)
+                    @foreach (var ex in allExercises)
                     {
-                        <li class="list-group-item bg-dark text-light exercise-item" data-id="@ex.Id" data-name="@ex.Description">
-                            Exercise #@ex.Id – @ex.Description
+                        <li class="list-group-item bg-dark text-light exercise-item" data-id="@ex.ExerciseId" data-name="@ex.Question">
+                            Exercise #@ex.ExerciseId – @ex.Question
                         </li>
                     }
+
                 </ul>
             </div>
             <div class="modal-footer">
@@ -117,13 +122,27 @@
 
 @section Scripts {
     <script>
-        let selectedItem = null;
+        let selectedExercise = null;
+        let selectedExamId = null;
+
+        document.querySelectorAll('.exam-item').forEach(item => {
+            item.addEventListener('click', function () {
+                selectedExamId = this.dataset.id;
+                document.getElementById('openAddExerciseModal').disabled = false;
+
+                fetch(`/Exam/GetExercisesForExam/${selectedExamId}`)
+                    .then(response => response.text())
+                    .then(html => {
+                        document.getElementById('selectedExercisesBox').innerHTML = html;
+                    });
+            });
+        });
 
         document.querySelectorAll('.exercise-item').forEach(item => {
             item.addEventListener('click', function () {
                 document.querySelectorAll('.exercise-item').forEach(i => i.classList.remove('active'));
                 this.classList.add('active');
-                selectedItem = {
+                selectedExercise = {
                     id: this.dataset.id,
                     name: this.dataset.name
                 };
@@ -132,17 +151,47 @@
         });
 
         document.getElementById('confirmAddExercise').addEventListener('click', function () {
-            if (!selectedItem) return;
+            if (!selectedExercise || !selectedExamId) return;
 
-            const container = document.getElementById('selectedExercisesBox');
-            const div = document.createElement('div');
-            div.classList.add('mb-2');
-            div.textContent = `Exercise #${selectedItem.id} – ${selectedItem.name}`;
-            container.appendChild(div);
+            fetch('/Exam/AddExerciseToExam', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ examId: selectedExamId, exerciseId: selectedExercise.id })
+            })
+            .then(() => {
+                bootstrap.Modal.getInstance(document.getElementById('exerciseModal')).hide();
+                document.getElementById('confirmAddExercise').disabled = true;
 
-            bootstrap.Modal.getInstance(document.getElementById('exerciseModal')).hide();
-            selectedItem = null;
-            document.getElementById('confirmAddExercise').disabled = true;
+                return fetch(`/Exam/GetExercisesForExam/${selectedExamId}`)
+                    .then(response => response.text())
+                    .then(html => {
+                        document.getElementById('selectedExercisesBox').innerHTML = html;
+                    });
+            });
+        });
+
+        // NEW: Handle remove button clicks in the exercise list
+        document.addEventListener('click', function (e) {
+            if (e.target.classList.contains('remove-exercise')) {
+                const exerciseId = e.target.dataset.id;
+
+                fetch('/Exam/RemoveExerciseFromExam', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ examId: selectedExamId, exerciseId: exerciseId })
+                })
+                .then(() => {
+                    return fetch(`/Exam/GetExercisesForExam/${selectedExamId}`)
+                        .then(response => response.text())
+                        .then(html => {
+                            document.getElementById('selectedExercisesBox').innerHTML = html;
+                        });
+                });
+            }
         });
     </script>
 }
