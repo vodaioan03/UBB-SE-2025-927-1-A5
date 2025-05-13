@@ -81,24 +81,34 @@ namespace Duo.Web.Controllers
         [HttpGet]
         public async Task<IActionResult> CreateQuiz()
         {
-            ViewBag.AvailableExercises = await _exerciseService.GetAllExercises();
-            TempData["SelectedExerciseIds"] = new List<int>();
-            await SetCreateQuizViewData();
+            var selected = new List<int>();
+            TempData["SelectedExerciseIds"] = selected;
+            TempData.Keep("SelectedExerciseIds");
+
+            var allExercises = await _exerciseService.GetAllExercises();
+            ViewBag.AvailableExercises = allExercises;
+
             return View();
         }
 
+
         // POST: Add a selected exercise
         [HttpPost, ValidateAntiForgeryToken]
-        public async Task<IActionResult> AddSelectedExercise(int exerciseId)
+        public async Task<IActionResult> AddSelectedExercise(List<int> exerciseIds)
         {
             var selectedIds = TempData["SelectedExerciseIds"] as List<int> ?? new();
-            if (!selectedIds.Contains(exerciseId))
-                selectedIds.Add(exerciseId);
+            foreach (var id in exerciseIds)
+            {
+                if (!selectedIds.Contains(id))
+                    selectedIds.Add(id);
+            }
 
             TempData["SelectedExerciseIds"] = selectedIds;
+            TempData.Keep("SelectedExerciseIds");
             await SetCreateQuizViewData();
             return View("CreateQuiz");
         }
+
 
         // POST
         [HttpPost, ValidateAntiForgeryToken]
@@ -136,15 +146,14 @@ namespace Duo.Web.Controllers
             return RedirectToAction("ViewQuizzes", new { selectedQuizId = newQuizId });
         }
 
-
         private async Task SetCreateQuizViewData()
         {
             var allExercises = await _exerciseService.GetAllExercises();
             var selectedIds = TempData.Peek("SelectedExerciseIds") as List<int> ?? new();
-
             ViewBag.AvailableExercises = allExercises;
             TempData.Keep("SelectedExerciseIds");
         }
+
 
     }
 }
