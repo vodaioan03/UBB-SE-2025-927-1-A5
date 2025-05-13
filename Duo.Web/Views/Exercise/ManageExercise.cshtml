@@ -63,6 +63,21 @@
         [data-bs-theme="dark"] .modal-exercise-details h5 {
             color: #dee2e6;
         }
+
+        [data-bs-theme="dark"] .exercise-container {
+            background-color: #23272b;
+            color: #f8f9fa;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        [data-bs-theme="light"] .exercise-container {
+            background-color: #fff;
+            color: #212529;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
 </style>
 
 <div class="container-fluid exercise-container">
@@ -80,21 +95,13 @@
             <div class="table-responsive">
                 <table class="table table-hover">
                     <thead class="table-light">
-                        <tr>
-                            <th>Question</th>
-                            <th>Type</th>
-                            <th>Difficulty</th>
-                            <th>Actions</th>
-                        </tr>
                     </thead>
                     <tbody>
                         @foreach (var exercise in Model)
                         {
                             <tr>
                                 <td>@exercise.Question</td>
-                                <td>@exercise.Type</td>
-                                <td>@exercise.Difficulty</td>
-                                <td>
+                                <td class="text-end">
                                     <button class="btn btn-sm btn-outline-danger delete-exercise"
                                             data-id="@exercise.ExerciseId">
                                         <i class="fas fa-trash"></i> Remove
@@ -104,23 +111,6 @@
                         }
                     </tbody>
                 </table>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Details Modal -->
-<div class="modal fade" id="exerciseDetailsModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Exercise Details</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body" id="exerciseDetailsContent">
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
