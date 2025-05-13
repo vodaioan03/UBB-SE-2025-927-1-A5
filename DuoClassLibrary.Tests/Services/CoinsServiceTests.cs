@@ -3,7 +3,7 @@ using Moq;
 using System;
 using System.Threading.Tasks;
 using DuoClassLibrary.Services;
-using Duo.Services.Interfaces;
+using DuoClassLibrary.Services.Interfaces;
 
 namespace Duo.Tests.Services
 {
@@ -72,7 +72,7 @@ namespace Duo.Tests.Services
         {
             _mockProxy.Setup(p => p.AddCoinsAsync(It.IsAny<int>(), It.IsAny<int>())).ThrowsAsync(new Exception());
             await _service.AddCoinsAsync(1, 50);
-            Assert.IsTrue(true); // Confirm no throw
+            Assert.IsTrue(true);
         }
 
         [TestMethod]

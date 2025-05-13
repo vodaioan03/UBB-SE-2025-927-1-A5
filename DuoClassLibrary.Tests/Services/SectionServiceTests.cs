@@ -2,7 +2,7 @@
 using DuoClassLibrary.Models.Quizzes;
 using DuoClassLibrary.Models.Sections;
 using DuoClassLibrary.Services;
-using Duo.Services.Interfaces;
+using DuoClassLibrary.Services.Interfaces;
 using Moq;
 
 namespace Duo.Tests.Services
@@ -29,7 +29,7 @@ namespace Duo.Tests.Services
         private sealed class TestExercise : Exercise
         {
             public TestExercise(int id)
-                : base(id, question: $"Q{id}", difficulty: Models.Difficulty.Easy)
+                : base(id, question: $"Q{id}", difficulty: DuoClassLibrary.Models.Difficulty.Easy)
             {
             }
         }
