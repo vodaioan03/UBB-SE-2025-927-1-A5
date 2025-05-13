@@ -51,9 +51,9 @@
                             <select asp-for="Difficulty" class="form-select">
                                 @if (difficulties != null)
                                 {
-                                    foreach (var difficulty in difficulties)
+                                    for (int i = 0; i < difficulties.Length; i++)
                                     {
-                                        <option value="@difficulty">@difficulty</option>
+                                        <option value=@(i + 1)>@difficulties.GetValue(i)</option>
                                     }
                                 }
                                 else
@@ -110,6 +110,7 @@
                 const formData = collectFormData(exerciseType);
 
                 console.log(formData); // Debugging line
+                formData.Difficulty = parseInt(formData.Difficulty, 10);
                 console.log(JSON.stringify(formData))
                 
                 $.ajax({

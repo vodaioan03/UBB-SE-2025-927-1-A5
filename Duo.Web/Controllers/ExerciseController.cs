@@ -4,6 +4,7 @@ using DuoClassLibrary.Models;
 using DuoClassLibrary.Models.Exercises;
 using System.Threading.Tasks;
 using DuoClassLibrary.Services;
+using System.Text.Json;
 
 namespace DuoWebApp.Controllers
 {
@@ -24,12 +25,36 @@ namespace DuoWebApp.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] Exercise exercise)
+        public async Task<IActionResult> Create([FromBody] JsonElement exerciseJson)
         {
             if (!ModelState.IsValid)
             {
                 // Return validation errors as JSON for AJAX
                 return BadRequest(ModelState);
+            }
+
+            string json = exerciseJson.GetRawText();
+
+            using var doc = JsonDocument.Parse(json);
+            if (!doc.RootElement.TryGetProperty("Type", out var typeProp))
+            {
+                return BadRequest("Missing 'type' discriminator.");
+            }
+
+            var type = typeProp.GetString();
+
+            Exercise? exercise = type switch
+            {
+                "Flashcard" => JsonSerializer.Deserialize<FlashcardExercise>(json),
+                "MultipleChoice" => JsonSerializer.Deserialize<MultipleChoiceExercise>(json),
+                "FillInTheBlank" => JsonSerializer.Deserialize<FillInTheBlankExercise>(json),
+                "Association" => JsonSerializer.Deserialize<AssociationExercise>(json),
+                _ => null
+            };
+
+            if (exercise == null)
+            {
+                return this.BadRequest("Invalid payload.");
             }
 
             await exerciseService.CreateExercise(exercise);
