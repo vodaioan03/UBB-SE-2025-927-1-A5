@@ -5,15 +5,29 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+// Configure HttpClient to allow untrusted SSL (e.g., for localhost APIs with self-signed certs)
 var handler = new HttpClientHandler
 {
     ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true
 };
-var httpClient = new HttpClient(handler);
+builder.Services.AddSingleton(new HttpClient(handler));
 
-builder.Services.AddSingleton<HttpClient>();
+// Register Course services
 builder.Services.AddScoped<ICourseServiceProxy, CourseServiceProxy>();
 builder.Services.AddScoped<ICourseService, CourseService>();
+
+// Register Exercise services with proxy injection
+builder.Services.AddScoped<IExerciseServiceProxy>(sp =>
+    new ExerciseServiceProxy(sp.GetRequiredService<HttpClient>()));
+builder.Services.AddScoped<IExerciseService>(sp =>
+    new ExerciseService(sp.GetRequiredService<IExerciseServiceProxy>()));
+
+// Register Quiz services with proxy injection
+builder.Services.AddScoped<IQuizServiceProxy>(sp =>
+    new QuizServiceProxy(sp.GetRequiredService<HttpClient>()));
+builder.Services.AddScoped<IQuizService>(sp =>
+    new QuizService(sp.GetRequiredService<IQuizServiceProxy>()));
 
 var app = builder.Build();
 
@@ -21,7 +35,6 @@ var app = builder.Build();
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
