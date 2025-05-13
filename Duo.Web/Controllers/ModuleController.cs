@@ -4,13 +4,13 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Duo.Web.Controllers
 {
-    public class ModulesController : Controller
+    public class ModuleController : Controller
     {
         private readonly ICourseService _courseService;
         private readonly IUserService _userService;
         private readonly ICoinsService _coinsService;
 
-        public ModulesController(ICourseService courseService, IUserService userService, ICoinsService coinsService)
+        public ModuleController(ICourseService courseService, IUserService userService, ICoinsService coinsService)
         {
             _courseService = courseService;
             _userService = userService;
@@ -56,5 +56,10 @@ namespace Duo.Web.Controllers
             // Handle image click, can be redirected or open a modal
             return RedirectToAction(nameof(Details), new { id });
         }*/
+        //[Route("Module/{id:int}")]
+        public IActionResult Index()
+        {
+            return View("~/Views/Module/Index.cshtml");
+        }
     }
 }
