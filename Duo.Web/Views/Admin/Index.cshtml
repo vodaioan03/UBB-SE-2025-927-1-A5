@@ -45,12 +45,15 @@
                 <div class="admin-card-desc">here you can see and delete</div>
             </div>
 
-            <a asp-controller="Quiz"
-               asp-action="CreateQuiz"
-               class="admin-card-btn">
+            <a asp-controller="QuizAdmin" asp-action="CreateQuiz"
+               class="admin-card-btn btn btn-primary"
+               onclick="event.stopPropagation()">
                 Add Quiz
             </a>
+
+
         </div>
+
         <div class="admin-card">
             <div class="admin-card-icon">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
