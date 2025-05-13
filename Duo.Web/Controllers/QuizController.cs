@@ -89,7 +89,6 @@ namespace Duo.Web.Controllers
             return View();
         }
 
-
         // POST: Add a selected exercise
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> AddSelectedExercise(List<int> exerciseIds)
@@ -107,19 +106,18 @@ namespace Duo.Web.Controllers
             return View("CreateQuiz");
         }
 
-
         // POST
         [HttpPost, ValidateAntiForgeryToken]
-        public async Task<IActionResult> RemoveSelectedExercise(int exerciseId)
+        public IActionResult RemoveSelectedExercise(int exerciseId)
         {
             var selectedIds = TempData["SelectedExerciseIds"] as List<int> ?? new();
             selectedIds.Remove(exerciseId);
 
             TempData["SelectedExerciseIds"] = selectedIds;
-            await SetCreateQuizViewData();
-            return View("CreateQuiz");
-        }
+            TempData.Keep("SelectedExerciseIds");
 
+            return Ok(); 
+        }
 
         // POST
         [HttpPost, ValidateAntiForgeryToken]

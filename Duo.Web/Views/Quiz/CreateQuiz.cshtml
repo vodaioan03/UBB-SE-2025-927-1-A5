@@ -23,7 +23,6 @@
         </div>
     }
 
-    <!-- ✅ Main Form -->
     <form asp-controller="Quiz" asp-action="CreateQuizConfirmed" method="post">
         @Html.AntiForgeryToken()
 
@@ -39,13 +38,14 @@
                     @foreach (var id in selectedExerciseIds)
                     {
                         var ex = availableExercises.FirstOrDefault(e => e.ExerciseId == id);
-                        <li class="list-group-item bg-dark text-light d-flex justify-content-between">
-                            @ex?.Question (ID: @id)
-                            <form asp-controller="Quiz" asp-action="RemoveSelectedExercise" method="post" class="m-0 p-0">
-                                @Html.AntiForgeryToken()
-                                <input type="hidden" name="exerciseId" value="@id" />
-                                <button type="submit" class="btn btn-sm btn-outline-danger">Remove</button>
-                            </form>
+                        <li id="exercise-@id" class="list-group-item bg-dark text-light d-flex justify-content-between align-items-center">
+                            <span>@ex?.Question (ID: @id)</span>
+
+                            <button type="button"
+                                    class="btn btn-sm btn-outline-danger"
+                                    onclick="removeExercise(@id)">
+                                Remove
+                            </button>
                         </li>
                     }
                 </ul>
@@ -61,7 +61,8 @@
         <div class="text-end">
             <button type="submit" class="btn btn-success">Save Quiz</button>
         </div>
-    </form> 
+    </form>
+
 
     <div class="modal fade" id="addExerciseModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg">
@@ -98,5 +99,23 @@
             const html = await response.text();
             document.getElementById('exerciseModalContent').innerHTML = html;
         });
+
+        async function removeExercise(exerciseId) {
+            const response = await fetch('/Quiz/RemoveSelectedExercise', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                },
+                body: `exerciseId=${exerciseId}`
+            });
+
+            if (response.ok) {
+                document.getElementById(`exercise-${exerciseId}`).remove();
+            } else {
+                alert("Failed to remove exercise.");
+            }
+        }
     </script>
 }
+
