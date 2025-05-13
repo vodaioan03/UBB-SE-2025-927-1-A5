@@ -2,9 +2,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using DuoClassLibrary.Models;
 using DuoClassLibrary.Services;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Duo.Services.Interfaces;
+using DuoClassLibrary.Services.Interfaces;
 
 namespace Duo.Tests.Services
 {
@@ -252,9 +250,9 @@ namespace Duo.Tests.Services
         [TestMethod]
         public async Task BuyBonusModuleAsync_ReturnsTrueIfPurchased()
         {
-            mockProxy.Setup(p => p.BuyBonusModule(1, 2, 3)).ReturnsAsync(true);
+            mockProxy.Setup(p => p.BuyBonusModule(1, 2)).ReturnsAsync(true);
 
-            var result = await courseService.BuyBonusModuleAsync(1, 2, 3);
+            var result = await courseService.BuyBonusModuleAsync(1, 2);
 
             Assert.IsTrue(result);
         }
@@ -597,9 +595,9 @@ namespace Duo.Tests.Services
         [TestMethod]
         public async Task BuyBonusModuleAsync_ReturnsFalseOnException()
         {
-            mockProxy.Setup(p => p.BuyBonusModule(1, 2, 3)).ThrowsAsync(new Exception("Test exception"));
+            mockProxy.Setup(p => p.BuyBonusModule(1, 2)).ThrowsAsync(new Exception("Test exception"));
 
-            var result = await courseService.BuyBonusModuleAsync(1, 2, 3);
+            var result = await courseService.BuyBonusModuleAsync(1, 2);
 
             Assert.IsFalse(result);
         }

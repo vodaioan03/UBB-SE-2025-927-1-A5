@@ -3,7 +3,7 @@ using DuoClassLibrary.Models.Quizzes;
 using DuoClassLibrary.Models.Roadmap;
 using DuoClassLibrary.Models.Sections;
 using DuoClassLibrary.Services;
-using Duo.Services.Interfaces;
+using DuoClassLibrary.Services.Interfaces;
 using Moq;
 
 namespace Duo.Tests.Services;
@@ -48,7 +48,7 @@ public class RoadmapServiceTests
                         (
                             id: 1,
                             question: "Question 1",
-                            difficulty: Duo.Models.Difficulty.Easy,
+                            difficulty: DuoClassLibrary.Models.Difficulty.Easy,
                             firstAnswers: new List<string> { "Answer 1", "Answer 2" },
                             secondAnswers: new List<string> { "Answer A", "Answer B" }
                         )

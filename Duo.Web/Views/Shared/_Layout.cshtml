@@ -54,6 +54,10 @@
                             <a class="nav-link text-dark" asp-area="" asp-controller="Course" asp-action="ViewCourses">Courses</a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Exercise" asp-action="Index">Exercises</a>
+                            <a class="nav-link text-dark" asp-controller="Roadmap" asp-action="Index">Roadmap</a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
                         </li>
                        
@@ -86,6 +90,7 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/exercise.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 
     <script>

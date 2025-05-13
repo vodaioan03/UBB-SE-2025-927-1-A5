@@ -1,0 +1,24 @@
+@model DuoClassLibrary.Models.Exercises.FillInTheBlankExercise
+
+<div class="card mb-3">
+    <div class="card-body">
+        <p class="text-muted mb-3">Enter all possible correct answers for each blank:</p>
+        
+        <div id="blankItems">
+            <div class="row mb-2 blank-row">
+                <div class="col-md-10">
+                    <input type="text" class="form-control blank-answer" placeholder="Correct answer" />
+                </div>
+                <div class="col-md-2">
+                    <button type="button" class="btn btn-outline-danger remove-blank">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <button type="button" id="addBlankBtn" class="btn btn-outline-primary mt-2">
+            <i class="fas fa-plus"></i> Add Answer
+        </button>
+    </div>
+</div>

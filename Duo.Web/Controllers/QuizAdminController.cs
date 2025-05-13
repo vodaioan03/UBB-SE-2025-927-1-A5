@@ -13,7 +13,6 @@ public class QuizAdminController : Controller
     }
 
     public IActionResult CreateQuiz()
-    {
-        return View();
-    }
+      => View("~/Views/Quiz/CreateQuiz.cshtml");
+
 }
