@@ -72,10 +72,17 @@ builder.Services.AddHttpClient<IExerciseServiceProxy, ExerciseServiceProxy>(clie
     client.BaseAddress = new Uri(apiBase);
 });
 
-builder.Services.AddHttpClient<ISectionServiceProxy, SectionServiceProxy>(client =>
+builder.Services.AddHttpClient<RoadmapServiceProxy>();
+builder.Services.AddScoped<IRoadmapService, RoadmapService>();
+builder.Services.AddScoped<IRoadmapServiceProxy, RoadmapServiceProxy>();
+builder.Services.AddScoped<ISectionService, SectionService>();
+builder.Services.AddScoped<ISectionServiceProxy, SectionServiceProxy>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddHttpClient<IUserServiceProxy, UserServiceProxy>(client =>
 {
     client.BaseAddress = new Uri(apiBase);
 });
+
 
 // Register services
 builder.Services.AddScoped<IQuizService, QuizService>();
