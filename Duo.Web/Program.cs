@@ -114,6 +114,11 @@ app.MapControllerRoute(
     pattern: "Course/{action=ViewCourses}/{id?}");
 
 app.MapControllerRoute(
+    name: "exercises",
+    pattern: "Exercise/{action=Index}/{id?}",
+    defaults: new { controller = "Exercise" });
+
+app.MapControllerRoute(
     name: "coursePreview",
     pattern: "Course/{id?}",
     defaults: new { controller = "Course", action = "CoursePreview" });

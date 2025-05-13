@@ -77,3 +77,62 @@ body {
     width: 200px;
     height: auto;
 }
+
+.exercise-component {
+    font-family: Arial, sans-serif;
+}
+
+.ex-id {
+    font-size: 14px;
+    color: #666;
+}
+
+.flashcard {
+    transition: transform 0.6s;
+    transform-style: preserve-3d;
+    position: relative;
+}
+
+.flashcard .back-face {
+    transform: rotateY(180deg);
+}
+
+.flashcard .front-face,
+.flashcard .back-face {
+    backface-visibility: hidden;
+    position: absolute;
+    width: 100%;
+    top: 0;
+}
+
+.flashcard.flipped .front-face {
+    transform: rotateY(180deg);
+}
+
+.flashcard.flipped .back-face {
+    transform: rotateY(0deg);
+}
+
+.btn-purple {
+    background-color: #6f42c1;
+    color: white;
+}
+
+.btn-purple:hover {
+    background-color: #563d7c;
+}
+
+.arrow {
+    font-size: 12px;
+}
+
+@media (max-width: 768px) {
+    .association-container {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .items, .matches {
+        width: 100%;
+    }
+}
