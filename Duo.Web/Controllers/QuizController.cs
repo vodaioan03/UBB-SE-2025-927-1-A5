@@ -6,6 +6,7 @@ using DuoClassLibrary.Models.Quizzes;
 using DuoClassLibrary.Models.Exercises;
 using System.Linq;
 using System.Threading.Tasks;
+using Duo.Web.Models;
 
 namespace Duo.Web.Controllers
 {
@@ -76,5 +77,32 @@ namespace Duo.Web.Controllers
             return RedirectToAction(nameof(ViewQuizzes));
         }
 
+        // GET: /Quiz/CreateQuiz
+        [HttpGet]
+        public async Task<IActionResult> CreateQuiz()
+        {
+            var vm = new CreateQuizViewModel
+            {
+                AvailableExercises = await _exerciseService.GetAllExercises()
+            };
+            return View(vm);
+        }
+
+        // POST: /Quiz/CreateQuiz
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateQuiz(CreateQuizViewModel vm)
+        {
+            var newQuiz = new Quiz(0, null, null);
+            int newQuizId = await _quizService.CreateQuiz(newQuiz);
+
+            if (vm.SelectedExerciseIds != null)
+            {
+                foreach (var exId in vm.SelectedExerciseIds)
+                    await _quizService.AddExerciseToQuiz(newQuizId, exId);
+            }
+
+            return RedirectToAction(nameof(ViewQuizzes));
+        }
     }
 }

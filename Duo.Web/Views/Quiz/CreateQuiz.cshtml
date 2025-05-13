@@ -1,74 +1,143 @@
-﻿@{
+﻿@model Duo.Web.Models.CreateQuizViewModel
+@{
     ViewData["Title"] = "Create New Quiz";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <div class="container-fluid px-4">
-
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2>Create New Quiz</h2>
-        <button class="btn btn-primary">Add Exercise</button>
+        <button class="btn btn-primary"
+                data-bs-toggle="modal"
+                data-bs-target="#addExerciseModal">
+            Add Exercise
+        </button>
     </div>
 
     <h5>Selected Exercises</h5>
-    <ul class="list-group mb-4">
-        @* Dummy data — replace with Model later *@
-        <li class="list-group-item bg-dark text-light d-flex justify-content-between">
-            Exercise #3 – Match the items for Association Exercise 4
-            <button class="btn btn-sm btn-outline-danger">Remove</button>
-        </li>
-        <li class="list-group-item bg-dark text-light d-flex justify-content-between">
-            Exercise #5 – Match the items for Association Exercise 7
-            <button class="btn btn-sm btn-outline-danger">Remove</button>
-        </li>
+    <ul id="selectedList" class="list-group mb-4">
+        @if (!Model.SelectedExerciseIds.Any())
+        {
+            <li class="form-text text-muted"><em>No exercises yet.</em></li>
+        }
+        else
+        {
+            foreach (var id in Model.SelectedExerciseIds)
+            {
+                <li id="selEx@id"
+                    class="list-group-item bg-dark text-light d-flex justify-content-between">
+                    Exercise #@id
+                    <button type="button" class="btn-close btn-close-white btn-sm remove-btn"
+                            data-exercise-id="@id"></button>
+                </li>
+            }
+        }
     </ul>
 
-    <div class="text-end">
-        <a href="@Url.Action("Index", "QuizAdmin")" class="btn btn-secondary">Cancel</a>
-        <button class="btn btn-primary">Save</button>
+    <form asp-action="CreateQuiz" method="post">
+        @Html.AntiForgeryToken()
+        <div id="hiddenInputs">
+            @foreach (var id in Model.SelectedExerciseIds)
+            {
+                <input type="hidden" name="SelectedExerciseIds" value="@id" id="inp@id" />
+            }
+        </div>
+
+        <div class="text-end">
+            <a asp-controller="QuizAdmin" asp-action="Index"
+               class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary">Save</button>
+        </div>
+    </form>
+</div>
+
+<div class="modal fade" id="addExerciseModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content bg-dark text-light">
+            <div class="modal-header">
+                <h5 class="modal-title">Select Exercise to Add</h5>
+                <button type="button" class="btn-close btn-close-white"
+                        data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                @if (!Model.AvailableExercises.Any())
+                {
+                    <p><em>No exercises available.</em></p>
+                }
+                else
+                {
+                    <ul id="allExercisesList" class="list-group px-2">
+                        @foreach (var ex in Model.AvailableExercises)
+                        {
+                            <li class="list-group-item bg-secondary">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio"
+                                           name="modalEx" id="ex@ex.ExerciseId"
+                                           value="@ex.ExerciseId" />
+                                    <label class="form-check-label text-light"
+                                           for="ex@ex.ExerciseId">
+                                        Exercise #@ex.ExerciseId
+                                    </label>
+                                </div>
+                            </li>
+                        }
+                    </ul>
+                }
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary"
+                        data-bs-dismiss="modal">
+                    Cancel
+                </button>
+                <button id="btnAddSelected" type="button"
+                        class="btn btn-success" disabled>
+                    Add
+                </button>
+            </div>
+        </div>
     </div>
 </div>
 
-@section Styles {
-    <style>
-        body {
-            background-color: #121212;
-            color: #f8f9fa;
-        }
+@section Scripts {
+    <script>
+        document
+          .querySelectorAll('input[name="modalEx"]')
+          .forEach(r => r.addEventListener('change', () => {
+            document.getElementById('btnAddSelected').disabled = false;
+          }));
 
-        .list-group-item {
-            background-color: #1e1e1e;
-            border-color: #333;
-            color: #f8f9fa;
-        }
+        document.getElementById('btnAddSelected')
+          .addEventListener('click', () => {
+            const selId = document.querySelector('input[name="modalEx"]:checked').value;
+            if (document.getElementById('selEx'+selId)) return;
 
-        .btn-outline-danger {
-            color: #dc3545;
-            border-color: #dc3545;
-        }
+            const li = document.createElement('li');
+            li.id = 'selEx'+selId;
+            li.className = 'list-group-item bg-dark text-light d-flex justify-content-between';
+            li.textContent = `Exercise #${selId}`;
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'btn-close btn-close-white btn-sm';
+            btn.dataset.exerciseId = selId;
+            li.append(btn);
+            document.getElementById('selectedList').append(li);
 
-            .btn-outline-danger:hover {
-                background-color: #dc3545;
-                color: white;
-            }
+            const inp = document.createElement('input');
+            inp.type = 'hidden';
+            inp.name = 'SelectedExerciseIds';
+            inp.value = selId;
+            inp.id = 'inp'+selId;
+            document.getElementById('hiddenInputs').append(inp);
 
-        .btn-primary {
-            background-color: #0d6efd;
-            border: none;
-        }
+            btn.addEventListener('click', () => {
+              li.remove();
+              document.getElementById('inp'+selId).remove();
+            });
 
-            .btn-primary:hover {
-                background-color: #0b5ed7;
-            }
-
-        .btn-secondary {
-            background-color: #6c757d;
-            border: none;
-        }
-
-            .btn-secondary:hover {
-                background-color: #5a6268;
-            }
-    </style>
+            document.getElementById('btnAddSelected').disabled = true;
+            bootstrap.Modal.getInstance(
+              document.getElementById('addExerciseModal')
+            ).hide();
+          });
+    </script>
 }
-
