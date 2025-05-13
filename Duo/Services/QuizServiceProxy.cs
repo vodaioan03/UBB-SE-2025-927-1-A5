@@ -138,8 +138,10 @@ namespace Duo.Services
 
         public async Task<Exam> GetExamFromSectionAsync(int sectionId)
         {
-            var result = await httpClient.GetFromJsonAsync<Exam>($"{url}exam/get-from-section?sectionId={sectionId}");
-            return result ?? throw new QuizServiceProxyException($"Received null response for exam from section {sectionId}.");
+            var result = await httpClient.GetAsync($"{url}Exam/get-from-section?sectionId={sectionId}");
+            result.EnsureSuccessStatusCode();
+            string responseJson = await result.Content.ReadAsStringAsync();
+            return JsonSerializationUtil.DeserializeExamWithTypedExercises(responseJson);
         }
 
         public async Task DeleteQuizAsync(int quizId)
@@ -217,7 +219,6 @@ namespace Duo.Services
             var response = await httpClient.PutAsync($"{url}exam/update", new StringContent(serialized, Encoding.UTF8, "application/json"));
             response.EnsureSuccessStatusCode();
         }
-
 
         public async Task CreateExamAsync(Exam exam)
         {
