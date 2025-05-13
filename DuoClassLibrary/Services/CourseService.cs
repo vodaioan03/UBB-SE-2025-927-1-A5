@@ -30,6 +30,11 @@ namespace DuoClassLibrary.Services
             return await courseServiceProxy.GetAllCourses();
         }
 
+        public async Task<Course> GetCourseAsync(int id)
+        {
+            return await courseServiceProxy.GetCourse(id);
+        }
+
         /// <summary>
         /// Retrieves all available tags.
         /// </summary>

@@ -10,7 +10,36 @@ if (string.IsNullOrWhiteSpace(apiBase))
     throw new InvalidOperationException("Missing Api:BaseUrl in appsettings.json");
 }
 
-// Add controllers and Razor Pages
+builder.Services
+    .AddHttpClient<IQuizServiceProxy, QuizServiceProxy>(client =>
+    {
+        client.BaseAddress = new Uri(apiBase);
+    });
+
+builder.Services
+    .AddSingleton<IQuizService, QuizService>();
+
+builder.Services
+    .AddHttpClient<ICourseServiceProxy, CourseServiceProxy>(client =>
+    {
+        client.BaseAddress = new Uri(apiBase);
+    });
+
+builder.Services
+    .AddHttpClient<IExerciseServiceProxy, ExerciseServiceProxy>(c =>
+    {
+        c.BaseAddress = new Uri(apiBase);
+    });
+
+builder.Services
+    .AddScoped<ICourseService, CourseService>();
+
+builder.Services.AddScoped<ICoinsServiceProxy, CoinsServiceProxy>(); 
+builder.Services.AddScoped<ICoinsService, CoinsService>(); 
+
+builder.Services.AddScoped<IExerciseService, ExerciseService>();
+
+
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 
@@ -43,10 +72,17 @@ builder.Services.AddHttpClient<IExerciseServiceProxy, ExerciseServiceProxy>(clie
     client.BaseAddress = new Uri(apiBase);
 });
 
-builder.Services.AddHttpClient<ISectionServiceProxy, SectionServiceProxy>(client =>
+builder.Services.AddHttpClient<RoadmapServiceProxy>();
+builder.Services.AddScoped<IRoadmapService, RoadmapService>();
+builder.Services.AddScoped<IRoadmapServiceProxy, RoadmapServiceProxy>();
+builder.Services.AddScoped<ISectionService, SectionService>();
+builder.Services.AddScoped<ISectionServiceProxy, SectionServiceProxy>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddHttpClient<IUserServiceProxy, UserServiceProxy>(client =>
 {
     client.BaseAddress = new Uri(apiBase);
 });
+
 
 // Register services
 builder.Services.AddScoped<IQuizService, QuizService>();
@@ -76,5 +112,15 @@ app.MapControllerRoute(
 app.MapControllerRoute(
     name: "courses",
     pattern: "Course/{action=ViewCourses}/{id?}");
+
+app.MapControllerRoute(
+    name: "exercises",
+    pattern: "Exercise/{action=Index}/{id?}",
+    defaults: new { controller = "Exercise" });
+
+app.MapControllerRoute(
+    name: "coursePreview",
+    pattern: "Course/{id?}",
+    defaults: new { controller = "Course", action = "CoursePreview" });
 
 app.Run();
