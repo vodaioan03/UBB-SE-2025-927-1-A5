@@ -27,6 +27,27 @@ namespace Duo.Web.Controllers
             return View("~/Views/Section/ManageSection.cshtml", sections);
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetSectionQuizzes(int id)
+        {
+            try
+            {
+                var section = await _sectionService.GetSectionById(id);
+                if (section == null)
+                {
+                    return NotFound(new { message = "Section not found" });
+                }
+
+                var quizzes = await _quizService.GetAllQuizzesFromSection(id);
+                return Json(quizzes);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching quizzes for section {SectionId}", id);
+                return StatusCode(500, new { message = "Error fetching quizzes" });
+            }
+        }
+
         public async Task<IActionResult> AddSection()
         {
             ViewBag.Quizzes = await _quizService.GetAllAvailableQuizzes();
