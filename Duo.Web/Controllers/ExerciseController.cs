@@ -4,6 +4,7 @@ using DuoClassLibrary.Models;
 using DuoClassLibrary.Models.Exercises;
 using System.Text.Json;
 
+
 namespace Duo.Web.Controllers;
 public class ExerciseController : Controller
 {
