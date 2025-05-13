@@ -31,7 +31,7 @@ namespace Duo.Web.Controllers
 
             foreach (var module in modules)
             {
-                bool isUnlocked = await courseService.IsModuleAvailableAsync(userId, module.ModuleId);
+                //bool isUnlocked = await courseService.IsModuleAvailableAsync(userId, module.ModuleId);
                 bool isCompleted = await courseService.IsModuleCompletedAsync(userId, module.ModuleId);
 
                 // Add module details to the view model
@@ -40,7 +40,7 @@ namespace Duo.Web.Controllers
                     Module = module,
                     CourseId = id,  // Course ID is still relevant for context
                     IsCompleted = isCompleted,
-                    IsUnlocked = isUnlocked,
+                    //IsUnlocked = isUnlocked,
                     TimeSpent = await courseService.GetTimeSpentAsync(userId, id).ContinueWith(t =>
                         TimeSpan.FromSeconds(t.Result).ToString(@"hh\:mm\:ss")), // Format time spent
                     CoinBalance = coinBalance.ToString()  // Assuming coin balance is an integer
