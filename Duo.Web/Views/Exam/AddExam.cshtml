@@ -1,7 +1,8 @@
 ﻿@{
     ViewData["Title"] = "Create New Exam";
     Layout = "~/Views/Shared/_Layout.cshtml";
-    var exercises = ViewBag.Exercises as List<ExerciseViewModel>;
+    var exercises = ViewBag.AllExercises as List<DuoClassLibrary.Models.Exercises.Exercise> ?? new List<DuoClassLibrary.Models.Exercises.Exercise>();
+
 }
 
 <div class="container-fluid px-4">
@@ -11,7 +12,7 @@
 
     <h5>Selected Exercises</h5>
     <div class="border rounded p-4 mb-4 dark-box" style="min-height: 150px;" id="selectedExercisesBox">
-        <!-- Selected exercises will appear here -->
+        <p class="text-muted">No exercises selected yet.</p>
     </div>
 
     <div class="text-end mb-4">
@@ -20,7 +21,7 @@
 
     <div class="text-end">
         <a href="@Url.Action("ManageExam", "Exam")" class="btn btn-secondary">Cancel</a>
-        <button class="btn btn-primary">Save</button>
+        <button class="btn btn-primary" id="saveExamBtn">Save</button>
     </div>
 </div>
 
@@ -36,10 +37,11 @@
                 <ul class="list-group" id="exerciseList">
                     @foreach (var ex in exercises)
                     {
-                        <li class="list-group-item bg-dark text-light exercise-item" data-id="@ex.Id" data-name="@ex.Description">
-                            Exercise #@ex.Id – @ex.Description
+                        <li class="list-group-item bg-dark text-light exercise-item" data-id="@ex.ExerciseId" data-name="@ex.Question">
+                            Exercise #@ex.ExerciseId – @ex.Question
                         </li>
                     }
+
                 </ul>
             </div>
             <div class="modal-footer">
@@ -89,7 +91,31 @@
 
 @section Scripts {
     <script>
+        let selectedExercises = [];
         let selectedItem = null;
+
+        function renderSelectedExercises() {
+            fetch('/Exam/RenderSelectedExercises', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(selectedExercises)
+            })
+                .then(res => res.text())
+                .then(html => {
+                    document.getElementById('selectedExercisesBox').innerHTML = html;
+                    attachRemoveListeners();
+                });
+        }
+
+        function attachRemoveListeners() {
+            document.querySelectorAll('.remove-exercise').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const id = parseInt(this.dataset.id);
+                    selectedExercises = selectedExercises.filter(e => e.exerciseId !== id);
+                    renderSelectedExercises();
+                });
+            });
+        }
 
         document.querySelectorAll('.exercise-item').forEach(item => {
             item.addEventListener('click', function () {
@@ -106,15 +132,30 @@
         document.getElementById('confirmAddExercise').addEventListener('click', function () {
             if (!selectedItem) return;
 
-            const container = document.getElementById('selectedExercisesBox');
-            const div = document.createElement('div');
-            div.classList.add('mb-2');
-            div.textContent = `Exercise #${selectedItem.id} – ${selectedItem.name}`;
-            container.appendChild(div);
+            const id = parseInt(selectedItem.id);
+            if (!selectedExercises.some(e => e.exerciseId === id)) {
+                selectedExercises.push({ exerciseId: id, question: selectedItem.name });
+            }
 
+            renderSelectedExercises();
             bootstrap.Modal.getInstance(document.getElementById('exerciseModal')).hide();
             selectedItem = null;
-            document.getElementById('confirmAddExercise').disabled = true;
+            this.disabled = true;
+        });
+
+        document.getElementById('saveExamBtn').addEventListener('click', function () {
+            const ids = selectedExercises.map(e => e.exerciseId);
+            fetch('@Url.Action("CreateExam", "Exam")', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(ids)
+            }).then(res => {
+                if (res.ok) {
+                    window.location.href = '/Exam/ManageExam';
+                } else {
+                    alert('Failed to create exam.');
+                }
+            });
         });
     </script>
 }
