@@ -68,16 +68,40 @@
                                 <div class="d-flex flex-wrap">
                                     @foreach (var quizVm in sectionVm.Quizzes)
                                     {
-                                        var quizClass = quizVm.IsUnlocked ? "quiz-circle unlocked" : "quiz-circle locked";
-                                        // Optionally, add a "completed" class if you track completion
+                                        var quizClass = "quiz-circle";
+                                        if (quizVm.IsUnlocked)
+                                            quizClass += " unlocked";
+                                        else
+                                            quizClass += " locked";
+
                                         string quizName = quizVm.Quiz.GetType().GetProperty("Name") != null
-                                        ? (string)quizVm.Quiz.GetType().GetProperty("Name").GetValue(quizVm.Quiz)
-                                        : quizVm.Quiz.ToString();
+                                            ? (string)quizVm.Quiz.GetType().GetProperty("Name").GetValue(quizVm.Quiz)
+                                            : quizVm.Quiz.ToString();
+
                                         string shortName = $"Q{quizVm.Quiz.Id}";
-                                        <div class="@quizClass" title="Quiz: @quizName">
-                                            @shortName
-                                        </div>
+                                        string quizUrl = Url.Action("Preview", "Quiz", new { id = quizVm.Quiz.Id }); // adjust controller/action if needed
+
+                <div class="quiz-wrapper">
+                                            @if (quizVm.IsUnlocked)
+                                            {
+                            <a href="@quizUrl" title="Quiz: @quizName">
+                                <div class="@quizClass">
+                                                        @shortName
+                                </div>
+                            </a>
+                                            }
+                                            else
+                                            {
+                            <div class="@quizClass" title="Quiz: @quizName">
+                                                    @shortName
+                            </div>
+                                            }
+
+
+                </div>
                                     }
+
+
                                     @if (sectionVm.Exam is not null)
                                     {
                                         var exam = sectionVm.Exam; // Now 'exam' is non-nullable within this block
