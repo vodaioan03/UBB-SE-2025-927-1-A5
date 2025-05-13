@@ -27,7 +27,7 @@ namespace DuoClassLibrary.Services
 
         public async Task<List<Quiz>> GetAsync()
         {
-            var result = await httpClient.GetAsync($"{url}quiz/get-all");
+            var result = await httpClient.GetAsync($"{url}quiz/list");
             result.EnsureSuccessStatusCode();
             string responseJson = await result.Content.ReadAsStringAsync();
             var quizzes = new List<Quiz>();
@@ -43,7 +43,7 @@ namespace DuoClassLibrary.Services
 
         public async Task<List<Quiz>> GetAllAvailableQuizzesAsync()
         {
-            var result = await httpClient.GetAsync($"{url}quiz/get-all-available");
+            var result = await httpClient.GetAsync($"{url}quiz/get-available");
             if (result == null)
             {
                 throw new QuizServiceProxyException("Received null response when fetching quiz list.");
@@ -65,7 +65,7 @@ namespace DuoClassLibrary.Services
 
         public async Task<List<Exam>> GetAllExams()
         {
-            var result = await httpClient.GetAsync($"{url}quiz/get-all");
+            var result = await httpClient.GetAsync($"{url}exam/list");
 
             if (result == null)
             {
@@ -88,7 +88,7 @@ namespace DuoClassLibrary.Services
 
         public async Task<List<Exam>> GetAllAvailableExamsAsync()
         {
-            var result = await httpClient.GetAsync($"{url}exam/get-all-available");
+            var result = await httpClient.GetAsync($"{url}exam/get-available");
             result.EnsureSuccessStatusCode();
             string responseJson = await result.Content.ReadAsStringAsync();
             var exams = new List<Exam>();
@@ -104,7 +104,7 @@ namespace DuoClassLibrary.Services
 
         public async Task<Quiz> GetQuizByIdAsync(int id)
         {
-            var result = await httpClient.GetAsync($"{url}quiz/get-quiz-by-id?id={id}");
+            var result = await httpClient.GetAsync($"{url}quiz/get?id={id}");
             result.EnsureSuccessStatusCode();
             string responseJson = await result.Content.ReadAsStringAsync();
             return JsonSerializationUtil.DeserializeQuiz(responseJson);
@@ -112,7 +112,7 @@ namespace DuoClassLibrary.Services
 
         public async Task<Exam> GetExamByIdAsync(int id)
         {
-            var result = await httpClient.GetAsync($"{url}Exam/get-exam-by-id?id={id}");
+            var result = await httpClient.GetAsync($"{url}Exam/get?id={id}");
             result.EnsureSuccessStatusCode();
             string responseJson = await result.Content.ReadAsStringAsync();
             return JsonSerializationUtil.DeserializeExamWithTypedExercises(responseJson);
@@ -120,7 +120,7 @@ namespace DuoClassLibrary.Services
 
         public async Task<List<Quiz>> GetAllQuizzesFromSectionAsync(int sectionId)
         {
-            var result = await httpClient.GetFromJsonAsync<List<Quiz>>($"{url}Quiz/get-all-by-section?sectionId={sectionId}");
+            var result = await httpClient.GetFromJsonAsync<List<Quiz>>($"{url}Quiz/get-all-section?sectionId={sectionId}");
             return result ?? throw new QuizServiceProxyException($"Received null response for section {sectionId} quizzes.");
         }
 

@@ -56,7 +56,7 @@ namespace DuoClassLibrary.Services
 
         public async Task<int> CountSectionsFromRoadmap(int roadmapId)
         {
-            var response = await httpClient.GetAsync($"{url}/api/Section/get-section-count-on-roadmap?roadmapId={roadmapId}");
+            var response = await httpClient.GetAsync($"{url}/api/Section/count-on-roadmap?roadmapId={roadmapId}");
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadFromJsonAsync<int>();
         }
@@ -100,7 +100,7 @@ namespace DuoClassLibrary.Services
 
         public async Task<Section> GetSectionById(int sectionId)
         {
-            var response = await httpClient.GetAsync($"{url}/api/Section/get-section-by-id?id={sectionId}");
+            var response = await httpClient.GetAsync($"{url}/api/Section/{sectionId}?id={sectionId}");
             response.EnsureSuccessStatusCode();
             var section = await response.Content.ReadFromJsonAsync<Section>();
             if (section == null)
@@ -112,7 +112,7 @@ namespace DuoClassLibrary.Services
 
         public async Task<int> LastOrderNumberFromRoadmap(int roadmapId)
         {
-            var response = await httpClient.GetAsync($"{url}/api/Section/get-last-from-roadmap?roadmapId={roadmapId}");
+            var response = await httpClient.GetAsync($"{url}/api/Section/last-from-roadmap?roadmapId={roadmapId}");
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadFromJsonAsync<int>();
         }
