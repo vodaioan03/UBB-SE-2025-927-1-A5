@@ -38,6 +38,7 @@
 
   <ItemGroup>
     <Folder Include="Repositories\" />
+    <Folder Include="Migrations\" />
   </ItemGroup>
 
   <ItemGroup>
