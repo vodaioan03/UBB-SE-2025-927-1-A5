@@ -71,7 +71,7 @@
     <ul class="list-group list-group-flush">
         @foreach (var moduleViewModel in Model.Modules)
         {
-			<li class="list-group-item bg-dark border-secondary text-white mb-2 rounded" onclick="onModuleClick('@moduleViewModel.Module.ModuleId')">
+            <li class="list-group-item bg-dark border-secondary text-white mb-2 rounded" onclick="onModuleClick('@moduleViewModel.Module.ModuleId', '@moduleViewModel.IsUnlocked')">
                 <div class="d-flex justify-content-between align-items-start">
                     <div>
                         @if (!moduleViewModel.IsUnlocked)
@@ -101,7 +101,11 @@
 </div>
 
 <script>
-	function onModuleClick(moduleId) {
-		window.location.href = '@Url.Action("Index", "Module")' + '/' + moduleId;   
+	function onModuleClick(moduleId, isUnlocked) {
+		if (isUnlocked === "True") {
+            window.location.href = '@Url.Action("Index", "Module")' + '/' + moduleId;
+        } else {
+			alert("This module is locked. Complete previous modules to unlock it.");
+        }
 	}
 </script>
