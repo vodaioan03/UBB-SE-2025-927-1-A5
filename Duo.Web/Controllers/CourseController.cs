@@ -2,6 +2,7 @@
 using DuoClassLibrary.Services;
 using Duo.Web.Models;
 using System.Security.Claims;
+using DuoClassLibrary.Models;
 
 namespace Duo.Web.Controllers
 {
@@ -31,7 +32,7 @@ namespace Duo.Web.Controllers
 
             foreach (var module in modules)
             {
-                //bool isUnlocked = await courseService.IsModuleAvailableAsync(userId, module.ModuleId);
+                bool isUnlocked = await GetModuleUnlockStatus(module, userId);
                 bool isCompleted = await courseService.IsModuleCompletedAsync(userId, module.ModuleId);
 
                 // Add module details to the view model
@@ -40,7 +41,7 @@ namespace Duo.Web.Controllers
                     Module = module,
                     CourseId = id,  // Course ID is still relevant for context
                     IsCompleted = isCompleted,
-                    //IsUnlocked = isUnlocked,
+                    IsUnlocked = isUnlocked,
                     TimeSpent = await courseService.GetTimeSpentAsync(userId, id).ContinueWith(t =>
                         TimeSpan.FromSeconds(t.Result).ToString(@"hh\:mm\:ss")), // Format time spent
                     CoinBalance = coinBalance.ToString()  // Assuming coin balance is an integer
@@ -65,6 +66,35 @@ namespace Duo.Web.Controllers
             };
 
             return View("ViewCoursePreview", viewModel);
+        }
+
+        private async Task<bool> GetModuleUnlockStatus(Module module, int currentUserId)
+        {
+            var modules = await courseService.GetModulesAsync(module.CourseId);
+            int moduleIndex = 0;
+            for (int i = 0; i < modules.Count; i++)
+            {
+                if (modules[i].ModuleId == module.ModuleId)
+                {
+                    moduleIndex = i;
+                    break;
+                }
+            }
+            try
+            {
+                var IsEnrolled = await courseService.IsUserEnrolledAsync(currentUserId, module.CourseId);
+                if (!module.IsBonus)
+                {
+                    return IsEnrolled &&
+                           (moduleIndex == 0 ||
+                            await courseService.IsModuleCompletedAsync(currentUserId, modules[moduleIndex - 1].ModuleId));
+                }
+                return await courseService.IsModuleInProgressAsync(currentUserId, module.ModuleId);
+            }
+            catch (Exception e)
+            {
+                return false;
+            }
         }
     }
 }
