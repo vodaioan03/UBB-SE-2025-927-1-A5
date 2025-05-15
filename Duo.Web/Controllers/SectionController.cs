@@ -109,8 +109,11 @@ namespace Duo.Web.Controllers
         [HttpPost]
         public async Task<IActionResult> DeleteSection(int id)
         {
+            var section = await _sectionService.GetSectionById(id);
             await _sectionService.DeleteSection(id);
-            return RedirectToAction("ManageSection");
+
+            // Redirect to RoadmapController to recalculate progress
+            return RedirectToAction("RecalculateProgress", "Roadmap", new { roadmapId = section.RoadmapId, deletedOrder = section.OrderNumber });
         }
 
         public async Task<IActionResult> EditSection(int id)

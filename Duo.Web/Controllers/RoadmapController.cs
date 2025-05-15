@@ -76,5 +76,39 @@ namespace DuoWebApp.Controllers
 
             return View(sectionViewModels);
         }
+
+        public async Task<IActionResult> RecalculateProgress(int userId, int roadmapId, int deletedSectionOrder)
+        {
+            var user = await _userService.GetByIdAsync(userId);
+            var sections = await _sectionService.GetByRoadmapId(roadmapId);
+
+            // Sort sections by OrderNumber (or by Id if OrderNumber is null)
+            var orderedSections = sections
+                .OrderBy(s => s.OrderNumber ?? int.MaxValue)
+                .ToList();
+
+            // Clamp progress if out of bounds
+            if (user.NumberOfCompletedSections >= orderedSections.Count)
+                user.NumberOfCompletedSections = orderedSections.Count - 1;
+
+            if (user.NumberOfCompletedSections == deletedSectionOrder)
+            {
+                // Stay at the same index (which now points to the next section)
+                // Reset quiz counter to 1
+                user.NumberOfCompletedQuizzesInSection = 1;
+            }
+            else if (deletedSectionOrder < user.NumberOfCompletedSections)
+            {
+                // Move back one section
+                user.NumberOfCompletedSections--;
+                // Quiz counter stays the same
+            }
+            // else: deleted section is after current, do nothing
+
+            await _userService.UpdateUserAsync(user);
+
+            return RedirectToAction("ManageSection", "Section");
+        }
+
     }
 }
