@@ -32,12 +32,19 @@ builder.Services
     });
 
 builder.Services
+    .AddHttpClient<IUserServiceProxy, UserServiceProxy>(client =>
+    {
+        client.BaseAddress = new Uri(apiBase);
+    });
+
+builder.Services
     .AddScoped<ICourseService, CourseService>();
 
 builder.Services.AddScoped<ICoinsServiceProxy, CoinsServiceProxy>(); 
 builder.Services.AddScoped<ICoinsService, CoinsService>(); 
 
 builder.Services.AddScoped<IExerciseService, ExerciseService>();
+builder.Services.AddScoped<IUserService, UserService>();
 
 
 builder.Services.AddControllersWithViews();
@@ -124,7 +131,13 @@ app.MapControllerRoute(
     defaults: new { controller = "Course", action = "CoursePreview" });
 
 app.MapControllerRoute(
+    name: "module",
+    pattern: "Module/{id:int}",
+    defaults: new { controller = "Module", action = "Details" });
+
+app.MapControllerRoute(
     name: "quiz",
     pattern: "Quiz/{action=ViewQuizzes}/{id?}",
     defaults: new { controller = "Quiz" });
+    
 app.Run();

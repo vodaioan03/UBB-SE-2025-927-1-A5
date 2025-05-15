@@ -286,5 +286,10 @@ namespace DuoClassLibrary.Services
         {
                 return await courseServiceProxy.BuyBonusModule(userId, moduleId);
         }
+
+        public async Task<Module> GetModuleAsync(int moduleId)
+        {
+            return await courseServiceProxy.GetModule(moduleId);
+        }
     }
 }

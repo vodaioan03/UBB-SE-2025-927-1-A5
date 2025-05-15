@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Duo.Api.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20250508194140_MyMigration")]
-    partial class MyMigration
+    [Migration("20250513153817_NumeLaMigration")]
+    partial class NumeLaMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
