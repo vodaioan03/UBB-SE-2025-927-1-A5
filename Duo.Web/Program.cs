@@ -1,5 +1,6 @@
 ﻿using DuoClassLibrary.Services;
 using DuoClassLibrary.Services.Interfaces;
+using Microsoft.AspNetCore.Mvc.Razor;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -48,6 +49,13 @@ builder.Services.AddScoped<IUserService, UserService>();
 
 
 builder.Services.AddControllersWithViews();
+
+builder.Services.Configure<RazorViewEngineOptions>(opts =>
+{
+    opts.ViewLocationFormats.Add("/Views/Exercise/{0}.cshtml");
+    opts.ViewLocationFormats.Add("~/Views/Exercise/{0}.cshtml");
+});
+
 builder.Services.AddRazorPages();
 
 // ✅ CORS Configuration

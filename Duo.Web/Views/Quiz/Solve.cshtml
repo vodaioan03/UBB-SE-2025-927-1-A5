@@ -1,12 +1,15 @@
-@model Duo.Web.Models.QuizSolverViewModel
+@model Duo.Web.ViewModels.QuizSolverViewModel
+@using DuoClassLibrary.Models.Exercises
+
 @{
     ViewData["Title"] = $"Solving: {Model.QuizTitle}";
 }
 
 <div class="quiz-solver-container" style="max-width: 800px; margin: auto; padding: 20px;">
     <h1 class="text-center">@ViewData["Title"]</h1>
-    <p class="text-center">Question @(Model.CurrentExerciseIndex + 1) of @Model.AllExercises.Count</p>
-
+    <p class="text-center">
+        Question @(Model.CurrentExerciseIndex + 1) of @Model.AllExercises.Count
+    </p>
     <hr />
 
     @if (Model.CurrentExercise != null)
@@ -14,51 +17,63 @@
         <div class="exercise-area mb-4">
             <h3>@Model.CurrentExercise.Question</h3>
 
-            @* Placeholder for the actual exercise component - the "white thingy" *@
-            <div class="exercise-component-placeholder mb-3" style="border: 1px dashed #ccc; background-color: #f9f9f9; min-height: 200px; padding: 20px; display: flex; align-items: center; justify-content: center;">
-                @* Conditional rendering based on exercise type *@
-                @if (Model.CurrentExerciseType == "MultipleChoiceExercise")
+            <div class="exercise-component-placeholder mb-3"
+                 style="border: 1px dashed #ccc; background-color: #f9f9f9;
+                  min-height: 200px; padding: 20px;
+                  display: flex; align-items: center; justify-content: center;">
+
+                @switch (Model.CurrentExerciseType)
                 {
-                    <partial name="_MultipleChoiceExercisePartial" model="(MultipleChoiceExercise)Model.CurrentExercise" />
-                }
-                else if (Model.CurrentExerciseType == "FillInTheBlankExercise")
-                {
-                    <partial name="_FillInTheBlankExercisePartial" model="(FillInTheBlankExercise)Model.CurrentExercise" />
-                }
-                else if (Model.CurrentExerciseType == "AssociationExercise")
-                {
-                    <partial name="_AssociationExercisePartial" model="(AssociationExercise)Model.CurrentExercise" />
-                }
-                else if (Model.CurrentExerciseType == "FlashcardExercise")
-                {
-                    <partial name="_FlashcardExercisePartial" model="(FlashcardExercise)Model.CurrentExercise" />
-                }
-                else
-                {
-                    <p>Unsupported exercise type: @Model.CurrentExerciseType</p>
+                    case nameof(AssociationExercise):
+                        @* note the full path into /Views/Exercise *@
+                        @await Html.PartialAsync(
+                                 "~/Views/Exercise/_AssociationExercisePartial.cshtml",
+                                 (AssociationExercise)Model.CurrentExercise
+                                 )
+                        break;
+
+                    case nameof(MultipleChoiceExercise):
+                        @await Html.PartialAsync(
+                                 "~/Views/Exercise/_MultipleChoiceExercisePartial.cshtml",
+                                 (MultipleChoiceExercise)Model.CurrentExercise)
+                        break;
+
+                    case nameof(FillInTheBlankExercise):
+                        @await Html.PartialAsync(
+                                 "~/Views/Exercise/_FillInTheBlankExercisePartial.cshtml",
+                                 (FillInTheBlankExercise)Model.CurrentExercise)
+                        break;
+
+                    case nameof(FlashcardExercise):
+                        @await Html.PartialAsync(
+                                 "~/Views/Exercise/_FlashcardExercisePartial.cshtml",
+                                 (FlashcardExercise)Model.CurrentExercise)
+                        break;
+
+                    default:
+                        <p>Unsupported exercise type: @Model.CurrentExerciseType</p>
+                        break;
                 }
             </div>
         </div>
 
         <div class="navigation-area text-center">
-            @*
-                This will eventually be a form POST or a JavaScript call
-                For now, it's just a visual placeholder based on the image.
-                The actual "Next Exercise" button needs to trigger logic to
-                load the next question (e.g., via a POST request or JS).
-            *@
             @if (!Model.IsLastExercise)
             {
-                @* Placeholder for the "Next Exercise" button as an image/styled button *@
-                <button type="button" class="btn btn-lg" style="background-color: #333; color: white; padding: 10px 20px; border-radius: 25px; min-width:150px;" onclick="alert('Next Exercise logic to be implemented!');">
+                <a asp-action="Solve"
+                   asp-route-id="@Model.QuizId"
+                   asp-route-index="@(Model.CurrentExerciseIndex + 1)"
+                   class="btn btn-secondary btn-lg">
                     Next Exercise &rarr;
-                </button>
+                </a>
             }
             else
             {
-                <button type="button" class="btn btn-success btn-lg" onclick="alert('Quiz Finished! Show results logic to be implemented!');">
+                <a asp-controller="Roadmap"
+                   asp-action="Index"
+                   class="btn btn-success btn-lg">
                     Finish Quiz
-                </button>
+                </a>
             }
         </div>
     }
@@ -66,12 +81,4 @@
     {
         <p class="text-center">No current exercise to display.</p>
     }
-
 </div>
-
-@*
-    You might want to include hidden fields if this were a form for submitting answers
-    and advancing to the next question:
-    <input type="hidden" asp-for="QuizId" />
-    <input type="hidden" asp-for="CurrentExerciseIndex" />
-*@

@@ -6,7 +6,7 @@ using DuoClassLibrary.Models.Quizzes;
 using DuoClassLibrary.Models.Exercises;
 using System.Linq;
 using System.Threading.Tasks;
-using Duo.Web.Models;
+using Duo.Web.ViewModels;
 
 namespace Duo.Web.Controllers
 {
@@ -103,41 +103,33 @@ namespace Duo.Web.Controllers
             return View("QuizPreview", viewModel); // Pass the populated viewModel to the view
         }
 
-        [HttpGet("Quiz/{id}/Solve")] // Or [Route("Quiz/{id}/Solve")]
-        public async Task<IActionResult> Solve(int id)
+        [HttpGet("Quiz/{id}/Solve")]
+        public async Task<IActionResult> Solve(int id, int? index)
         {
             var quiz = await _quizService.GetQuizById(id);
+            if (quiz == null || quiz.Exercises == null || !quiz.Exercises.Any())
+                return NotFound();
 
-            if (quiz == null || !quiz.Exercises.Any())
-            {
-                if (quiz == null || quiz.Exercises == null || !quiz.Exercises.Any())
-                {
-                    return NotFound("Quiz not found or has no exercises.");
-                }
-            }
+            int idx = index.GetValueOrDefault(0);
+            if (idx < 0 || idx >= quiz.Exercises.Count)
+                return RedirectToAction(nameof(Solve), new { id, index = 0 });
 
-            var viewModel = new QuizSolverViewModel
+            var vm = new QuizSolverViewModel
             {
                 QuizId = quiz.Id,
-                QuizTitle = "Quiz" + quiz.Id.ToString(),
-                AllExercises = quiz.Exercises,
-                CurrentExerciseIndex = 0
+                QuizTitle = quiz is Exam ? "Final Exam" : $"Quiz {quiz.Id}",
+                AllExercises = quiz.Exercises.ToList(),
+
+                CurrentExerciseIndex = idx,
+                CurrentExercise = quiz.Exercises[idx],
+                CurrentExerciseType = quiz.Exercises[idx].GetType().Name,
+
+                IsLastExercise = (idx == quiz.Exercises.Count - 1)
             };
 
-            if (viewModel.AllExercises.Any())
-            {
-                viewModel.CurrentExercise = viewModel.AllExercises.First();
-                viewModel.CurrentExerciseType = viewModel.CurrentExercise.GetType().Name;
-            }
-            else
-            {
-                return View("NoExercises");
-            }
-
-            viewModel.IsLastExercise = viewModel.AllExercises.Count == 1;
-
-            return View("Solve", viewModel);
+            return View("Solve", vm);
         }
+
 
         // POST /Quiz/AddExercise
         [HttpPost, ValidateAntiForgeryToken]
@@ -222,7 +214,7 @@ namespace Duo.Web.Controllers
                 return View("CreateQuiz");
             }
 
-            var quiz = new Quiz(0, null, null);
+            var quiz = new DuoClassLibrary.Models.Quizzes.Quiz(0, null, null);
             await _quizService.CreateQuiz(quiz); 
 
             var allQuizzes = await _quizService.GetAllQuizzes();
