@@ -35,34 +35,34 @@ namespace DuoWebApp.Controllers
             {
                 var section = sections[i];
                 bool isSectionUnlocked = i <= completedSections;
-                var quizzes = section.GetAllQuizzes().ToList();
 
-                var quizViewModels = new List<QuizUnlockViewModel>();
-                bool isExamUnlocked = false;
+                var quizzes = section.GetAllQuizzes().ToList();
+                List<QuizUnlockViewModel> quizViewModels;
+                bool isExamUnlocked;
 
                 if (i < completedSections)
                 {
-                    // Section fully completed, all quizzes and exam unlocked
-                    quizViewModels = quizzes.Select(q => new QuizUnlockViewModel { Quiz = q, IsUnlocked = true }).ToList();
-                    isExamUnlocked = true;
+                    quizViewModels = quizzes
+                        .Select(q => new QuizUnlockViewModel { Quiz = q, IsUnlocked = true })
+                        .ToList();
+                    isExamUnlocked = false;
                 }
                 else if (i == completedSections)
                 {
-                    // Current section: unlock quizzes up to completedQuizzes
-                    for (int q = 0; q < quizzes.Count; q++)
-                    {
-                        bool isQuizUnlocked = q <= completedQuizzes;
-                        quizViewModels.Add(new QuizUnlockViewModel { Quiz = quizzes[q], IsUnlocked = isQuizUnlocked });
-                    }
-                    // Exam unlocked only if all quizzes are completed
+                    quizViewModels = quizzes
+                        .Select((q, idx) => new QuizUnlockViewModel { Quiz = q, IsUnlocked = idx <= completedQuizzes })
+                        .ToList();
                     isExamUnlocked = completedQuizzes >= quizzes.Count;
                 }
                 else
                 {
-                    // Future sections: nothing unlocked
-                    quizViewModels = quizzes.Select(q => new QuizUnlockViewModel { Quiz = q, IsUnlocked = false }).ToList();
+                    quizViewModels = quizzes
+                        .Select(q => new QuizUnlockViewModel { Quiz = q, IsUnlocked = false })
+                        .ToList();
                     isExamUnlocked = false;
                 }
+
+                bool isExamCompleted = i < completedSections;
 
                 sectionViewModels.Add(new SectionUnlockViewModel
                 {
@@ -70,7 +70,8 @@ namespace DuoWebApp.Controllers
                     IsUnlocked = isSectionUnlocked,
                     Quizzes = quizViewModels,
                     Exam = section.Exam,
-                    IsExamUnlocked = isExamUnlocked
+                    IsExamUnlocked = isExamUnlocked,
+                    IsExamCompleted = isExamCompleted
                 });
             }
 
