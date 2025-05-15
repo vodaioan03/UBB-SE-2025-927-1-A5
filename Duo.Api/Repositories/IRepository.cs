@@ -344,14 +344,14 @@ namespace Duo.Api.Repositories
         /// Retrieves all courses from the database asynchronously.
         /// </summary>
         /// <returns>A list of all courses in the database.</returns>
-        public Task<List<Course>> GetCoursesFromDbAsync();
+        public Task<List<CourseDto>> GetCoursesFromDbAsync();
 
         /// <summary>
         /// Retrieves a specific course by its unique identifier asynchronously.
         /// </summary>
         /// <param name="id">The unique identifier of the course to retrieve.</param>
         /// <returns>The course with the specified ID, or null if not found.</returns>
-        public Task<Course?> GetCourseByIdAsync(int id);
+        public Task<CourseDto?> GetCourseByIdAsync(int id);
 
         /// <summary>
         /// Adds a new course to the database asynchronously.

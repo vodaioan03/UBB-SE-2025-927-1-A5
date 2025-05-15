@@ -678,9 +678,28 @@ namespace Duo.Api.Repositories
         /// Asynchronously retrieves all courses from the database.
         /// </summary>
         /// <returns>A list of <see cref="Course"/> objects representing all courses in the database.</returns>
-        public async Task<List<Course>> GetCoursesFromDbAsync()
+        public async Task<List<CourseDto>> GetCoursesFromDbAsync()
         {
-            return await context.Courses.ToListAsync();
+            return await this.context.Courses
+                .Include(c => c.CourseTags)
+                .ThenInclude(ct => ct.Tag)
+                .Select(c => new CourseDto
+                {
+                    CourseId = c.CourseId,
+                    Title = c.Title,
+                    Description = c.Description,
+                    IsPremium = c.IsPremium,
+                    Cost = c.Cost,
+                    ImageUrl = c.ImageUrl,
+                    TimeToComplete = c.TimeToComplete,
+                    Difficulty = c.Difficulty,
+                    CourseTags = c.CourseTags.Select(ct => new TagDto
+                    {
+                        TagId = ct.TagId,
+                        Name = ct.Tag.Name,
+                    }).ToList(),
+                })
+                .ToListAsync();
         }
 
         /// <summary>
@@ -688,9 +707,29 @@ namespace Duo.Api.Repositories
         /// </summary>
         /// <param name="id">The unique identifier of the course.</param>
         /// <returns>A <see cref="Course"/> object representing the course with the given ID, or null if not found.</returns>
-        public async Task<Course?> GetCourseByIdAsync(int id)
+        public async Task<CourseDto?> GetCourseByIdAsync(int id)
         {
-            return await context.Courses.FindAsync(id);
+            return await this.context.Courses
+                .Include(c => c.CourseTags)
+                .ThenInclude(ct => ct.Tag)
+                .Where(c => c.CourseId == id)
+                .Select(c => new CourseDto
+                {
+                    CourseId = c.CourseId,
+                    Title = c.Title,
+                    Description = c.Description,
+                    IsPremium = c.IsPremium,
+                    Cost = c.Cost,
+                    ImageUrl = c.ImageUrl,
+                    TimeToComplete = c.TimeToComplete,
+                    Difficulty = c.Difficulty,
+                    CourseTags = c.CourseTags.Select(ct => new TagDto
+                    {
+                        TagId = ct.TagId,
+                        Name = ct.Tag.Name,
+                    }).ToList(),
+                })
+                .FirstOrDefaultAsync();
         }
 
         /// <summary>
