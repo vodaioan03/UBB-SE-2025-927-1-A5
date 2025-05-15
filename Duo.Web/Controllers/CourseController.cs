@@ -10,7 +10,18 @@ namespace Duo.Web.Controllers
         public async Task<IActionResult> ViewCourses()
         {
             var courses = await courseService.GetCoursesAsync();
+            foreach (var course in courses)
+            {
+                course.Tags = await courseService.GetCourseTagsAsync(course.CourseId);
+            }
             return View(courses);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetTags()
+        {
+            var tags = await courseService.GetTagsAsync();
+            return Json(tags);
         }
 
         public async Task<IActionResult> CoursePreview(int id)

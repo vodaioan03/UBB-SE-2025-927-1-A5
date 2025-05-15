@@ -10,7 +10,8 @@
         type = c.IsPremium ? "Premium" : "Free",
         image = c.ImageUrl,
         duration = TimeSpan.FromSeconds(c.TimeToComplete).ToString(@"h\h\ m\m"),
-        difficulty = c.Difficulty
+        difficulty = c.Difficulty,
+        tags = c.Tags.Select(t => new { id = t.TagId, name = t.Name }).ToList()
     }));
 }
 
@@ -21,12 +22,19 @@
         <input type="text" id="searchInput" class="form-control" placeholder="Search courses..." onkeyup="handleSearch()">
     </div>
 
-    <div class="mb-4">
-        <select id="filterSelect" class="form-select" onchange="handleFilterChange()">
-            <option value="All">All</option>
-            <option value="Free">Free</option>
-            <option value="Premium">Premium</option>
-        </select>
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <select id="filterSelect" class="form-select" onchange="handleFilterChange()">
+                <option value="All">All Types</option>
+                <option value="Free">Free</option>
+                <option value="Premium">Premium</option>
+            </select>
+        </div>
+        <div class="col-md-6">
+            <select id="tagSelect" class="form-select" onchange="handleFilterChange()">
+                <option value="All">Clear Tags</option>
+            </select>
+        </div>
     </div>
 
     <div class="row" id="courseContainer"></div>
@@ -42,6 +50,34 @@
         let filteredCourses = [...allCourses];
         const coursesPerPage = 6;
         let currentPage = 1;
+        let allTags = [];
+
+        // Initialize tags dropdown
+        async function initializeTags() {
+            const tagSelect = document.getElementById("tagSelect");
+            try {
+                const response = await fetch('/Course/GetTags');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch tags');
+                }
+                allTags = await response.json();
+                
+                // Clear existing options except the first one
+                while (tagSelect.options.length > 1) {
+                    tagSelect.remove(1);
+                }
+
+                // Add new options
+                allTags.forEach(tag => {
+                    const option = document.createElement("option");
+                    option.value = tag.tagId;
+                    option.textContent = tag.name;
+                    tagSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error fetching tags:', error);
+            }
+        }
 
         function renderCourses() {
             const courseContainer = document.getElementById("courseContainer");
@@ -68,6 +104,7 @@
                                 <span class="badge ${course.type === "Premium" ? "bg-warning" : "bg-success"}">${course.type}</span>
                                 <span class="badge bg-info text-dark">${course.difficulty}</span>
                                 <span class="badge bg-secondary">${course.duration}</span>
+                                ${course.tags.map(tag => `<span class="badge bg-primary me-1">${tag.name}</span>`).join('')}
                                 <a href="/Course/${course.id}" class="btn btn-sm btn-outline-primary mt-2">Preview</a>
                             </div>
                         </div>
@@ -99,7 +136,6 @@
         }
 
         function handleFilterChange() {
-            const filter = document.getElementById("filterSelect").value;
             filterCourses();
         }
 
@@ -110,12 +146,14 @@
         function filterCourses() {
             const searchQuery = document.getElementById("searchInput").value.toLowerCase();
             const filter = document.getElementById("filterSelect").value;
+            const selectedTagId = document.getElementById("tagSelect").value;
 
             filteredCourses = allCourses.filter(course => {
                 const matchesSearch = course.title.toLowerCase().includes(searchQuery) ||
-                                      course.description.toLowerCase().includes(searchQuery);
+                                    course.description.toLowerCase().includes(searchQuery);
                 const matchesFilter = filter === "All" || course.type === filter;
-                return matchesSearch && matchesFilter;
+                const matchesTag = selectedTagId === "All" || course.tags.some(tag => tag.id === parseInt(selectedTagId));
+                return matchesSearch && matchesFilter && matchesTag;
             });
 
             currentPage = 1;
@@ -123,6 +161,8 @@
             renderPagination();
         }
 
+        // Initialize the page
+        initializeTags();
         renderCourses();
         renderPagination();
     </script>
