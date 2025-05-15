@@ -31,12 +31,24 @@
             </select>
         </div>
         <div class="col-md-6">
-            <select id="tagSelect" class="form-select" onchange="handleFilterChange()">
-                <option value="All">Clear Tags</option>
-            </select>
+            <div class="dropdown">
+                <button class="btn dropdown-toggle w-100 text-start"
+                        type="button"
+                        id="tagDropdown"
+                        data-bs-toggle="dropdown"
+                        aria-expanded="false"
+                        style="background-color: #fff; border: 1px solid #ced4da; color: #212529;">
+                    Filter by Tags
+                </button>
+                <ul class="dropdown-menu w-100 px-3"
+                    id="tagCheckboxList"
+                    style="max-height: 200px; overflow-y: auto; background-color: #fff; border: 1px solid #ced4da;">
+                    <!-- Checkboxes will be injected here -->
+                </ul>
+            </div>
+
         </div>
     </div>
-
     <div class="row" id="courseContainer"></div>
 
     <nav>
@@ -52,32 +64,31 @@
         let currentPage = 1;
         let allTags = [];
 
-        // Initialize tags dropdown
         async function initializeTags() {
-            const tagSelect = document.getElementById("tagSelect");
+            const checkboxList = document.getElementById("tagCheckboxList");
             try {
                 const response = await fetch('/Course/GetTags');
                 if (!response.ok) {
                     throw new Error('Failed to fetch tags');
                 }
                 allTags = await response.json();
-                
-                // Clear existing options except the first one
-                while (tagSelect.options.length > 1) {
-                    tagSelect.remove(1);
-                }
 
-                // Add new options
+                checkboxList.innerHTML = "";
                 allTags.forEach(tag => {
-                    const option = document.createElement("option");
-                    option.value = tag.tagId;
-                    option.textContent = tag.name;
-                    tagSelect.appendChild(option);
+                    const li = document.createElement("li");
+                    li.innerHTML = `
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="${tag.tagId}" id="tag-${tag.tagId}" onchange="handleFilterChange()">
+                            <label class="form-check-label" for="tag-${tag.tagId}">${tag.name}</label>
+                        </div>
+                    `;
+                    checkboxList.appendChild(li);
                 });
             } catch (error) {
                 console.error('Error fetching tags:', error);
             }
         }
+
 
         function renderCourses() {
             const courseContainer = document.getElementById("courseContainer");
@@ -146,13 +157,21 @@
         function filterCourses() {
             const searchQuery = document.getElementById("searchInput").value.toLowerCase();
             const filter = document.getElementById("filterSelect").value;
-            const selectedTagId = document.getElementById("tagSelect").value;
+
+            // Get all checked tag checkbox values
+            const checkedBoxes = document.querySelectorAll('#tagCheckboxList input[type="checkbox"]:checked');
+            const selectedTagIds = Array.from(checkedBoxes).map(cb => parseInt(cb.value));
 
             filteredCourses = allCourses.filter(course => {
                 const matchesSearch = course.title.toLowerCase().includes(searchQuery) ||
-                                    course.description.toLowerCase().includes(searchQuery);
+                                      course.description.toLowerCase().includes(searchQuery);
+
                 const matchesFilter = filter === "All" || course.type === filter;
-                const matchesTag = selectedTagId === "All" || course.tags.some(tag => tag.id === parseInt(selectedTagId));
+
+                const matchesTag = selectedTagIds.length === 0 || selectedTagIds.every(tagId =>
+                    course.tags.some(tag => tag.id === tagId)
+                );
+
                 return matchesSearch && matchesFilter && matchesTag;
             });
 
@@ -160,6 +179,13 @@
             renderCourses();
             renderPagination();
         }
+
+
+        document.addEventListener('click', function (e) {
+            if (e.target.closest('#tagCheckboxList')) {
+                e.stopPropagation();
+            }
+        });
 
         // Initialize the page
         initializeTags();
