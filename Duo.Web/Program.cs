@@ -133,7 +133,7 @@ app.MapControllerRoute(
 app.MapControllerRoute(
     name: "module",
     pattern: "Module/{id:int}",
-    defaults: new { controller = "Module", action = "Index" });
+    defaults: new { controller = "Module", action = "Details" });
 
 app.MapControllerRoute(
     name: "quiz",
