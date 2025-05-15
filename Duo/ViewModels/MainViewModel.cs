@@ -198,8 +198,13 @@ namespace Duo.ViewModels
             {
                 // Initialize the command first to ensure it's available
                 ResetAllFiltersCommand = new RelayCommand(ResetAllFilters);
-                
+
                 var courseList = await this.courseService.GetCoursesAsync();
+                // Load tags for each course
+                foreach (var course in courseList)
+                {
+                    course.Tags = await this.courseService.GetCourseTagsAsync(course.CourseId);
+                }
                 DisplayedCourses = new ObservableCollection<Course>(courseList);
                 AvailableTags = new ObservableCollection<Tag>(await this.courseService.GetTagsAsync());
                 foreach (var tag in AvailableTags)

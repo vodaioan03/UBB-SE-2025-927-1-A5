@@ -680,7 +680,7 @@ namespace Duo.Api.Repositories
         /// <returns>A list of <see cref="Course"/> objects representing all courses in the database.</returns>
         public async Task<List<CourseDto>> GetCoursesFromDbAsync()
         {
-            return await this.context.Courses
+            return await context.Courses
                 .Include(c => c.CourseTags)
                 .ThenInclude(ct => ct.Tag)
                 .Select(c => new CourseDto
@@ -1325,5 +1325,6 @@ namespace Duo.Api.Repositories
         {
             return await context.Roadmaps.FindAsync(id);
         }
+        #endregion
     }
 }
