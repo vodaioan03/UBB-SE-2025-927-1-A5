@@ -1,6 +1,7 @@
 ﻿using Duo.Web.Models;
 using DuoClassLibrary.Models;
 using DuoClassLibrary.Services;
+using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Duo.Web.Controllers
@@ -18,68 +19,104 @@ namespace Duo.Web.Controllers
             _coinsService = coinsService;
         }
 
-        /*public async Task<IActionResult> Details(int id)
+        public async Task<IActionResult> Details(int id)
         {
             // Fetch the module details
-            var module = await _courseService.GetModuleByIdAsync(id);
-            var userId = await _userService.GetCurrentUserIdAsync();
+            var module = await _courseService.GetModuleAsync(id);
+            var userId = 1;
 
             // Get the necessary details
-            var timeSpent = await _userService.GetTimeSpentOnModule(userId, id);
+            var timeSpent = await _courseService.GetTimeSpentAsync(userId, module.CourseId);
             var coinBalance = await _coinsService.GetCoinBalanceAsync(userId);
-            var isCompleted = await _userService.HasCompletedModule(userId, id);
+            var isCompleted = await _courseService.IsModuleCompletedAsync(userId, id);
+            var isUnlocked = await GetModuleUnlockStatus(module, userId);
 
             // Create the view model with the required properties
             var viewModel = new ModuleViewModel
             {
                 Module = module,
-                CourseId = module.CourseId, // Get course ID from the module
-                TimeSpent = TimeSpan.FromSeconds(timeSpent).ToString(@"hh\:mm\:ss"), // Format time spent
-                CoinBalance = coinBalance.ToString(), // Assuming coin balance is an integer
+                CourseId = module.CourseId, 
+                TimeSpent = TimeSpan.FromSeconds(timeSpent).ToString(@"hh\:mm\:ss"),
+                CoinBalance = coinBalance.ToString(),
                 IsCompleted = isCompleted,
-                IsUnlocked = await _courseService.IsModuleAvailableAsync(userId, id) // Determine if the module is unlocked
+                IsUnlocked = isUnlocked
             };
 
             // Return the view with the populated view model
-            return View("Module", viewModel);
+            return View("Index", viewModel);
         }
+
+        private async Task<bool> GetModuleUnlockStatus(Module module, int currentUserId)
+        {
+            var modules = await _courseService.GetModulesAsync(module.CourseId);
+            int moduleIndex = 0;
+            for (int i = 0; i < modules.Count; i++)
+            {
+                if (modules[i].ModuleId == module.ModuleId)
+                {
+                    moduleIndex = i;
+                    break;
+                }
+            }
+            try
+            {
+                var IsEnrolled = await _courseService.IsUserEnrolledAsync(currentUserId, module.CourseId);
+                if (!module.IsBonus)
+                {
+                    return IsEnrolled &&
+                           (moduleIndex == 0 ||
+                            await _courseService.IsModuleCompletedAsync(currentUserId, modules[moduleIndex - 1].ModuleId));
+                }
+                return await _courseService.IsModuleInProgressAsync(currentUserId, module.ModuleId);
+            }
+            catch (Exception e)
+            {
+                return false;
+            }
+        }
+
 
         [HttpPost]
         public async Task<IActionResult> Complete(int id)
         {
-            var userId = await _userService.GetCurrentUserIdAsync();
-            await _courseService.MarkModuleAsCompleted(userId, id);
-            return RedirectToAction(nameof(Details), new { id });
-        }*/
+            var userId = 1;
+            var module = await _courseService.GetModuleAsync(id);
+            var courseId = module.CourseId;
+            var CourseCompletionRewardCoins = 50;
+            var totalSecondsSpentOnCourse = await _courseService.GetTimeSpentAsync(userId, courseId);
+            var TimedCompletionRewardCoins = 300;
 
-        /*public IActionResult ImageClick(int id)
-        {
-            // Handle image click, can be redirected or open a modal
-            return RedirectToAction(nameof(Details), new { id });
-        }*/
-        //[Route("Module/{id:int}")]
-        public IActionResult Index()
-        {
-            return View(
-                new ModuleViewModel
+            try
+            {
+                await _courseService.CompleteModuleAsync(userId, id, courseId);
+
+                if (await IsCourseCompleted(userId, courseId))
                 {
-                    // Initialize properties as needed  
-                    // For example, you can set default values or fetch them from a service  
-                    Module = new Module
+                    if (await _courseService.ClaimCompletionRewardAsync(userId, courseId))
                     {
-                        ModuleId = 0,
-                        Title = "Sample Module",
-                        Description = "This is a sample module description.",
-                        ImageUrl = "https://example.com/sample.jpg",
-                        CourseId = 1
-                    },
-                    CourseId = 0,
-                    TimeSpent = "00:00:00",
-                    CoinBalance = "0",
-                    IsCompleted = false,
-                    IsUnlocked = false
+                        string message = $"Congratulations! You have completed all required modules in this course. {CourseCompletionRewardCoins} coins have been added to your balance.";
+                        // alert(message)
+                    }
+
+                    if (await _courseService.ClaimTimedRewardAsync(userId, courseId, totalSecondsSpentOnCourse))
+                    {
+                        string message = $"Congratulations! You completed the course within the time limit. {TimedCompletionRewardCoins} coins have been added to your balance.";
+                        // alert(message)
+                    }
                 }
-            );
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Error completing module: {e.Message}");
+            }
+            return RedirectToRoute("Module", new { id });
+        }
+
+        private async Task<Boolean> IsCourseCompleted(int userId, int courseId)
+        {
+            var completedModulesCount = await _courseService.GetCompletedModulesCountAsync(userId, courseId);
+            var requiredModulesCount = await _courseService.GetRequiredModulesCountAsync(courseId);
+            return completedModulesCount >= requiredModulesCount;
         }
     }
 }
