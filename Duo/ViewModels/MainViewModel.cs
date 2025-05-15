@@ -8,6 +8,7 @@ using Duo.Commands;
 using DuoClassLibrary.Models;
 using DuoClassLibrary.Services;
 using Windows.System.Threading;
+using System.Collections.Generic;
 
 #pragma warning disable IDE0028, CS8618, CS8602, CS8601, IDE0060
 
@@ -284,26 +285,9 @@ namespace Duo.ViewModels
                     return;
                 }
 
+                var existingCourseTags = CacheExistingCourseTags();
                 DisplayedCourses.Clear();
-
-                var selectedTagIds = AvailableTags
-                    .Where(tag => tag.IsSelected)
-                    .Select(tag => tag.TagId)
-                    .ToList();
-
-                var filteredCourses = await courseService.GetFilteredCoursesAsync(
-                    searchQuery,
-                    filterByPremium,
-                    filterByFree,
-                    filterByEnrolled,
-                    filterByNotEnrolled,
-                    selectedTagIds,
-                    CurrentUserId);
-
-                foreach (var course in filteredCourses)
-                {
-                    DisplayedCourses.Add(course);
-                }
+                await LoadFilteredCoursesWithTags(existingCourseTags);
             }
             catch (Exception e)
             {
@@ -312,7 +296,56 @@ namespace Duo.ViewModels
         }
 
         /// <summary>
-        /// Public method to reset all filters, can be called directly from code-behind if needed
+        /// Saves the tags of currently displayed courses for reuse.
+        /// </summary>
+        private Dictionary<int, List<Tag>> CacheExistingCourseTags()
+        {
+            var tagCache = new Dictionary<int, List<Tag>>();
+            foreach (var course in DisplayedCourses)
+            {
+                if (course.Tags != null && course.Tags.Any())
+                {
+                    tagCache[course.CourseId] = course.Tags.ToList();
+                }
+            }
+            return tagCache;
+        }
+
+        /// <summary>
+        /// Loads filtered courses with their tags, using cached tags when available.
+        /// </summary>
+        private async Task LoadFilteredCoursesWithTags(Dictionary<int, List<Tag>> tagCache)
+        {
+            var selectedTagIds = AvailableTags
+                .Where(tag => tag.IsSelected)
+                .Select(tag => tag.TagId)
+                .ToList();
+
+            var filteredCourses = await courseService.GetFilteredCoursesAsync(
+                searchQuery,
+                filterByPremium,
+                filterByFree,
+                filterByEnrolled,
+                filterByNotEnrolled,
+                selectedTagIds,
+                CurrentUserId);
+
+            foreach (var course in filteredCourses)
+            {
+                if (tagCache.ContainsKey(course.CourseId))
+                {
+                    course.Tags = tagCache[course.CourseId];
+                }
+                else if (course.Tags == null || !course.Tags.Any())
+                {
+                    course.Tags = await courseService.GetCourseTagsAsync(course.CourseId);
+                }
+                
+                DisplayedCourses.Add(course);
+            }
+        }
+
+        /// <summary>
         /// </summary>
         public void ResetAllFiltersPublic()
         {
