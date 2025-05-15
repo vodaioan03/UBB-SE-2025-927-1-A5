@@ -120,13 +120,12 @@ namespace Duo.ViewModels.Roadmap
                 RoadmapButtonTemplate.QUIZ_STATUS examStatus = RoadmapButtonTemplate.QUIZ_STATUS.LOCKED;
                 if (isCompleted)
                 {
-                    examStatus = RoadmapButtonTemplate.QUIZ_STATUS.COMPLETED;
+                    examStatus = RoadmapButtonTemplate.QUIZ_STATUS.LOCKED;
                 }
                 else if (section.GetAllQuizzes().Count<Quiz>() == nrOfCompletedQuizzes)
                 {
                     examStatus = RoadmapButtonTemplate.QUIZ_STATUS.INCOMPLETE;
                 }
-
                 Debug.WriteLine($"++++++++++ Populating exam -> {examStatus}");
                 examButtonTemplate = new RoadmapButtonTemplate(section.GetFinalExam(), OpenQuizPreviewCommand, examStatus);
 

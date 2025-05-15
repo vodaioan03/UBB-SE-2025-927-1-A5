@@ -541,6 +541,8 @@ namespace Duo.ViewModels
                         RaiseErrorMessage("Progression Error", "Exam ID does not match section's final exam.");
                         return;
                     }
+
+                    await userService.IncrementSectionProgressAsync(1);
                 }
                 else
                 {
@@ -559,9 +561,8 @@ namespace Duo.ViewModels
                         RaiseErrorMessage("Progression Error", "Quiz ID does not match expected quiz.");
                         return;
                     }
+                    await userService.IncrementUserProgressAsync(1);
                 }
-
-                await userService.IncrementUserProgressAsync(1);
             }
             catch (Exception ex)
             {
