@@ -3,82 +3,155 @@
 
 @{
     ViewData["Title"] = $"Solving: {Model.QuizTitle}";
+    Layout = "_Layout";
 }
 
-<div class="quiz-solver-container" style="max-width: 800px; margin: auto; padding: 20px;">
+<div class="quiz-solver-container" style="max-width:800px; margin:auto; padding:20px;">
     <h1 class="text-center">@ViewData["Title"]</h1>
-    <p class="text-center">
-        Question @(Model.CurrentExerciseIndex + 1) of @Model.AllExercises.Count
-    </p>
+    <p class="text-center">Question @(Model.CurrentExerciseIndex + 1) of @Model.AllExercises.Count</p>
     <hr />
 
-    @if (Model.CurrentExercise != null)
+    @if (Model.CurrentExerciseType == nameof(AssociationExercise))
     {
-        <div class="exercise-area mb-4">
-            <h3>@Model.CurrentExercise.Question</h3>
-
-            <div class="exercise-component-placeholder mb-3"
-                 style="border: 1px dashed #ccc; background-color: #f9f9f9;
-                  min-height: 200px; padding: 20px;
-                  display: flex; align-items: center; justify-content: center;">
-
-                @switch (Model.CurrentExerciseType)
-                {
-                    case nameof(AssociationExercise):
-                        @* note the full path into /Views/Exercise *@
-                        @await Html.PartialAsync(
-                                 "~/Views/Exercise/_AssociationExercisePartial.cshtml",
-                                 (AssociationExercise)Model.CurrentExercise
-                                 )
-                        break;
-
-                    case nameof(MultipleChoiceExercise):
-                        @await Html.PartialAsync(
-                                 "~/Views/Exercise/_MultipleChoiceExercisePartial.cshtml",
-                                 (MultipleChoiceExercise)Model.CurrentExercise)
-                        break;
-
-                    case nameof(FillInTheBlankExercise):
-                        @await Html.PartialAsync(
-                                 "~/Views/Exercise/_FillInTheBlankExercisePartial.cshtml",
-                                 (FillInTheBlankExercise)Model.CurrentExercise)
-                        break;
-
-                    case nameof(FlashcardExercise):
-                        @await Html.PartialAsync(
-                                 "~/Views/Exercise/_FlashcardExercisePartial.cshtml",
-                                 (FlashcardExercise)Model.CurrentExercise)
-                        break;
-
-                    default:
-                        <p>Unsupported exercise type: @Model.CurrentExerciseType</p>
-                        break;
-                }
+        var assoc = (AssociationExercise)Model.CurrentExercise;
+        <div id="assoc-container"
+             style="position:relative; overflow:hidden; padding:1rem; border:1px solid #ccc; border-radius:.25rem; background:#fff;">
+            <h5 class="text-center mb-3">@assoc.Question</h5>
+            <div class="row gx-0">
+                <div class="col-6">
+                    <ul id="assoc-left" class="list-group">
+                        @for (int i = 0; i < assoc.FirstAnswersList.Count; i++)
+                        {
+                            <li class="list-group-item assoc-item assoc-left-item" data-index="@i">
+                                @assoc.FirstAnswersList[i]
+                            </li>
+                        }
+                    </ul>
+                </div>
+                <div class="col-6">
+                    <ul id="assoc-right" class="list-group">
+                        @for (int j = 0; j < assoc.SecondAnswersList.Count; j++)
+                        {
+                            <li class="list-group-item assoc-item assoc-right-item" data-index="@j">
+                                @assoc.SecondAnswersList[j]
+                            </li>
+                        }
+                    </ul>
+                </div>
             </div>
-        </div>
-
-        <div class="navigation-area text-center">
-            @if (!Model.IsLastExercise)
-            {
-                <a asp-action="Solve"
-                   asp-route-id="@Model.QuizId"
-                   asp-route-index="@(Model.CurrentExerciseIndex + 1)"
-                   class="btn btn-secondary btn-lg">
-                    Next Exercise &rarr;
-                </a>
-            }
-            else
-            {
-                <a asp-controller="Roadmap"
-                   asp-action="Index"
-                   class="btn btn-success btn-lg">
-                    Finish Quiz
-                </a>
-            }
+            <canvas id="assoc-canvas"
+                    style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:0;">
+            </canvas>
+            <input type="hidden" id="AssociationPairsJson" name="AssociationPairsJson" />
         </div>
     }
     else
     {
-        <p class="text-center">No current exercise to display.</p>
+        <p>Unsupported exercise type: @Model.CurrentExerciseType</p>
     }
+
+    <div class="text-center mt-4">
+        @if (!Model.IsLastExercise)
+        {
+            <a asp-action="Solve"
+               asp-route-id="@Model.QuizId"
+               asp-route-index="@(Model.CurrentExerciseIndex+1)"
+               class="btn btn-dark btn-lg">
+                Next Exercise &rarr;
+            </a>
+        }
+        else
+        {
+            <a asp-controller="Roadmap"
+               asp-action="Index"
+               class="btn btn-success btn-lg">
+                Finish Quiz
+            </a>
+        }
+    </div>
 </div>
+
+@section Scripts {
+    <script>
+        (function(){
+          const leftItems  = document.querySelectorAll('.assoc-left-item');
+          const rightItems = document.querySelectorAll('.assoc-right-item');
+          const canvas     = document.getElementById('assoc-canvas');
+          const ctx        = canvas.getContext('2d');
+          let selectedLeft = null;
+          const pairs      = [];
+
+          function resizeCanvas(){
+            canvas.width  = canvas.clientWidth;
+            canvas.height = canvas.clientHeight;
+            redrawLines();
+          }
+          window.addEventListener('resize', resizeCanvas);
+          resizeCanvas();
+
+          function getCenter(el){
+            const r = el.getBoundingClientRect();
+            const c = canvas.getBoundingClientRect();
+            return {
+              x: (r.left + r.right)/2 - c.left,
+              y: (r.top  + r.bottom)/2 - c.top
+            };
+          }
+
+          function redrawLines(){
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+            ctx.strokeStyle = '#198754';
+            ctx.lineWidth   = 2;
+            pairs.forEach(p=>{
+              const a = getCenter(leftItems[p.left]);
+              const b = getCenter(rightItems[p.right]);
+              ctx.beginPath();
+              ctx.moveTo(a.x,a.y);
+              ctx.lineTo(b.x,b.y);
+              ctx.stroke();
+            });
+            document.getElementById('AssociationPairsJson').value = JSON.stringify(pairs);
+          }
+
+          leftItems.forEach(li=>{
+            li.addEventListener('click', ()=>{
+              leftItems.forEach(x=>x.classList.remove('active'));
+              selectedLeft = +li.dataset.index;
+              li.classList.add('active');
+            });
+          });
+
+          rightItems.forEach(li=>{
+            li.addEventListener('click', ()=>{
+              if (selectedLeft === null) return;
+              const rightIdx = +li.dataset.index;
+                      for(let i=pairs.length-1; i>=0; i--){
+                if(pairs[i].left===selectedLeft || pairs[i].right===rightIdx){
+                  pairs.splice(i,1);
+                }
+              }
+              pairs.push({ left:selectedLeft, right:rightIdx });
+              leftItems[selectedLeft].classList.remove('active');
+              selectedLeft = null;
+              redrawLines();
+            });
+          });
+        })();
+    </script>
+
+    <style>
+        .association-exercise {
+            min-height: 300px;
+        }
+
+        .assoc-item {
+            cursor: pointer;
+            user-select: none;
+        }
+
+            .assoc-item.active {
+                background-color: #d1e7dd;
+                border-color: #198754;
+            }
+    </style>
+}

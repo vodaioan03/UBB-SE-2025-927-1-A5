@@ -1,27 +1,136 @@
 @model DuoClassLibrary.Models.Exercises.AssociationExercise
 
-<div class="card mb-3">
-    <div class="card-body">
-        <div id="associationPairs">
-            @for (int i = 0; i < 3; i++)
-            {
-                <div class="row mb-2 pair-row">
-                    <div class="col-md-5">
-                        <input type="text" class="form-control first-answer" placeholder="First item" />
-                    </div>
-                    <div class="col-md-5">
-                        <input type="text" class="form-control second-answer" placeholder="Second item" />
-                    </div>
-                    <div class="col-md-2">
-                        <button type="button" class="btn btn-outline-danger remove-pair">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                </div>
-            }
+@* 
+   This partial renders two side-by-side lists of options.
+   The user clicks one item from the left, then one from the right,
+   and we draw a line between them on an HTML5 canvas.
+   The submitted form will include a JSON array of pairs.
+*@
+<div class="association-exercise position-relative p-3 border rounded bg-light">
+    <h5 class="text-center mb-4">@Model.Question</h5>
+    <div class="row">
+        <div class="col-6">
+            <ul id="assoc-left" class="list-group">
+                @for (int i = 0; i < Model.FirstAnswersList.Count; i++)
+                {
+                    <li class="list-group-item assoc-item assoc-left-item"
+                        data-index="@i">
+                        @Model.FirstAnswersList[i]
+                    </li>
+                }
+            </ul>
         </div>
-        <button type="button" id="addPairBtn" class="btn btn-outline-primary mt-2">
-            <i class="fas fa-plus"></i> Add new input
-        </button>
+        <div class="col-6">
+            <ul id="assoc-right" class="list-group">
+                @for (int j = 0; j < Model.SecondAnswersList.Count; j++)
+                {
+                    <li class="list-group-item assoc-item assoc-right-item"
+                        data-index="@j">
+                        @Model.SecondAnswersList[j]
+                    </li>
+                }
+            </ul>
+        </div>
     </div>
+
+    @* Canvas sits on top of the lists, absolute to the container *@
+    <canvas id="assoc-canvas"
+            class="position-absolute top-0 start-0 w-100 h-100"
+            style="pointer-events:none;"></canvas>
+
+    @* Hidden field to carry the user’s associations as JSON *@
+    <input type="hidden" name="AssociationPairsJson" id="AssociationPairsJson" />
 </div>
+
+@section Scripts {
+    <script>
+        (function(){
+          const leftItems  = document.querySelectorAll('.assoc-left-item');
+          const rightItems = document.querySelectorAll('.assoc-right-item');
+          const canvas     = document.getElementById('assoc-canvas');
+          const ctx        = canvas.getContext('2d');
+          let selectedLeftIndex = null;
+          const pairs = [];
+
+          function resizeCanvas(){
+            canvas.width  = canvas.clientWidth;
+            canvas.height = canvas.clientHeight;
+            redrawLines();
+          }
+          window.addEventListener('resize', resizeCanvas);
+          resizeCanvas();
+
+          function getCenter(el){
+            const r = el.getBoundingClientRect();
+            const c = canvas.getBoundingClientRect();
+            return {
+              x: (r.left + r.right)/2 - c.left,
+              y: (r.top  + r.bottom)/2 - c.top
+            };
+          }
+
+          function redrawLines(){
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+            ctx.strokeStyle = '#198754';
+            ctx.lineWidth   = 2;
+            for(const p of pairs){
+              const lEl = leftItems[p.left];
+              const rEl = rightItems[p.right];
+              const a = getCenter(lEl);
+              const b = getCenter(rEl);
+              ctx.beginPath();
+              ctx.moveTo(a.x,a.y);
+              ctx.lineTo(b.x,b.y);
+              ctx.stroke();
+            }
+            document.getElementById('AssociationPairsJson').value = JSON.stringify(pairs);
+          }
+
+          leftItems.forEach(li => {
+            li.addEventListener('click', () => {
+              leftItems.forEach(x => x.classList.remove('active'));
+              const idx = parseInt(li.dataset.index);
+              selectedLeftIndex = idx;
+              li.classList.add('active');
+            });
+          });
+
+          rightItems.forEach(li => {
+            li.addEventListener('click', () => {
+              if (selectedLeftIndex === null) return;
+              const rightIdx = parseInt(li.dataset.index);
+              const existing = pairs.findIndex(p => p.left===selectedLeftIndex && p.right===rightIdx);
+              if (existing >= 0) {
+                pairs.splice(existing,1);
+              } else {
+                for(let i=pairs.length-1;i>=0;i--){
+                  if(pairs[i].left===selectedLeftIndex || pairs[i].right===rightIdx){
+                    pairs.splice(i,1);
+                  }
+                }
+                pairs.push({ left: selectedLeftIndex, right: rightIdx });
+              }
+              leftItems[selectedLeftIndex].classList.remove('active');
+              selectedLeftIndex = null;
+              redrawLines();
+            });
+          });
+
+        })();
+    </script>
+    <style>
+        .association-exercise {
+            min-height: 300px;
+        }
+
+        .assoc-item {
+            cursor: pointer;
+            user-select: none;
+        }
+
+            .assoc-item.active {
+                background-color: #d1e7dd;
+                border-color: #198754;
+            }
+    </style>
+}
