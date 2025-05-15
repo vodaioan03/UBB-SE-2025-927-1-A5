@@ -291,6 +291,7 @@ namespace Duo.ViewModels
             {
                 await InitializeProperties(currentUserId);
                 await LoadInitialData(currentUserId);
+                await LoadTagsAsync();
             }
             catch (Exception ex)
             {
