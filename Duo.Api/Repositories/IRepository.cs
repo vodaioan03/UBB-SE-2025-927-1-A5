@@ -448,7 +448,7 @@ namespace Duo.Api.Repositories
         /// <param name="filterNotEnrolled">Whether to filter for courses the user is not enrolled in.</param>
         /// <param name="userId">The unique identifier of the user for whom the courses are being filtered.</param>
         /// <returns>A list of courses that match the filter criteria.</returns>
-        public Task<List<Course>> GetFilteredCoursesAsync(string searchText, bool filterPremium, bool filterFree, bool filterEnrolled, bool filterNotEnrolled, int userId);
+        public Task<List<CourseDto>> GetFilteredCoursesAsync(string searchText, bool filterPremium, bool filterFree, bool filterEnrolled, bool filterNotEnrolled, int userId);
 
         Task<List<Module>> GetModulesByCourseIdAsync(int courseId);
 

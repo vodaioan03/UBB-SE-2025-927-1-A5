@@ -932,42 +932,55 @@ namespace Duo.Api.Repositories
         /// <param name="filterNotEnrolled">Flag to filter courses the user is not enrolled in.</param>
         /// <param name="userId">The ID of the user (for enrollment filtering).</param>
         /// <returns>A list of <see cref="Course"/> objects matching the filters.</returns>
-        public async Task<List<Course>> GetFilteredCoursesAsync(string searchText, bool filterPremium, bool filterFree, bool filterEnrolled, bool filterNotEnrolled, int userId)
+        public async Task<List<CourseDto>> GetFilteredCoursesAsync(string searchText, bool filterPremium, bool filterFree, bool filterEnrolled, bool filterNotEnrolled, int userId)
         {
-            var courses = context.Courses.AsQueryable();
+            var query = context.Courses
+                .Include(c => c.CourseTags)
+                .ThenInclude(ct => ct.Tag)
+                .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(searchText))
             {
-                courses = courses.Where(c => c.Title.Contains(searchText, StringComparison.OrdinalIgnoreCase));
+                searchText = searchText.ToLower();
+                query = query.Where(c => c.Title.ToLower().Contains(searchText) || c.Description.ToLower().Contains(searchText));
             }
 
-            if (filterPremium && filterFree)
+            if (filterPremium && !filterFree)
             {
-                // No filter (show all)
+                query = query.Where(c => c.IsPremium);
             }
-            else if (filterPremium)
+            else if (filterFree && !filterPremium)
             {
-                courses = courses.Where(c => c.IsPremium);
-            }
-            else if (filterFree)
-            {
-                courses = courses.Where(c => !c.IsPremium);
+                query = query.Where(c => !c.IsPremium);
             }
 
-            if (filterEnrolled && filterNotEnrolled)
+            if (filterEnrolled && !filterNotEnrolled)
             {
-                // No filter (show all)
+                query = query.Where(c => c.Enrollments.Any(e => e.UserId == userId));
             }
-            else if (filterEnrolled)
+            else if (filterNotEnrolled && !filterEnrolled)
             {
-                courses = courses.Where(c => context.CourseCompletions.Any(cc => cc.UserId == userId && cc.CourseId == c.CourseId));
-            }
-            else if (filterNotEnrolled)
-            {
-                courses = courses.Where(c => !context.CourseCompletions.Any(cc => cc.UserId == userId && cc.CourseId == c.CourseId));
+                query = query.Where(c => !c.Enrollments.Any(e => e.UserId == userId));
             }
 
-            return await courses.ToListAsync();
+            return await query
+                .Select(c => new CourseDto
+                {
+                    CourseId = c.CourseId,
+                    Title = c.Title,
+                    Description = c.Description,
+                    IsPremium = c.IsPremium,
+                    Cost = c.Cost,
+                    ImageUrl = c.ImageUrl,
+                    TimeToComplete = c.TimeToComplete,
+                    Difficulty = c.Difficulty,
+                    CourseTags = c.CourseTags.Select(ct => new TagDto
+                    {
+                        TagId = ct.TagId,
+                        Name = ct.Tag.Name
+                    }).ToList()
+                })
+                .ToListAsync();
         }
 
         public async Task AddTagToCourseAsync(int courseId, int tagId)
@@ -1313,5 +1326,4 @@ namespace Duo.Api.Repositories
             return await context.Roadmaps.FindAsync(id);
         }
     }
-        #endregion
 }

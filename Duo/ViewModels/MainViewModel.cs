@@ -49,7 +49,19 @@ namespace Duo.ViewModels
         /// <summary>
         /// Observable collection of available tags.
         /// </summary>
-        public ObservableCollection<Tag> AvailableTags { get; private set; }
+        private ObservableCollection<Tag> availableTags;
+        public ObservableCollection<Tag> AvailableTags
+        {
+            get => availableTags;
+            set
+            {
+                if (availableTags != value)
+                {
+                    availableTags = value;
+                    OnPropertyChanged(nameof(AvailableTags));
+                }
+            }
+        }
 
         /// <summary>
         /// User's current coin balance.
@@ -184,6 +196,9 @@ namespace Duo.ViewModels
         {
             try
             {
+                // Initialize the command first to ensure it's available
+                ResetAllFiltersCommand = new RelayCommand(ResetAllFilters);
+                
                 var courseList = await this.courseService.GetCoursesAsync();
                 DisplayedCourses = new ObservableCollection<Course>(courseList);
                 AvailableTags = new ObservableCollection<Tag>(await this.courseService.GetTagsAsync());
@@ -191,8 +206,6 @@ namespace Duo.ViewModels
                 {
                     tag.PropertyChanged += OnTagSelectionChanged;
                 }
-
-                ResetAllFiltersCommand = new RelayCommand(ResetAllFilters);
 
                 await RefreshUserCoinBalanceAsync();
             }
@@ -291,6 +304,14 @@ namespace Duo.ViewModels
             {
                 RaiseErrorMessage("Failed to apply filters", e.Message);
             }
+        }
+
+        /// <summary>
+        /// Public method to reset all filters, can be called directly from code-behind if needed
+        /// </summary>
+        public void ResetAllFiltersPublic()
+        {
+            ResetAllFilters(null);
         }
     }
 }
