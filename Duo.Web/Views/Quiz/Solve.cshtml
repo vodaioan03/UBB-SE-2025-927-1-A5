@@ -2,8 +2,8 @@
 @using DuoClassLibrary.Models.Exercises
 
 @{
-    ViewData["Title"] = $"Solving: {Model.QuizTitle}";
     Layout = "_Layout";
+    ViewData["Title"] = $"Solving: {Model.QuizTitle}";
 }
 
 <div class="quiz-solver-container" style="max-width:800px; margin:auto; padding:20px;">
@@ -15,7 +15,7 @@
     {
         var assoc = (AssociationExercise)Model.CurrentExercise;
         <div id="assoc-container"
-             style="position:relative; overflow:hidden; padding:1rem; border:1px solid #ccc; border-radius:.25rem; background:#fff;">
+             style="position:relative; padding:1rem; border:1px solid #ccc; border-radius:.25rem; background:#fff;">
             <h5 class="text-center mb-3">@assoc.Question</h5>
             <div class="row gx-0">
                 <div class="col-6">
@@ -40,14 +40,94 @@
                 </div>
             </div>
             <canvas id="assoc-canvas"
-                    style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:0;">
-            </canvas>
+                    style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none;"></canvas>
             <input type="hidden" id="AssociationPairsJson" name="AssociationPairsJson" />
+        </div>
+    }
+    else if (Model.CurrentExerciseType == nameof(MultipleChoiceExercise))
+    {
+        var mc = (MultipleChoiceExercise)Model.CurrentExercise;
+        <div class="card p-3 mb-3">
+            <h5>@mc.Question</h5>
+            <form id="mc-form">
+                @for (int i = 0; i < mc.Choices.Count; i++)
+                {
+                    var choice = mc.Choices[i];
+                    <div class="form-check">
+                        <input class="form-check-input"
+                               type="radio"
+                               name="mcChoice"
+                               id="opt@i"
+                               value="@choice.Answer" />
+                        <label class="form-check-label" for="opt@i">
+                            @choice.Answer
+                        </label>
+                    </div>
+                }
+                <input type="hidden" id="MCAnswer" name="MCAnswer" />
+            </form>
+        </div>
+    }
+    else if (Model.CurrentExerciseType == nameof(FillInTheBlankExercise))
+    {
+        var fib = (FillInTheBlankExercise)Model.CurrentExercise;
+        var parts = System.Text.RegularExpressions.Regex.Split(fib.Question, @"\{\}");
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5 class="card-title">@fib.Question</h5>
+
+                @if (parts.Length > 1)
+                {
+                    <p class="card-text">
+                        @for (int i = 0; i < parts.Length; i++)
+                        {
+                            @parts[i]
+                            @if (i < parts.Length - 1)
+                            {
+                                <input type="text"
+                                       class="form-control d-inline-block blank-input"
+                                       style="width:150px; margin:0 .25rem;"
+                                       placeholder="Answer"
+                                       data-index="@i" />
+                            }
+                        }
+                    </p>
+                }
+                else
+                {
+                    <p class="text-muted mb-2">Enter your answers:</p>
+                    <div id="blank-list">
+                        @for (int i = 0; i < fib.PossibleCorrectAnswers.Count; i++)
+                        {
+                            <div class="mb-2">
+                                <label class="form-label">Blank @(i + 1)</label>
+                                <input type="text"
+                                       class="form-control blank-input"
+                                       data-index="@i"
+                                       placeholder="Answer" />
+                            </div>
+                        }
+                    </div>
+                }
+
+                <input type="hidden" id="BlankAnswersJson" name="BlankAnswersJson" />
+            </div>
+        </div>
+    }
+    else if (Model.CurrentExerciseType == nameof(FlashcardExercise))
+    {
+        var fc = (FlashcardExercise)Model.CurrentExercise;
+        <div class="card p-5 mb-3 text-center">
+            <h4>@fc.Question</h4>
+            <button id="show-answer" class="btn btn-outline-primary mt-3">Show Answer</button>
+            <p id="flashcard-answer" class="text-success mt-3" style="display:none;">
+                @fc.Answer
+            </p>
         </div>
     }
     else
     {
-        <p>Unsupported exercise type: @Model.CurrentExerciseType</p>
+        <p class="text-danger">Unsupported exercise type: @Model.CurrentExerciseType</p>
     }
 
     <div class="text-center mt-4">
@@ -55,7 +135,7 @@
         {
             <a asp-action="Solve"
                asp-route-id="@Model.QuizId"
-               asp-route-index="@(Model.CurrentExerciseIndex+1)"
+               asp-route-index="@(Model.CurrentExerciseIndex + 1)"
                class="btn btn-dark btn-lg">
                 Next Exercise &rarr;
             </a>
@@ -74,76 +154,74 @@
 @section Scripts {
     <script>
         (function(){
-          const leftItems  = document.querySelectorAll('.assoc-left-item');
-          const rightItems = document.querySelectorAll('.assoc-right-item');
-          const canvas     = document.getElementById('assoc-canvas');
-          const ctx        = canvas.getContext('2d');
-          let selectedLeft = null;
-          const pairs      = [];
-
-          function resizeCanvas(){
-            canvas.width  = canvas.clientWidth;
-            canvas.height = canvas.clientHeight;
-            redrawLines();
+          const left = document.querySelectorAll('.assoc-left-item');
+          const right = document.querySelectorAll('.assoc-right-item');
+          const canvas = document.getElementById('assoc-canvas');
+          if(canvas){
+            const ctx = canvas.getContext('2d');
+            let sel = null, pairs = [];
+            function resize(){
+              canvas.width = canvas.clientWidth;
+              canvas.height = canvas.clientHeight;
+              draw();
+            }
+            window.addEventListener('resize', resize);
+            resize();
+            function center(el){
+              const r = el.getBoundingClientRect(),
+                    c = canvas.getBoundingClientRect();
+              return { x: (r.left+r.right)/2 - c.left, y: (r.top+r.bottom)/2 - c.top };
+            }
+            function draw(){
+              ctx.clearRect(0,0,canvas.width,canvas.height);
+              ctx.strokeStyle = '#198754'; ctx.lineWidth = 2;
+              pairs.forEach(p => {
+                let a = center(left[p.left]), b = center(right[p.right]);
+                ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
+              });
+              document.getElementById('AssociationPairsJson').value = JSON.stringify(pairs);
+            }
+            left.forEach(li => li.addEventListener('click', () => {
+              left.forEach(x=>x.classList.remove('active'));
+              sel = +li.dataset.index; li.classList.add('active');
+            }));
+            right.forEach(li => li.addEventListener('click', () => {
+              if(sel===null) return;
+              pairs = pairs.filter(p=>p.left!==sel && p.right!==+li.dataset.index);
+              pairs.push({left:sel,right:+li.dataset.index});
+              left[sel].classList.remove('active'); sel = null; draw();
+            }));
           }
-          window.addEventListener('resize', resizeCanvas);
-          resizeCanvas();
 
-          function getCenter(el){
-            const r = el.getBoundingClientRect();
-            const c = canvas.getBoundingClientRect();
-            return {
-              x: (r.left + r.right)/2 - c.left,
-              y: (r.top  + r.bottom)/2 - c.top
+          const mc = document.getElementById('mc-form');
+          if(mc){
+            mc.addEventListener('change', () => {
+              document.getElementById('MCAnswer').value = mc.mcChoice.value;
+            });
+          }
+
+          const blanks = document.querySelectorAll('.blank-input');
+          if(blanks.length){
+            const collect = () => {
+              const arr = Array.from(blanks).map(i=>i.value.trim());
+              document.getElementById('BlankAnswersJson').value = JSON.stringify(arr);
             };
+            blanks.forEach(i=>i.addEventListener('input', collect));
           }
 
-          function redrawLines(){
-            ctx.clearRect(0,0,canvas.width,canvas.height);
-            ctx.strokeStyle = '#198754';
-            ctx.lineWidth   = 2;
-            pairs.forEach(p=>{
-              const a = getCenter(leftItems[p.left]);
-              const b = getCenter(rightItems[p.right]);
-              ctx.beginPath();
-              ctx.moveTo(a.x,a.y);
-              ctx.lineTo(b.x,b.y);
-              ctx.stroke();
+          const btn = document.getElementById('show-answer'),
+                ans = document.getElementById('flashcard-answer');
+          if(btn && ans){
+            btn.addEventListener('click', () => {
+              const vis = ans.style.display==='block';
+              ans.style.display = vis?'none':'block';
+              btn.textContent = vis?'Show Answer':'Hide Answer';
             });
-            document.getElementById('AssociationPairsJson').value = JSON.stringify(pairs);
           }
-
-          leftItems.forEach(li=>{
-            li.addEventListener('click', ()=>{
-              leftItems.forEach(x=>x.classList.remove('active'));
-              selectedLeft = +li.dataset.index;
-              li.classList.add('active');
-            });
-          });
-
-          rightItems.forEach(li=>{
-            li.addEventListener('click', ()=>{
-              if (selectedLeft === null) return;
-              const rightIdx = +li.dataset.index;
-                      for(let i=pairs.length-1; i>=0; i--){
-                if(pairs[i].left===selectedLeft || pairs[i].right===rightIdx){
-                  pairs.splice(i,1);
-                }
-              }
-              pairs.push({ left:selectedLeft, right:rightIdx });
-              leftItems[selectedLeft].classList.remove('active');
-              selectedLeft = null;
-              redrawLines();
-            });
-          });
         })();
     </script>
 
     <style>
-        .association-exercise {
-            min-height: 300px;
-        }
-
         .assoc-item {
             cursor: pointer;
             user-select: none;
@@ -153,5 +231,10 @@
                 background-color: #d1e7dd;
                 border-color: #198754;
             }
+
+        .blank-input:focus {
+            border-color: #198754;
+            box-shadow: 0 0 .2rem rgba(25,135,84,.25);
+        }
     </style>
 }
