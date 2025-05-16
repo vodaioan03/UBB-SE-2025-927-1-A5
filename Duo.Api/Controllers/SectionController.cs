@@ -2,6 +2,7 @@
 using System.Text.Json;
 using Duo.Api.DTO.Requests;
 using Duo.Api.Helpers;
+using Duo.Api.Models;
 using Duo.Api.Models.Sections;
 using Duo.Api.Repositories;
 using Microsoft.AspNetCore.Mvc;
@@ -280,6 +281,57 @@ namespace Duo.Api.Controllers
             catch (Exception e)
             {
                 return BadRequest(new { message = e.Message });
+            }
+        }
+
+        /// <summary>
+        /// Checks if a section is completed by a specific user.
+        /// </summary>
+        /// <param name="sectionId"> Id of the section. </param>
+        /// <param name="userId"> Id of the user. </param>
+        /// <returns> A boolean in an http response signaling the status of the section for the user. </returns>
+        [HttpGet("is-completed")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> IsSectionCompleted([FromQuery] int userId, [FromQuery] int sectionId)
+        {
+            try
+            {
+                bool isCompleted = await this.repository.IsSectionCompletedAsync(userId, sectionId);
+                return this.Ok(new { IsCompleted = isCompleted });
+            }
+            catch (Exception e)
+            {
+                return this.BadRequest(new { message = e.Message });
+            }
+        }
+
+
+        /// <summary>
+        /// Marks a section as completed for a specific user.
+        /// </summary>
+        /// <param name="sectionId"> Id of the completed section.</param>
+        /// <param name="userId"> Id of the user.</param>
+        /// <returns> Answer indicating the section was added.</returns>
+        [HttpPost("add-completed-section")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> AddCompletedSection([FromQuery] int sectionId, [FromQuery] int userId)
+        {
+            try
+            {
+                SectionCompletions sectionCompletion = new SectionCompletions
+                {
+                    SectionId = sectionId,
+                    UserId = userId,
+                    Completed = true,
+                };
+                await this.repository.CompleteSectionForUser(sectionCompletion);
+                return this.Ok(new { message = "Section marked as completed." });
+            }
+            catch (Exception e)
+            {
+                return this.BadRequest(new { message = e.Message });
             }
         }
 

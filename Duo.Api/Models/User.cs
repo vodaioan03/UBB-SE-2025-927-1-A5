@@ -51,6 +51,11 @@ namespace Duo.Api.Models
         public DateTime LastLoginTime { get; set; }
         public List<Enrollment>? Enrollments { get; set; }
 
+        /// <summary>
+        /// Gets or sets the collection of sections completed by the user.
+        /// </summary>
+        public ICollection<SectionCompletions> SectionCompletions { get; set; } = [];
+
         #endregion
 
         #region Constructors

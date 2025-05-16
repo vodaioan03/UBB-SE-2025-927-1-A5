@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Duo.Api.Migrations
 {
     /// <inheritdoc />
-    public partial class NewMigration : Migration
+    public partial class MyMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -338,6 +338,31 @@ namespace Duo.Api.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "SectionCompletions",
+                columns: table => new
+                {
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    SectionId = table.Column<int>(type: "int", nullable: false),
+                    Completed = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SectionCompletions", x => new { x.UserId, x.SectionId });
+                    table.ForeignKey(
+                        name: "FK_SectionCompletions_Sections_SectionId",
+                        column: x => x.SectionId,
+                        principalTable: "Sections",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_SectionCompletions_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "UserId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "ExamExercises",
                 columns: table => new
                 {
@@ -438,6 +463,11 @@ namespace Duo.Api.Migrations
                 column: "SectionId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_SectionCompletions_SectionId",
+                table: "SectionCompletions",
+                column: "SectionId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Sections_RoadmapId",
                 table: "Sections",
                 column: "RoadmapId");
@@ -471,6 +501,9 @@ namespace Duo.Api.Migrations
 
             migrationBuilder.DropTable(
                 name: "QuizExercises");
+
+            migrationBuilder.DropTable(
+                name: "SectionCompletions");
 
             migrationBuilder.DropTable(
                 name: "UserProgresses");

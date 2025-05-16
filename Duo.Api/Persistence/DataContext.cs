@@ -73,6 +73,11 @@ namespace Duo.Api.Persistence
         public DbSet<Section> Sections { get; set; }
 
         /// <summary>
+        /// Gets or sets the section completions in the database.
+        /// </summary>
+        public DbSet<SectionCompletions> SectionCompletions { get; set; }
+
+        /// <summary>
         /// Gets or sets the exercises in the database.
         /// </summary>
         public DbSet<Exercise> Exercises { get; set; }
@@ -124,6 +129,24 @@ namespace Duo.Api.Persistence
                 .WithOne(e => e.Section)
                 .HasForeignKey<Exam>(e => e.SectionId)
                 .OnDelete(DeleteBehavior.SetNull);
+
+            // SectionCompletions
+            modelBuilder.Entity<SectionCompletions>()
+                .HasKey(cc => new { cc.UserId, cc.SectionId });
+
+            // Relationship with User
+            modelBuilder.Entity<SectionCompletions>()
+                .HasOne(sc => sc.User)
+                .WithMany(u => u.SectionCompletions)
+                .HasForeignKey(sc => sc.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Relationship with Section
+            modelBuilder.Entity<SectionCompletions>()
+                .HasOne(sc => sc.Section)
+                .WithMany(s => s.SectionCompletions)
+                .HasForeignKey(sc => sc.SectionId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             // Quiz -> Exercises (many-to-many)
             modelBuilder.Entity<Quiz>()

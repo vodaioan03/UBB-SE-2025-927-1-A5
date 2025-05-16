@@ -557,6 +557,21 @@ namespace Duo.Api.Repositories
         /// <returns>A task representing the asynchronous operation. The task completes once the section is removed.</returns>
         public Task DeleteSectionAsync(int id);
 
+        /// <summary>
+        /// Checks if a section is open for a user asynchronously.
+        /// </summary>
+        /// <param name="userId"> The unique id of the user.</param>
+        /// <param name="sectionId"> The unique id of the section. </param>
+        /// <returns> A task returning a bool result indicating if the section is completed. </returns>
+        public Task<bool> IsSectionCompletedAsync(int userId, int sectionId);
+
+        /// <summary>
+        /// Marks a section as completed for a user asynchronously.
+        /// </summary>
+        /// <param name="completedSection"> SectionCompletions object reprsenting a section completed by an user. </param>
+        /// <returns> A task representing the asynchronous operation. The task completes once the sectionCompletion is added. </returns>
+        public Task CompleteSectionForUser(SectionCompletions completedSection);
+
         #endregion
 
         #region Coins

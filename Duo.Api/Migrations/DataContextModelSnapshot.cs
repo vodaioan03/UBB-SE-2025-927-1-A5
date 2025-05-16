@@ -326,6 +326,24 @@ namespace Duo.Api.Migrations
                     b.ToTable("Roadmaps");
                 });
 
+            modelBuilder.Entity("Duo.Api.Models.SectionCompletions", b =>
+                {
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SectionId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("Completed")
+                        .HasColumnType("bit");
+
+                    b.HasKey("UserId", "SectionId");
+
+                    b.HasIndex("SectionId");
+
+                    b.ToTable("SectionCompletions");
+                });
+
             modelBuilder.Entity("Duo.Api.Models.Sections.Section", b =>
                 {
                     b.Property<int>("Id")
@@ -600,6 +618,25 @@ namespace Duo.Api.Migrations
                     b.Navigation("Section");
                 });
 
+            modelBuilder.Entity("Duo.Api.Models.SectionCompletions", b =>
+                {
+                    b.HasOne("Duo.Api.Models.Sections.Section", "Section")
+                        .WithMany("SectionCompletions")
+                        .HasForeignKey("SectionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Duo.Api.Models.User", "User")
+                        .WithMany("SectionCompletions")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Section");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Duo.Api.Models.Sections.Section", b =>
                 {
                     b.HasOne("Duo.Api.Models.Roadmaps.Roadmap", "Roadmap")
@@ -682,6 +719,8 @@ namespace Duo.Api.Migrations
                     b.Navigation("Exam");
 
                     b.Navigation("Quizzes");
+
+                    b.Navigation("SectionCompletions");
                 });
 
             modelBuilder.Entity("Duo.Api.Models.Tag", b =>
@@ -692,6 +731,8 @@ namespace Duo.Api.Migrations
             modelBuilder.Entity("Duo.Api.Models.User", b =>
                 {
                     b.Navigation("Enrollments");
+
+                    b.Navigation("SectionCompletions");
                 });
 
             modelBuilder.Entity("Duo.Api.Models.Exercises.MultipleChoiceExercise", b =>

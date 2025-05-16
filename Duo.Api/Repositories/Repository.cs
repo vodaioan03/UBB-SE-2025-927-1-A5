@@ -1192,6 +1192,38 @@ namespace Duo.Api.Repositories
             }
         }
 
+        /// <summary>
+        /// Checks if a section is open for a user asynchronously.
+        /// </summary>
+        /// <param name="userId"> The unique id of the user.</param>
+        /// <param name="sectionId"> The unique id of the section. </param>
+        /// <returns> A task returning a bool result indicating if the section is completed. </returns>
+        public async Task<bool> IsSectionCompletedAsync(int userId, int sectionId)
+        {
+            var completion = await this.context.SectionCompletions
+                .FindAsync(userId, sectionId);
+
+            if (completion == null)
+            {
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+        }
+
+        /// <summary>
+        /// Marks a section as completed for a user asynchronously.
+        /// </summary>
+        /// <param name="completedSection"> SectionCompletions object reprsenting a section completed by an user. </param>
+        /// <returns> A task representing the asynchronous operation. The task completes once the sectionCompletion is added. </returns>
+        public async Task CompleteSectionForUser(SectionCompletions completedSection)
+        {
+            this.context.SectionCompletions.Add(completedSection);
+            await this.context.SaveChangesAsync();
+        }
+
         #endregion
 
         #region Coins
