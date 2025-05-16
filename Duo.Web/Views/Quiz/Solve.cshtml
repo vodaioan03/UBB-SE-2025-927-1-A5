@@ -44,19 +44,35 @@
             var mc = (MultipleChoiceExercise)Model.CurrentExercise;
             <div class="card mb-3 p-3">
                 <h5>@mc.Question</h5>
-                <form id="mc-form">
-                    @for (int i = 0; i < mc.Choices.Count; i++)
-                    {
-                        var c = mc.Choices[i];
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="mcChoice" id="opt@i" value="@c.Answer" />
-                            <label class="form-check-label" for="opt@i">@c.Answer</label>
-                        </div>
-                    }
-                    <input type="hidden" id="MCAnswer" name="MCAnswer" />
-                </form>
+                <div id="mc-card" class="card mb-3 p-3">
+                    <div id="mc-options">
+                        @for (int i = 0; i < mc.Choices.Count; i++)
+                        {
+                            var c = mc.Choices[i];
+                            <div class="form-check">
+                                <input class="form-check-input"
+                                       type="radio"
+                                       name="mcChoice"
+                                       id="opt@i"
+                                       value="@i"
+                                       data-answer="@c.Answer"
+                                       data-option-number="@(i + 1)"
+                                @(c.IsCorrect ? "data-correct=\"true\"" : "") />
+
+                                <label class="form-check-label" for="opt@i">@c.Answer</label>
+                            </div>
+                        }
+
+                    </div>
+                    <div class="text-end mt-3">
+                        <button id="mc-submit-btn" class="btn btn-primary" onclick="submitMC()">Submit</button>
+                    </div>
+                    <div id="mc-feedback" class="mt-3 fw-semibold"></div>
+                </div>
             </div>
             break;
+
+
 
         case nameof(FillInTheBlankExercise):
             var fib = (FillInTheBlankExercise)Model.CurrentExercise;
@@ -152,7 +168,7 @@
             const ctx = C.getContext('2d');
             let sel=null, pairs=[];
             function resize(){ C.width=C.clientWidth; C.height=C.clientHeight; draw() }
-            function center(el){ const r=el.getBoundingClientRect(),b=C.getBoundingClientRect(); return {x:(r.left+r.right)/2-b.left, y:(r.top+r.bottom)/2-b.top}}
+            function center(el){ const r=el.getBoundingClientRect(),b=C.getBoundingClientRect(); return {x:(r.left+r.right)/2-b.left, y:(r.top+r.bottom)/2-b.top} }
             function draw(){
               ctx.clearRect(0,0,C.width,C.height);
               ctx.strokeStyle='#198754'; ctx.lineWidth=2;
@@ -170,19 +186,16 @@
             });
             R.forEach(li=>li.onclick=()=>{
               if(sel===null) return;
-              pairs=pairs.filter(p=>p.left!==sel&&p.right!==+li.dataset.index);
-              pairs.push({left:sel,right:+li.dataset.index});
+              pairs = pairs.filter(p => p.left !== sel && p.right !== +li.dataset.index);
+              pairs.push({ left: sel, right: +li.dataset.index });
               L[sel].classList.remove('active'); sel=null; draw();
             });
           }
 
-          const mc = document.getElementById('mc-form');
-          if(mc) mc.onchange = ()=> document.getElementById('MCAnswer').value = mc.mcChoice.value;
-
           const blanks = document.querySelectorAll('.blank-input');
           if(blanks.length){
-            blanks.forEach(i=>i.oninput = ()=>{
-              const arr=Array.from(blanks).map(x=>x.value.trim());
+            blanks.forEach(i => i.oninput = () => {
+              const arr = Array.from(blanks).map(x => x.value.trim());
               document.getElementById('BlankAnswersJson').value = JSON.stringify(arr);
             });
           }
@@ -194,31 +207,56 @@
                 timerBack = document.getElementById('timer-back'),
                 answerInp = document.getElementById('flash-input'),
                 hidden = document.getElementById('FlashcardAnswer');
-          if(flip && flipBack && card){
-            let time = parseInt(timerEl.textContent.split(':')[1],10);
+          if (flip && flipBack && card) {
+            let time = parseInt(timerEl.textContent.split(':')[1], 10);
             timerBack.textContent = timerEl.textContent;
-            const tick = setInterval(()=>{
+            const tick = setInterval(() => {
               time--;
-              const mm='00', ss=time.toString().padStart(2,'0');
-              timerEl.textContent = mm+':'+ss;
-              timerBack.textContent = mm+':'+ss;
-              if(time<=0){
+              const mm = '00', ss = time.toString().padStart(2, '0');
+              timerEl.textContent = mm + ':' + ss;
+              timerBack.textContent = mm + ':' + ss;
+              if (time <= 0) {
                 clearInterval(tick);
-                hidden.value = '';        
-                card.style.transform='rotateY(180deg)';
+                hidden.value = '';
+                card.style.transform = 'rotateY(180deg)';
               }
-            },1000);
+            }, 1000);
 
-            flip.onclick = e=>{
+            flip.onclick = e => {
               e.preventDefault();
               hidden.value = answerInp.value.trim();
-              card.style.transform='rotateY(180deg)';
+              card.style.transform = 'rotateY(180deg)';
             };
-            flipBack.onclick = e=>{
+            flipBack.onclick = e => {
               e.preventDefault();
-              card.style.transform='rotateY(0deg)';
+              card.style.transform = 'rotateY(0deg)';
             };
           }
+
+        window.submitMC = () => {
+            const selected = document.querySelector('input[name="mcChoice"]:checked');
+            const feedbackDiv = document.getElementById('mc-feedback');
+
+            if (!selected) {
+                feedbackDiv.innerHTML = `<span class="text-danger">Please select an answer first.</span>`;
+                return;
+            }
+
+            const isCorrect = selected.hasAttribute("data-correct");
+            if (isCorrect) {
+                feedbackDiv.innerHTML = `<span class="text-success">✔ Correct! Well done.</span>`;
+            } else {
+                const correctOptions = [...document.querySelectorAll('input[name="mcChoice"][data-correct="true"]')]
+                    .map(opt => opt.getAttribute("data-answer"))
+                    .filter(answer => answer)
+                    .join(', ');
+
+                feedbackDiv.innerHTML = `<span class="text-danger">✘ Incorrect. Correct answer(s): <strong>${correctOptions || 'unknown'}</strong>.</span>`;
+            }
+
+            document.querySelectorAll('input[name="mcChoice"]').forEach(i => i.disabled = true);
+        };
+
         })();
     </script>
 }
@@ -242,4 +280,15 @@
     .flashcard-container {
         margin-bottom: 2rem;
     }
+
+    #mc-feedback {
+        font-size: 1rem;
+        color: white !important;
+    }
+
+    #mc-card {
+        color: black;
+    }
+
+
 </style>
