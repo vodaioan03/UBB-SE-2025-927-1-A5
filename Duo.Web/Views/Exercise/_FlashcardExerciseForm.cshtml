@@ -1,14 +1,28 @@
 @model DuoClassLibrary.Models.Exercises.FlashcardExercise
+@{
+    var id = (int)ViewData["ExerciseId"];
+}
+<div class="flashcard-container mb-3" style="perspective:1000px; max-width:600px; margin:auto;">
+    <div id="flashcard-@id" class="flashcard position-relative p-4 border rounded">
 
-<div class="card mb-3">
-    <div class="card-body">
-        <div class="row mb-3">
-            <div class="col-md-12">
-                <div class="form-group">
-                    <label class="control-label">Correct Answer</label>
-                    <input type="text" id="flashcardAnswer" class="form-control" placeholder="Enter the correct answer" />
-                </div>
+        <div class="flashcard-face front bg-white text-center">
+            <div class="d-flex justify-content-between mb-2">
+                <span>@Model.Difficulty</span>
+                <span id="timer-@id" class="text-warning fw-bold"></span>
             </div>
+            <h4 class="my-4">@Model.Question</h4>
+            <input id="flashcard-input-@id" type="text" class="form-control mb-3" placeholder="Type your answer..." />
+            <button id="flip-btn-@id" class="btn btn-primary">Flip Card</button>
+        </div>
+
+        <div class="flashcard-face back bg-white text-center">
+            <div class="d-flex justify-content-between mb-2">
+                <span>@Model.Difficulty</span>
+                <span id="timer-@id" class="text-warning fw-bold"></span>
+            </div>
+            <h4 class="my-4">@Model.Answer</h4>
+            <button id="flip-back-btn-@id" class="btn btn-secondary">Back</button>
         </div>
     </div>
 </div>
+<input type="hidden" id="FlashcardAnswerHidden_@id" name="FlashcardAnswer" />
