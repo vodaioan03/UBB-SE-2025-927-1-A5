@@ -6,7 +6,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-
+using DuoClassLibrary.Models.Exercises;
 using DuoClassLibrary.Models.Sections;
 using DuoClassLibrary.Models.Sections.DTO;
 using DuoClassLibrary.Services.Interfaces;
@@ -141,6 +141,24 @@ namespace DuoClassLibrary.Services
             var response = await httpClient.GetAsync($"{url}/api/sections/dependencies/{sectionId}");
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadFromJsonAsync<List<SectionDependency>>() ?? new List<SectionDependency>();
+        }
+
+        public Task<bool> IsSectionCompleted(int userId, int sectionId)
+        {
+            var response = httpClient.GetFromJsonAsync<SectionCompletionDTO>($"{url}/api/Section/is-completed?userId={userId}&sectionId={sectionId}");
+            //Get boolean result from response
+            if (response.Result == null)
+            {
+                throw new InvalidOperationException("Empty or invalid response from server.");
+            }
+
+            return Task.FromResult(response.Result.IsCompleted);
+        }
+
+        public async Task CompleteSection(int userId, int sectionId)
+        {
+            var response = httpClient.PostAsJsonAsync($"{url}/api/Section/add-completed-section?userId={userId}&sectionId={sectionId}", new { });
+            response.Result.EnsureSuccessStatusCode();
         }
     }
 }
