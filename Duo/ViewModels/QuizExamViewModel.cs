@@ -543,6 +543,16 @@ namespace Duo.ViewModels
                     }
 
                     await userService.IncrementSectionProgressAsync(1);
+                    if (CurrentExam.SectionId == null)
+                    {
+                        RaiseErrorMessage("Error", "Exam has no section Id");
+                        return;
+                    }
+                    else
+                    {
+                        int sectionId = CurrentExam.SectionId.Value;
+                        await sectionService.CompleteSection(user.UserId, sectionId);
+                    }
                 }
                 else
                 {

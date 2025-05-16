@@ -4,11 +4,11 @@ using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using System.Collections.Generic;
 using Duo.Commands;
 using DuoClassLibrary.Models;
 using DuoClassLibrary.Services;
 using Windows.System.Threading;
-using System.Collections.Generic;
 
 #pragma warning disable IDE0028, CS8618, CS8602, CS8601, IDE0060
 
@@ -340,7 +340,7 @@ namespace Duo.ViewModels
                 {
                     course.Tags = await courseService.GetCourseTagsAsync(course.CourseId);
                 }
-                
+
                 DisplayedCourses.Add(course);
             }
         }

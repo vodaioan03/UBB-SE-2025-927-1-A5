@@ -58,6 +58,8 @@ namespace Duo.ViewModels.Roadmap
                 List<Section> sections = (List<Section>)await sectionService.GetByRoadmapId(1);
 
                 sectionViewModels = new ObservableCollection<RoadmapSectionViewModel>();
+                bool isPreviousCompleted = true;
+                bool currentIsCompleted = false;
                 for (int i = 1; i <= sections.Count; i++)
                 {
                     var sectionViewModel = (RoadmapSectionViewModel)App.ServiceProvider.GetService(typeof(RoadmapSectionViewModel));
@@ -67,11 +69,12 @@ namespace Duo.ViewModels.Roadmap
                         continue;
                     }
 
-                    if (i <= user.NumberOfCompletedSections)
+                    currentIsCompleted = await sectionService.IsSectionCompleted(user.UserId, sections[i - 1].Id);
+                    if (currentIsCompleted)
                     {
                         await sectionViewModel.SetupForSection(sections[i - 1].Id, true, 0);
                     }
-                    else if (i == user.NumberOfCompletedSections + 1)
+                    else if (isPreviousCompleted)
                     {
                         await sectionViewModel.SetupForSection(sections[i - 1].Id, false, user.NumberOfCompletedQuizzesInSection);
                     }
@@ -80,6 +83,7 @@ namespace Duo.ViewModels.Roadmap
                         await sectionViewModel.SetupForSection(sections[i - 1].Id, false, -1);
                     }
                     sectionViewModels.Add(sectionViewModel);
+                    isPreviousCompleted = currentIsCompleted;
                 }
 
                 OnPropertyChanged(nameof(SectionViewModels));
