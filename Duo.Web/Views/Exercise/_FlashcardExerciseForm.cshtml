@@ -1,28 +1,157 @@
-@model DuoClassLibrary.Models.Exercises.FlashcardExercise
-@{
-    var id = (int)ViewData["ExerciseId"];
-}
-<div class="flashcard-container mb-3" style="perspective:1000px; max-width:600px; margin:auto;">
-    <div id="flashcard-@id" class="flashcard position-relative p-4 border rounded">
+﻿@model DuoClassLibrary.Models.Exercises.FlashcardExercise
 
-        <div class="flashcard-face front bg-white text-center">
-            <div class="d-flex justify-content-between mb-2">
-                <span>@Model.Difficulty</span>
-                <span id="timer-@id" class="text-warning fw-bold"></span>
+@{
+    var id = "flash_" + Model.ExerciseId;
+}
+
+<div class="flashcard-container mb-4">
+    <div id="@id" class="flashcard">
+        <div class="flashcard-face front">
+            <div class="flashcard-header d-flex justify-content-between align-items-center mb-3">
+                <svg class="clock-icon" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10" fill="none" stroke="#000" stroke-width="2" />
+                    <path d="M12 2 A10 10 0 0 1 22 12 H12 Z" fill="#000" />
+                </svg>
+                <span class="difficulty">@Model.Difficulty</span>
+                <span id="timer-@id" class="timer">00:@Model.TimeInSeconds.ToString("00")</span>
             </div>
-            <h4 class="my-4">@Model.Question</h4>
-            <input id="flashcard-input-@id" type="text" class="form-control mb-3" placeholder="Type your answer..." />
-            <button id="flip-btn-@id" class="btn btn-primary">Flip Card</button>
+            <h4 class="text-center card-question mb-4">@Model.Question</h4>
+            <input id="input-@id"
+                   type="text"
+                   class="form-control answer-input mb-3"
+                   placeholder="Enter your answer here…" />
+            <button id="flip-front-@id" class="btn btn-flip w-100">Flip Card</button>
         </div>
 
-        <div class="flashcard-face back bg-white text-center">
-            <div class="d-flex justify-content-between mb-2">
-                <span>@Model.Difficulty</span>
-                <span id="timer-@id" class="text-warning fw-bold"></span>
+        <div class="flashcard-face back">
+            <div class="flashcard-header d-flex justify-content-between align-items-center mb-3">
+                <svg class="clock-icon" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10" fill="none" stroke="#000" stroke-width="2" />
+                    <path d="M12 2 A10 10 0 0 1 22 12 H12 Z" fill="#000" />
+                </svg>
+                <span class="difficulty">@Model.Difficulty</span>
+                <span id="timerBack-@id" class="timer"></span>
             </div>
-            <h4 class="my-4">@Model.Answer</h4>
-            <button id="flip-back-btn-@id" class="btn btn-secondary">Back</button>
+            <h4 class="text-center card-answer mb-4">@Model.Answer</h4>
+            <button id="flip-back-@id" class="btn btn-back w-100">Back</button>
         </div>
     </div>
+    <input type="hidden" id="answer-@id" name="FlashcardAnswer" value="" />
 </div>
-<input type="hidden" id="FlashcardAnswerHidden_@id" name="FlashcardAnswer" />
+
+<style>
+    .flashcard-container {
+        perspective: 1000px;
+        max-width: 600px;
+        margin: 0 auto 2rem;
+    }
+
+    .flashcard {
+        position: relative;
+        border: 2px solid #7209b7;
+        border-radius: 16px;
+        overflow: hidden;
+        transform-style: preserve-3d;
+        transition: transform 0.6s;
+    }
+
+    .flashcard-face {
+        position: absolute;
+        width: 100%;
+        backface-visibility: hidden;
+        background: #fff;
+        padding: 24px;
+        box-sizing: border-box;
+    }
+
+    .front {
+        transform: rotateY(0deg);
+    }
+
+    .back {
+        transform: rotateY(180deg);
+    }
+
+    .clock-icon {
+        width: 24px;
+        height: 24px;
+    }
+
+    .difficulty {
+        text-transform: capitalize;
+        font-size: 0.9rem;
+    }
+
+    .timer {
+        font-weight: bold;
+        color: #ffc107;
+    }
+
+    .card-question, .card-answer {
+        font-size: 1.25rem;
+    }
+
+    .answer-input {
+        border: 2px solid #7209b7;
+        border-radius: 8px;
+        padding: 8px;
+    }
+
+    .btn-flip {
+        background-color: #7209b7;
+        color: white;
+        border-radius: 24px;
+        padding: 12px 0;
+    }
+
+    .btn-back {
+        background-color: #6c757d;
+        color: white;
+        border-radius: 24px;
+        padding: 12px 0;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+          const card   = document.getElementById('@id');
+          const btnF   = document.getElementById('flip-front-@id');
+          const btnB   = document.getElementById('flip-back-@id');
+          const timerF = document.getElementById('timer-@id');
+          const timerB = document.getElementById('timerBack-@id');
+          const input  = document.getElementById('input-@id');
+          const hidden = document.getElementById('answer-@id');
+
+          // mirror initial timer to back
+          timerB.textContent = timerF.textContent;
+
+          let secs = parseInt(timerF.textContent.split(':')[1], 10);
+          const iv = setInterval(() => {
+            if (secs <= 0) {
+              clearInterval(iv);
+              hidden.value = '';
+              card.style.transform = 'rotateY(180deg)';
+              return;
+            }
+            secs--;
+            const ss = String(secs).padStart(2, '0');
+            timerF.textContent = `00:${ss}`;
+            timerB.textContent = `00:${ss}`;
+          }, 1000);
+
+          btnF.addEventListener('click', e => {
+            e.preventDefault();
+            clearInterval(iv);
+            hidden.value = input.value.trim();
+            card.style.transform = 'rotateY(180deg)';
+          });
+
+          btnB.addEventListener('click', e => {
+            e.preventDefault();
+            clearInterval(iv);
+            card.style.transform = 'rotateY(0deg)';
+          });
+        });
+    </script>
+}
