@@ -186,6 +186,16 @@ namespace Duo.Api.Controllers
                     return NotFound();
                 }
 
+                // Delete section if it exists
+                if (exam.SectionId != null)
+                {
+                    var section = await repository.GetSectionByIdAsync(exam.SectionId.Value);
+                    if (section != null)
+                    {
+                        await repository.DeleteSectionAsync(section.Id);
+                    }
+                }
+
                 await repository.DeleteExamAsync(id);
                 return Ok();
             }

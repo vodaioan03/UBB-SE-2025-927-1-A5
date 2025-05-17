@@ -701,6 +701,23 @@ namespace Duo.Api.Repositories
             await this.context.SaveChangesAsync();
         }
 
+        /// <summary>
+        /// Deletes a quiz completion record for all users by quiz ID asynchronously.
+        /// </summary>
+        /// <param name="quizId"> Quiz id.</param>
+        /// <returns> A task representing the async operation. </returns>
+        public async Task DeleteQuizCompletions(int quizId)
+        {
+            var completions = await this.context.QuizCompletions
+                .Where(q => q.QuizId == quizId)
+                .ToListAsync();
+            if (completions != null)
+            {
+                this.context.QuizCompletions.RemoveRange(completions);
+                await this.context.SaveChangesAsync();
+            }
+        }
+
         #endregion
 
         #region Courses
@@ -1188,6 +1205,23 @@ namespace Duo.Api.Repositories
             await this.context.SaveChangesAsync();
         }
 
+        /// <summary>
+        /// Deletes an exam completion record for all users by exam ID asynchronously.
+        /// </summary>
+        /// <param name="examId"> Exam id.</param>
+        /// <returns> A task representing the asynchronous operation.</returns>
+        public async Task DeleteExamCompletions(int examId)
+        {
+            var examCompletions = await this.context.ExamCompletions
+                .Where(ec => ec.ExamId == examId)
+                .ToListAsync();
+            if (examCompletions != null)
+            {
+                this.context.ExamCompletions.RemoveRange(examCompletions);
+                await this.context.SaveChangesAsync();
+            }
+        }
+
         #endregion
 
         #region Sections
@@ -1247,6 +1281,7 @@ namespace Duo.Api.Repositories
         public async Task DeleteSectionAsync(int id)
         {
             var section = await context.Sections.FindAsync(id);
+
             if (section != null)
             {
                 context.Sections.Remove(section);
@@ -1284,6 +1319,23 @@ namespace Duo.Api.Repositories
         {
             this.context.SectionCompletions.Add(completedSection);
             await this.context.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Deletes a section completion record for all users by section ID asynchronously.
+        /// </summary>
+        /// <param name="sectionId"> Id of the section. </param>
+        /// <returns> A task representing the asynchronous operation.</returns>
+        public async Task DeleteSectionCompletions(int sectionId)
+        {
+            var sectionCompletions = await this.context.SectionCompletions
+                .Where(sc => sc.SectionId == sectionId)
+                .ToListAsync();
+            if (sectionCompletions != null)
+            {
+                this.context.SectionCompletions.RemoveRange(sectionCompletions);
+                await this.context.SaveChangesAsync();
+            }
         }
 
         #endregion

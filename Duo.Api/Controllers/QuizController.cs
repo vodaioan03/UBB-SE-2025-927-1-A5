@@ -177,6 +177,17 @@ namespace Duo.Api.Controllers
                     return NotFound();
                 }
 
+                // Delete section if it exists
+                if (quiz.SectionId != null)
+                {
+                    var section = await repository.GetSectionByIdAsync(quiz.SectionId.Value);
+                    if (section != null)
+                    {
+                        await repository.DeleteSectionAsync(section.Id);
+                    }
+                }
+
+
                 await repository.DeleteQuizAsync(id);
                 return Ok();
             }
