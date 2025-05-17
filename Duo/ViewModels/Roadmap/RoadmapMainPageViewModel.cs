@@ -55,9 +55,31 @@ namespace Duo.ViewModels.Roadmap
                 user = await userService.GetByIdAsync(1);
 
                 ISectionService sectionService = (ISectionService)App.ServiceProvider.GetService(typeof(ISectionService));
-                List<Section> sections = (List<Section>)await sectionService.GetByRoadmapId(1);
+                List<Section> sections = null;
+                try
+                {
+                    sections = (List<Section>)await sectionService.GetByRoadmapId(1);
+                }
+                catch (Exception ex)
+                {
+                    if (ex.Message.Contains("404"))
+                    {
+                        RaiseErrorMessage("No Sections", "Roadmap does not contain any sections yet.");
+                        SectionViewModels = new ObservableCollection<RoadmapSectionViewModel>();
+                        return;
+                    }
+                    throw;
+                }
 
                 sectionViewModels = new ObservableCollection<RoadmapSectionViewModel>();
+
+                if (sections == null || sections.Count == 0)
+                {
+                    RaiseErrorMessage("No Sections", "This roadmap does not contain any sections yet.");
+                    OnPropertyChanged(nameof(SectionViewModels));
+                    return;
+                }
+
                 bool isPreviousCompleted = true;
                 bool currentIsCompleted = false;
                 for (int i = 1; i <= sections.Count; i++)
@@ -93,7 +115,6 @@ namespace Duo.ViewModels.Roadmap
                 RaiseErrorMessage("Setup Error", $"Failed to set up RoadmapMainPageViewModel.\nDetails: {ex.Message}");
             }
         }
-
         private async Task OpenQuizPreview(Tuple<int, bool> args)
         {
             try
