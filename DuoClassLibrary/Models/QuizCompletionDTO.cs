@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DuoClassLibrary.Models.Exercises
+namespace DuoClassLibrary.Models
 {
-    public class SectionCompletionDTO
+    public class QuizCompletionDTO
     {
         public bool IsCompleted { get; set; }
     }

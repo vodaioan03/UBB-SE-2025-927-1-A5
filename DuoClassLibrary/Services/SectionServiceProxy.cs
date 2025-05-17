@@ -6,7 +6,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-using DuoClassLibrary.Models.Exercises;
+using DuoClassLibrary.Models;
 using DuoClassLibrary.Models.Sections;
 using DuoClassLibrary.Models.Sections.DTO;
 using DuoClassLibrary.Services.Interfaces;

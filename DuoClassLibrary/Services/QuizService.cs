@@ -5,6 +5,7 @@ using DuoClassLibrary.Exceptions;
 using DuoClassLibrary.Models.Exercises;
 using DuoClassLibrary.Models.Quizzes;
 using DuoClassLibrary.Models.Quizzes.API;
+using DuoClassLibrary.Services.Interfaces;
 
 namespace DuoClassLibrary.Services
 {
@@ -152,6 +153,28 @@ namespace DuoClassLibrary.Services
         public async Task<List<Quiz>> GetAllQuizzes()
         {
             return await serviceProxy.GetAsync().ConfigureAwait(false);
+        }
+
+        public async Task<bool> IsQuizCompleted(int userId, int quizId)
+        {
+            bool result = await this.serviceProxy.IsQuizCompletedAsync(userId, quizId);
+            return result;
+        }
+
+        public async Task CompleteQuiz(int userId, int quizId)
+        {
+            await this.serviceProxy.CompleteQuizAsync(userId, quizId);
+        }
+
+        public async Task<bool> IsExamCompleted(int userId, int examId)
+        {
+            bool result = await this.serviceProxy.IsExamCompletedAsync(userId, examId);
+            return result;
+        }
+
+        public async Task CompleteExam(int userId, int examId)
+        {
+            await this.serviceProxy.CompleteExamAsync(userId, examId);
         }
     }
 }
