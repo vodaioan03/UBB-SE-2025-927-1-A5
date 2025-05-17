@@ -1,27 +1,55 @@
 @model DuoClassLibrary.Models.Exercises.MultipleChoiceExercise
 
-<div class="card mb-3">
+<div class="card text-dark">
     <div class="card-body">
-        <div id="choiceItems">
-            @for (int i = 0; i < 4; i++)
+        <h5 class="mb-3">@Model.Question</h5>
+        <form id="mcForm" method="post" class="vstack gap-2">
+            @for (int i = 0; i < Model?.Choices?.Count; i++)
             {
-                <div class="row mb-2 choice-row">
-                    <div class="col-md-1 d-flex align-items-center justify-content-center">
-                        <input class="form-check-input is-correct" type="radio" name="correctChoice" />
-                    </div>
-                    <div class="col-md-7">
-                        <input type="text" class="form-control choice-text" placeholder="Answer option" />
-                    </div>
-                    <div class="col-md-2 d-flex align-items-center">
-                        <button type="button" class="btn btn-outline-danger remove-choice">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
+                var choice = Model.Choices[i];
+                var id = $"choice_{i}";
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="selectedAnswer" id="@id" value="@choice.Answer" data-is-correct="@choice.IsCorrect.ToString().ToLower()" />
+                    <label class="form-check-label" for="@id">@choice.Answer</label>
                 </div>
             }
-        </div>
-        <button type="button" id="addChoiceBtn" class="btn btn-outline-primary mt-2">
-            <i class="fas fa-plus"></i> Add new input
-        </button>
+
+            @foreach (var choice in Model.Choices.Where(c => c.IsCorrect))
+            {
+                <input type="hidden" name="correctAnswers" value="@choice.Answer" />
+            }
+            <button type="submit" class="btn btn-primary mt-3">Submit</button>
+        </form>
+        <div id="mcFeedback" class="mt-3 fw-semibold"></div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        document.getElementById('mcForm')?.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const selected = document.querySelector('input[name="selectedAnswer"]:checked');
+            const correctAnswers = Array.from(document.querySelectorAll('input[name="correctAnswers"]')).map(el => el.value);
+            const feedback = document.getElementById('mcFeedback');
+
+            if (!selected) {
+                feedback.innerHTML = '<div class="alert alert-warning">Please select an answer.</div>';
+                return;
+            }
+
+            const isCorrect = selected.getAttribute('data-is-correct') === 'true';
+            if (isCorrect) {
+                feedback.innerHTML = '<div class="alert alert-success"><i class="bi bi-check2-circle"></i> Correct! Well done.</div>';
+            } else {
+                const correctText = correctAnswers.length > 0 ? correctAnswers.join(', ') : 'unknown';
+                feedback.innerHTML = `<div class="alert alert-danger"><i class="bi bi-x-circle"></i> Incorrect. Correct answer(s): <strong>${correctText}</strong>.</div>`;
+            }
+            
+            // Disable all radio buttons after submission
+            document.querySelectorAll('input[name="selectedAnswer"]').forEach(input => {
+                input.disabled = true;
+            });
+        });
+    </script>
+}
