@@ -551,6 +551,7 @@ namespace Duo.ViewModels
                     else
                     {
                         int sectionId = CurrentExam.SectionId.Value;
+                        await quizService.CompleteExam(user.UserId, ExamId);
                         await sectionService.CompleteSection(user.UserId, sectionId);
                     }
                 }
@@ -571,6 +572,7 @@ namespace Duo.ViewModels
                         RaiseErrorMessage("Progression Error", "Quiz ID does not match expected quiz.");
                         return;
                     }
+                    await quizService.CompleteQuiz(user.UserId, QuizId);
                     await userService.IncrementUserProgressAsync(1);
                 }
             }
