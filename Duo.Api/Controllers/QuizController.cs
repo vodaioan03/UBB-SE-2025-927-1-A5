@@ -195,7 +195,8 @@ namespace Duo.Api.Controllers
             try
             {
                 var quizzes = await repository.GetAllQuizzesFromSectionAsync(sectionId);
-                return Ok(quizzes);
+                var sortedQuizzes = quizzes.OrderBy(q => q.OrderNumber).ToList();
+                return Ok(sortedQuizzes);
             }
             catch (Exception ex)
             {
