@@ -56,6 +56,16 @@ namespace Duo.Api.Models
         /// </summary>
         public ICollection<SectionCompletions> SectionCompletions { get; set; } = [];
 
+        /// <summary>
+        /// Gets or sets the collection of quizzes completed by the user.
+        /// </summary>
+        public ICollection<QuizCompletions> QuizCompletions { get; set; } = [];
+
+        /// <summary>
+        /// Gets or sets the collection of exams completed by the user.
+        /// </summary>
+        public ICollection<ExamCompletions> ExamCompletions { get; set; } = [];
+
         #endregion
 
         #region Constructors

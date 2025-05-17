@@ -670,6 +670,37 @@ namespace Duo.Api.Repositories
                 .ToListAsync();
         }
 
+        /// <summary>
+        /// Checks if a user has completed a specific quiz asynchronously.
+        /// </summary>
+        /// <param name="userId"> Id of user.</param>
+        /// <param name="quizId"> Id of quiz.</param>
+        /// <returns> A task returning a boolean result indicating whether the quiz is completed or not for the user.</returns>
+        public async Task<bool> IsQuizCompleted(int userId, int quizId)
+        {
+            var completion = await this.context.QuizCompletions.FindAsync(userId, quizId);
+
+            if (completion == null)
+            {
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+        }
+
+        /// <summary>
+        /// Marks a quiz as completed for a user asynchronously.
+        /// </summary>
+        /// <param name="completedQuiz"> Completed quiz for a user. </param>
+        /// <returns> A task representing the async operation.</returns>
+        public async Task CompleteQuizForUser(QuizCompletions completedQuiz)
+        {
+            this.context.QuizCompletions.Add(completedQuiz);
+            await this.context.SaveChangesAsync();
+        }
+
         #endregion
 
         #region Courses
@@ -1124,6 +1155,37 @@ namespace Duo.Api.Repositories
                 .Include(e => e.Exercises) // Ensure exercises related to the exams are included
                 .Where(e => e.SectionId == null) // Filter exams with no section assigned
                 .ToListAsync();
+        }
+
+        /// <summary>
+        /// Asynchronously checks if a user has completed a specific exam.
+        /// </summary>
+        /// <param name="userId"> Id of the user.</param>
+        /// <param name="examId"> Id of the exam. </param>
+        /// <returns> A task returning a boolean value indicating if the exam was completed.</returns>
+        public async Task<bool> IsExamCompleted(int userId, int examId)
+        {
+            var completion = await this.context.ExamCompletions.FindAsync(userId, examId);
+
+            if (completion == null)
+            {
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+        }
+
+        /// <summary>
+        /// Asynchronously marks an exam as completed for a user.
+        /// </summary>
+        /// <param name="completedExam"> The completed exam. </param>
+        /// <returns> A task representing the async operation. </returns>
+        public async Task CompleteExamForUser(ExamCompletions completedExam)
+        {
+            this.context.ExamCompletions.Add(completedExam);
+            await this.context.SaveChangesAsync();
         }
 
         #endregion

@@ -78,6 +78,16 @@ namespace Duo.Api.Persistence
         public DbSet<SectionCompletions> SectionCompletions { get; set; }
 
         /// <summary>
+        /// Gets or sets the quiz completions in the database.
+        /// </summary>
+        public DbSet<QuizCompletions> QuizCompletions { get; set; }
+
+        /// <summary>
+        /// Gets or sets the exam completions in the database.
+        /// </summary>
+        public DbSet<ExamCompletions> ExamCompletions { get; set; }
+
+        /// <summary>
         /// Gets or sets the exercises in the database.
         /// </summary>
         public DbSet<Exercise> Exercises { get; set; }
@@ -159,6 +169,42 @@ namespace Duo.Api.Persistence
                 .HasMany(e => e.Exercises)
                 .WithMany(e => e.Exams)
                 .UsingEntity(j => j.ToTable("ExamExercises"));
+
+            // ExamCompletions
+            modelBuilder.Entity<ExamCompletions>()
+                .HasKey(ec => new { ec.UserId, ec.ExamId });
+
+            // Relationship with User
+            modelBuilder.Entity<ExamCompletions>()
+                .HasOne(ec => ec.User)
+                .WithMany(u => u.ExamCompletions)
+                .HasForeignKey(ec => ec.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Relationship with Exam
+            modelBuilder.Entity<ExamCompletions>()
+                .HasOne(ec => ec.Exam)
+                .WithMany(e => e.ExamCompletions)
+                .HasForeignKey(ec => ec.ExamId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // QuizCompletions
+            modelBuilder.Entity<QuizCompletions>()
+                .HasKey(qc => new { qc.UserId, qc.QuizId });
+
+            // Relationship with User
+            modelBuilder.Entity<QuizCompletions>()
+                .HasOne(qc => qc.User)
+                .WithMany(u => u.QuizCompletions)
+                .HasForeignKey(qc => qc.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Relationship with Quiz
+            modelBuilder.Entity<QuizCompletions>()
+                .HasOne(qc => qc.Quiz)
+                .WithMany(q => q.QuizCompletions)
+                .HasForeignKey(qc => qc.QuizId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Enrollment>(entity =>
             {
