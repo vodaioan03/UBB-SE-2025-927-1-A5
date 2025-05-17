@@ -670,6 +670,37 @@ namespace Duo.Api.Repositories
                 .ToListAsync();
         }
 
+        /// <summary>
+        /// Checks if a user has completed a specific quiz asynchronously.
+        /// </summary>
+        /// <param name="userId"> Id of user.</param>
+        /// <param name="quizId"> Id of quiz.</param>
+        /// <returns> A task returning a boolean result indicating whether the quiz is completed or not for the user.</returns>
+        public async Task<bool> IsQuizCompleted(int userId, int quizId)
+        {
+            var completion = await this.context.QuizCompletions.FindAsync(userId, quizId);
+
+            if (completion == null)
+            {
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+        }
+
+        /// <summary>
+        /// Marks a quiz as completed for a user asynchronously.
+        /// </summary>
+        /// <param name="completedQuiz"> Completed quiz for a user. </param>
+        /// <returns> A task representing the async operation.</returns>
+        public async Task CompleteQuizForUser(QuizCompletions completedQuiz)
+        {
+            this.context.QuizCompletions.Add(completedQuiz);
+            await this.context.SaveChangesAsync();
+        }
+
         #endregion
 
         #region Courses
@@ -1126,6 +1157,37 @@ namespace Duo.Api.Repositories
                 .ToListAsync();
         }
 
+        /// <summary>
+        /// Asynchronously checks if a user has completed a specific exam.
+        /// </summary>
+        /// <param name="userId"> Id of the user.</param>
+        /// <param name="examId"> Id of the exam. </param>
+        /// <returns> A task returning a boolean value indicating if the exam was completed.</returns>
+        public async Task<bool> IsExamCompleted(int userId, int examId)
+        {
+            var completion = await this.context.ExamCompletions.FindAsync(userId, examId);
+
+            if (completion == null)
+            {
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+        }
+
+        /// <summary>
+        /// Asynchronously marks an exam as completed for a user.
+        /// </summary>
+        /// <param name="completedExam"> The completed exam. </param>
+        /// <returns> A task representing the async operation. </returns>
+        public async Task CompleteExamForUser(ExamCompletions completedExam)
+        {
+            this.context.ExamCompletions.Add(completedExam);
+            await this.context.SaveChangesAsync();
+        }
+
         #endregion
 
         #region Sections
@@ -1190,6 +1252,38 @@ namespace Duo.Api.Repositories
                 context.Sections.Remove(section);
                 await context.SaveChangesAsync();
             }
+        }
+
+        /// <summary>
+        /// Checks if a section is open for a user asynchronously.
+        /// </summary>
+        /// <param name="userId"> The unique id of the user.</param>
+        /// <param name="sectionId"> The unique id of the section. </param>
+        /// <returns> A task returning a bool result indicating if the section is completed. </returns>
+        public async Task<bool> IsSectionCompletedAsync(int userId, int sectionId)
+        {
+            var completion = await this.context.SectionCompletions
+                .FindAsync(userId, sectionId);
+
+            if (completion == null)
+            {
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+        }
+
+        /// <summary>
+        /// Marks a section as completed for a user asynchronously.
+        /// </summary>
+        /// <param name="completedSection"> SectionCompletions object reprsenting a section completed by an user. </param>
+        /// <returns> A task representing the asynchronous operation. The task completes once the sectionCompletion is added. </returns>
+        public async Task CompleteSectionForUser(SectionCompletions completedSection)
+        {
+            this.context.SectionCompletions.Add(completedSection);
+            await this.context.SaveChangesAsync();
         }
 
         #endregion

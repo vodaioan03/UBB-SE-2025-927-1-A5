@@ -543,6 +543,17 @@ namespace Duo.ViewModels
                     }
 
                     await userService.IncrementSectionProgressAsync(1);
+                    if (CurrentExam.SectionId == null)
+                    {
+                        RaiseErrorMessage("Error", "Exam has no section Id");
+                        return;
+                    }
+                    else
+                    {
+                        int sectionId = CurrentExam.SectionId.Value;
+                        await quizService.CompleteExam(user.UserId, ExamId);
+                        await sectionService.CompleteSection(user.UserId, sectionId);
+                    }
                 }
                 else
                 {
@@ -561,6 +572,7 @@ namespace Duo.ViewModels
                         RaiseErrorMessage("Progression Error", "Quiz ID does not match expected quiz.");
                         return;
                     }
+                    await quizService.CompleteQuiz(user.UserId, QuizId);
                     await userService.IncrementUserProgressAsync(1);
                 }
             }

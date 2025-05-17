@@ -4,6 +4,7 @@ using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Duo.Api.DTO;
 using Duo.Api.Helpers;
+using Duo.Api.Models;
 using Duo.Api.Models.Exercises;
 using Duo.Api.Models.Quizzes;
 using Duo.Api.Persistence;
@@ -443,6 +444,56 @@ namespace Duo.Api.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Checks if a quiz is completed by a specific user.
+        /// </summary>
+        /// <param name="quizId"> Id of the quiz. </param>
+        /// <param name="userId"> Id of the user. </param>
+        /// <returns> A boolean in an http response signaling the status of the quiz for the user. </returns>
+        [HttpGet("is-completed")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> IsQuizCompleted([FromQuery] int userId, [FromQuery] int quizId)
+        {
+            try
+            {
+                bool isCompleted = await this.repository.IsQuizCompleted(userId, quizId);
+                return this.Ok(new { IsCompleted = isCompleted });
+            }
+            catch (Exception e)
+            {
+                return this.BadRequest(new { message = e.Message });
+            }
+        }
+
+
+        /// <summary>
+        /// Marks a quiz as completed for a specific user.
+        /// </summary>
+        /// <param name="quizId"> Id of the completed quiz.</param>
+        /// <param name="userId"> Id of the user.</param>
+        /// <returns> Answer indicating the quiz was added.</returns>
+        [HttpPost("add-completed-quiz")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> AddCompletedQuiz([FromQuery] int quizId, [FromQuery] int userId)
+        {
+            try
+            {
+                QuizCompletions quizCompletion = new QuizCompletions
+                {
+                    QuizId = quizId,
+                    UserId = userId,
+                };
+                await this.repository.CompleteQuizForUser(quizCompletion);
+                return this.Ok(new { message = "Quiz marked as completed." });
+            }
+            catch (Exception e)
+            {
+                return this.BadRequest(new { message = e.Message });
             }
         }
 
