@@ -117,6 +117,26 @@ namespace Duo.Api.Controllers
                     return NotFound(new { message = "Section not found!" });
                 }
 
+                // Firstly remove all exam completions related to this section
+                var exam = section.Exam;
+                if (exam != null)
+                {
+                    await repository.DeleteExamCompletions(exam.Id);
+                }
+
+                // Then remove all quiz completions related to this section
+                var quizzes = section.Quizzes;
+                if (quizzes != null)
+                {
+                    foreach (var quiz in quizzes)
+                    {
+                        await repository.DeleteQuizCompletions(quiz.Id);
+                    }
+                }
+
+                // Finally, remove the section itself
+                await repository.DeleteSectionCompletions(id);
+
                 await repository.DeleteSectionAsync(id);
                 return Ok(new { message = "Section removed successfully!" });
             }

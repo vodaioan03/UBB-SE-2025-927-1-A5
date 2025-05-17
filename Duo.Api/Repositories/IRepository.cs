@@ -351,6 +351,13 @@ namespace Duo.Api.Repositories
         /// <returns> A task representing the async operation.</returns>
         public Task CompleteQuizForUser(QuizCompletions completedQuiz);
 
+        /// <summary>
+        /// Deletes a quiz completion record for all users by quiz ID asynchronously.
+        /// </summary>
+        /// <param name="quizId"> Quiz id</param>
+        /// <returns> A task representing the async operation. </returns>
+        Task DeleteQuizCompletions(int quizId);
+
         #endregion
 
         #region Courses
@@ -549,6 +556,13 @@ namespace Duo.Api.Repositories
         /// <returns> A task representing the async operation.</returns>
         public Task CompleteExamForUser(ExamCompletions completedExam);
 
+        /// <summary>
+        /// Deletes an exam completion record for all users by exam ID asynchronously.
+        /// </summary>
+        /// <param name="examId"> Exam id.</param>
+        /// <returns> A task representing the asynchronous operation.</returns>
+        Task DeleteExamCompletions(int examId);
+
         #endregion
 
         #region Sections
@@ -601,6 +615,13 @@ namespace Duo.Api.Repositories
         /// <param name="completedSection"> SectionCompletions object reprsenting a section completed by an user. </param>
         /// <returns> A task representing the asynchronous operation. The task completes once the sectionCompletion is added. </returns>
         public Task CompleteSectionForUser(SectionCompletions completedSection);
+
+        /// <summary>
+        /// Deletes a section completion record for all users by section ID asynchronously.
+        /// </summary>
+        /// <param name="sectionId"> Id of the section. </param>
+        /// <returns> A task representing the asynchronous operation.</returns>
+        Task DeleteSectionCompletions(int sectionId);
 
         #endregion
 
@@ -658,10 +679,9 @@ namespace Duo.Api.Repositories
         /// <summary>
         /// Asynchronously retrieves a specific roadmap by its unique identifier.
         /// </summary>
-        /// <param name="id">The unique identifier of the roadmap to retrieve.</param>
+        /// <param name="sectionId">The unique identifier of the roadmap to retrieve.</param>
         /// <returns>A <see cref="Roadmap"/> object representing the specified roadmap, or null if not found.</returns>
-        Task<Roadmap> GetRoadmapByIdAsync(int id);
-
+        Task<Roadmap> GetRoadmapByIdAsync(int sectionId);
         #endregion
     }
 }
