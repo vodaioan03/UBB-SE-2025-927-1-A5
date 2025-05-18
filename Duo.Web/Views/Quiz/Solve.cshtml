@@ -1,387 +1,72 @@
 ﻿@model Duo.Web.ViewModels.QuizSolverViewModel
-@using DuoClassLibrary.Models.Exercises
-
 @{
     Layout = "_Layout";
     ViewData["Title"] = $"Solving: {Model.QuizTitle}";
     var pct = (int)Math.Ceiling(100.0 * (Model.CurrentExerciseIndex + 1) / Model.AllExercises.Count);
 }
 
-<div class="quiz-solver-container" style="max-width:800px; margin:auto; padding:20px;">
-    <h1 class="text-center">@ViewData["Title"]</h1>
-    <p class="text-center">Question @(Model.CurrentExerciseIndex + 1) of @Model.AllExercises.Count</p>
-    <hr />
+<h1>@ViewData["Title"]</h1>
+<p>Question @(Model.CurrentExerciseIndex + 1) of @Model.AllExercises.Count</p>
 
-    <!-- PROGRESS -->
-    <div class="progress mb-4" style="height:6px;">
-        <div class="progress-bar bg-success"
-             role="progressbar"
-             style="width:@pct%;"
-             aria-valuenow="@pct"
-             aria-valuemin="0"
-             aria-valuemax="100"></div>
-    </div>
+<div class="progress mb-4" style="height:6px;">
+    <div class="progress-bar bg-success" style="width:@pct%;"></div>
+</div>
+
+<form method="post"
+      asp-action="Solve"
+      asp-route-id="@Model.QuizId"
+      asp-route-index="@Model.CurrentExerciseIndex"
+      onsubmit="return validateExercise();">
+    @Html.AntiForgeryToken()
 
     @switch (Model.CurrentExerciseType)
     {
-        case nameof(AssociationExercise):
-            var assoc = (AssociationExercise)Model.CurrentExercise;
-            <div style="position:relative; padding:1rem; border:1px solid #ccc; border-radius:.5rem; background:#fff;">
-                <h5 class="text-center mb-3">@assoc.Question</h5>
-                <div class="row gx-0">
-                    <div class="col-6">
-                        <ul id="assoc-left" class="list-group">
-                            @for (int i = 0; i < assoc.FirstAnswersList.Count; i++)
-                            {
-                                <li class="list-group-item assoc-item assoc-left-item" data-index="@i">
-                                    @assoc.FirstAnswersList[i]
-                                </li>
-                            }
-                        </ul>
-                    </div>
-                    <div class="col-6">
-                        <ul id="assoc-right" class="list-group">
-                            @for (int j = 0; j < assoc.SecondAnswersList.Count; j++)
-                            {
-                                <li class="list-group-item assoc-item assoc-right-item" data-index="@j">
-                                    @assoc.SecondAnswersList[j]
-                                </li>
-                            }
-                        </ul>
-                    </div>
-                </div>
-                <canvas id="assoc-canvas"
-                        style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none;"></canvas>
-                <input type="hidden" id="AssociationPairsJson" name="AssociationPairsJson" />
-            </div>
+        case nameof(DuoClassLibrary.Models.Exercises.FlashcardExercise):
+            @await Html.PartialAsync(
+                    "~/Views/Exercise/_FlashcardExerciseForm.cshtml",
+                    (DuoClassLibrary.Models.Exercises.FlashcardExercise)Model.CurrentExercise
+                    )
             break;
 
-        case nameof(MultipleChoiceExercise):
-            var mc = (MultipleChoiceExercise)Model.CurrentExercise;
-            <div class="card mb-3 p-3">
-                <h5>@mc.Question</h5>
-                <form id="mcForm">
-                    @for (int i = 0; i < mc.Choices.Count; i++)
-                    {
-                        var c = mc.Choices[i];
-                        <div class="form-check">
-                            <input class="form-check-input"
-                                   type="radio"
-                                   name="mcChoice"
-                                   id="opt@i"
-                                   value="@c.Answer"
-                                   data-correct="@c.IsCorrect.ToString().ToLower()" />
-                            <label class="form-check-label" for="opt@i">@c.Answer</label>
-                        </div>
-                    }
-                    <button type="submit" class="btn btn-primary mt-3">Submit</button>
-                </form>
-                <div id="mcFeedback" class="mt-3 fw-semibold"></div>
-            </div>
+        case nameof(DuoClassLibrary.Models.Exercises.AssociationExercise):
+            @await Html.PartialAsync(
+                    "~/Views/Exercise/_AssociationExerciseForm.cshtml",
+                    (DuoClassLibrary.Models.Exercises.AssociationExercise)Model.CurrentExercise
+                    )
             break;
 
-        case nameof(FillInTheBlankExercise):
-            var fib = (FillInTheBlankExercise)Model.CurrentExercise;
-            var parts = System.Text.RegularExpressions.Regex.Split(fib.Question, @"\{\}");
-            <div class="card mb-3 p-3">
-                <h5>@fib.Question</h5>
-                @if (parts.Length > 1)
-                {
-                    <p>
-                        @for (int i = 0; i < parts.Length; i++)
-                        {
-                            @parts[i]
-                            @if (i < parts.Length - 1)
-                            {
-                                <input type="text"
-                                       class="form-control d-inline-block blank-input"
-                                       style="width:150px; margin:0 .25rem;"
-                                       placeholder="Answer"
-                                       data-index="@i" />
-                            }
-                        }
-                    </p>
-                }
-                else
-                {
-                    <p class="text-muted">Enter your answers:</p>
-                    @for (int i = 0; i < fib.PossibleCorrectAnswers.Count; i++)
-                    {
-                        <input type="text"
-                               class="form-control mb-2 blank-input"
-                               placeholder="Answer"
-                               data-index="@i" />
-                    }
-                }
-                <input type="hidden" id="BlankAnswersJson" name="BlankAnswersJson" />
-            </div>
+        case nameof(DuoClassLibrary.Models.Exercises.MultipleChoiceExercise):
+            @await Html.PartialAsync(
+                    "~/Views/Exercise/_MultipleChoiceExerciseForm.cshtml",
+                    (DuoClassLibrary.Models.Exercises.MultipleChoiceExercise)Model.CurrentExercise
+                    )
             break;
 
-        case nameof(FlashcardExercise):
-            var fc = (FlashcardExercise)Model.CurrentExercise;
-            var flashId = "flash_" + fc.ExerciseId;
-            <div class="flashcard-container mb-4">
-                <div id="@flashId"
-                     class="flashcard"
-                     data-time="@fc.TimeInSeconds">
-                    <!-- FRONT -->
-                    <div class="flashcard-face front">
-                        <div class="d-flex justify-content-between mb-3">
-                            <svg class="clock-icon" viewBox="0 0 24 24">
-                                <circle cx="12" cy="12" r="10" fill="none" stroke="#000" stroke-width="2" />
-                                <path d="M12 2 A10 10 0 0 1 22 12 H12 Z" fill="#000" />
-                            </svg>
-                            <span class="difficulty">@fc.Difficulty</span>
-                            <span id="timer-@flashId" class="timer">00:@fc.TimeInSeconds.ToString("00")</span>
-                        </div>
-                        <h4 class="text-center mb-4">@fc.Question</h4>
-                        <input id="input-@flashId"
-                               type="text"
-                               class="form-control mb-3"
-                               placeholder="Enter your answer here…" />
-                        <button id="flip-front-@flashId" class="btn btn-flip w-100">Flip Card</button>
-                    </div>
-                    <!-- BACK -->
-                    <div class="flashcard-face back">
-                        <div class="d-flex justify-content-between mb-3">
-                            <svg class="clock-icon" viewBox="0 0 24 24">
-                                <circle cx="12" cy="12" r="10" fill="none" stroke="#000" stroke-width="2" />
-                                <path d="M12 2 A10 10 0 0 1 22 12 H12 Z" fill="#000" />
-                            </svg>
-                            <span class="difficulty">@fc.Difficulty</span>
-                            <span id="timerBack-@flashId" class="timer"></span>
-                        </div>
-                        <h4 class="text-center mb-4">@fc.Answer</h4>
-                        <button id="flip-back-@flashId" class="btn btn-back w-100">Back</button>
-                    </div>
-                </div>
-                <input type="hidden" id="answer-@flashId" name="FlashcardAnswer" />
-            </div>
+        case nameof(DuoClassLibrary.Models.Exercises.FillInTheBlankExercise):
+            @await Html.PartialAsync(
+                    "~/Views/Exercise/_FillInTheBlankExerciseForm.cshtml",
+                    (DuoClassLibrary.Models.Exercises.FillInTheBlankExercise)Model.CurrentExercise
+                    )
             break;
-
     }
 
-    <div class="text-center mt-4">
-        @if (!Model.IsLastExercise)
-        {
-            <a asp-action="Solve"
-               asp-route-id="@Model.QuizId"
-               asp-route-index="@(Model.CurrentExerciseIndex+1)"
-               class="btn btn-dark btn-lg">Next Exercise →</a>
+    <button type="submit"
+            class="btn btn-dark btn-lg mt-3">
+        @(Model.IsLastExercise ? "Finish Quiz" : "Next →")
+    </button>
+</form>
+
+<script>
+    function validateExercise() {
+        // Check if this is a multiple choice exercise
+        if (typeof window.validateMultipleChoice === 'function') {
+            const isValid = window.validateMultipleChoice();
+            if (!isValid) {
+                return false;
+            }
+            // Add a small delay to show the feedback
+            return new Promise(resolve => setTimeout(() => resolve(true), 1000));
         }
-        else
-        {
-            <a asp-controller="Roadmap"
-               asp-action="Index"
-               class="btn btn-success btn-lg">Finish Quiz</a>
-        }
-    </div>
-</div>
-
-@section Scripts {
-    <script>
-        // Association wiring
-        (function(){
-          const left  = document.querySelectorAll('.assoc-left-item'),
-                right = document.querySelectorAll('.assoc-right-item'),
-                can   = document.getElementById('assoc-canvas'),
-                ctx   = can?.getContext('2d');
-          if (!can) return;
-          let sel = null,
-              pairs = [];
-          function resize(){
-            can.width  = can.clientWidth;
-            can.height = can.clientHeight;
-            draw();
-          }
-          function center(el){
-            const r = el.getBoundingClientRect(),
-                  c = can.getBoundingClientRect();
-            return { x:(r.left+r.right)/2 - c.left, y:(r.top+r.bottom)/2 - c.top };
-          }
-          function draw(){
-            ctx.clearRect(0,0,can.width,can.height);
-            ctx.strokeStyle='#198754';
-            ctx.lineWidth=2;
-            pairs.forEach(p=>{
-              const a = center(left[p.left]),
-                    b = center(right[p.right]);
-              ctx.beginPath();
-              ctx.moveTo(a.x,a.y);
-              ctx.lineTo(b.x,b.y);
-              ctx.stroke();
-            });
-            document.getElementById('AssociationPairsJson').value = JSON.stringify(pairs);
-          }
-          window.addEventListener('resize', resize);
-          resize();
-          left .forEach(li=> li.onclick=()=>{
-            left .forEach(x=>x.classList.remove('active'));
-            sel = +li.dataset.index;
-            li.classList.add('active');
-          });
-          right.forEach(li=> li.onclick=()=>{
-            if(sel===null) return;
-            pairs = pairs.filter(p=>p.left!==sel && p.right!==+li.dataset.index);
-            pairs.push({ left:sel, right:+li.dataset.index });
-            left[sel].classList.remove('active');
-            sel = null;
-            draw();
-          });
-        })();
-
-        // Multiple choice feedback
-        document.getElementById('mcForm')?.addEventListener('submit', function(e){
-          e.preventDefault();
-          const sel = document.querySelector('input[name="mcChoice"]:checked'),
-                fb  = document.getElementById('mcFeedback'),
-                correct = sel?.getAttribute('data-correct')==='true';
-          if(!sel){
-            fb.innerHTML = '<span class="text-danger">Select an answer first.</span>';
-            return;
-          }
-          if(correct){
-            fb.innerHTML = '<span class="text-success">✔ Correct!</span>';
-          } else {
-            const right = Array.from(document.querySelectorAll('input[name="mcChoice"][data-correct="true"]'))
-                               .map(i=>i.value).join(', ');
-            fb.innerHTML = `<span class="text-danger">✘ Wrong. Correct: <strong>${right}</strong></span>`;
-          }
-          document.querySelectorAll('input[name="mcChoice"]').forEach(i=>i.disabled=true);
-        });
-
-        // Fill-in blanks
-        document.querySelectorAll('.blank-input').forEach(i=>{
-          i.addEventListener('input', ()=>{
-            const arr = Array.from(document.querySelectorAll('.blank-input'))
-                             .map(x=>x.value.trim());
-            document.getElementById('BlankAnswersJson').value = JSON.stringify(arr);
-          });
-        });
-
-        // Flashcard
-              document.addEventListener('DOMContentLoaded', ()=>{
-        // Find the flashcard div by data-time attribute:
-        const card = document.querySelector('.flashcard[data-time]');
-        if (!card) return;
-
-        const id    = card.id;
-        const secs0 = parseInt(card.dataset.time, 10);
-        const btnF  = document.getElementById('flip-front-'+id);
-        const btnB  = document.getElementById('flip-back-'+id);
-        const timerF= document.getElementById('timer-'+id);
-        const timerB= document.getElementById('timerBack-'+id);
-        const inp   = document.getElementById('input-'+id);
-        const hid   = document.getElementById('answer-'+id);
-
-        // sync back face
-        timerB.textContent = timerF.textContent;
-
-        let secs = secs0;
-        const iv = setInterval(()=>{
-          if (secs <= 0) {
-            clearInterval(iv);
-            hid.value = '';
-            card.style.transform = 'rotateY(180deg)';
-            return;
-          }
-          secs--;
-          const ss = String(secs).padStart(2,'0');
-          timerF.textContent = `00:${ss}`;
-          timerB.textContent = `00:${ss}`;
-        }, 1000);
-
-        btnF?.addEventListener('click', e => {
-          e.preventDefault();
-          clearInterval(iv);
-          hid.value = inp.value.trim();
-          card.style.transform = 'rotateY(180deg)';
-        });
-        btnB?.addEventListener('click', e => {
-          e.preventDefault();
-          clearInterval(iv);
-          card.style.transform = 'rotateY(0deg)';
-        });
-          }
-        });
-    </script>
-}
-
-<style>
-    .assoc-item {
-        cursor: pointer;
-        user-select: none;
+        return true;
     }
-
-        .assoc-item.active {
-            background: #d1e7dd;
-            border-color: #198754;
-        }
-
-    .blank-input {
-        display: inline-block;
-        width: 150px;
-        margin: 0 .25rem;
-    }
-
-    .flashcard-container {
-        perspective: 1000px;
-        max-width: 600px;
-        margin: 2rem auto;
-    }
-
-    .flashcard {
-        position: relative;
-        border: 2px solid #7209b7;
-        border-radius: 16px;
-        transform-style: preserve-3d;
-        transition: transform .6s;
-        overflow: hidden;
-    }
-
-    .flashcard-face {
-        position: absolute;
-        width: 100%;
-        backface-visibility: hidden;
-        background: #fff;
-        padding: 24px;
-        box-sizing: border-box;
-    }
-
-    .front {
-        transform: rotateY(0deg);
-    }
-
-    .back {
-        transform: rotateY(180deg);
-    }
-
-    .clock-icon {
-        width: 24px;
-        height: 24px;
-    }
-
-    .difficulty {
-        text-transform: capitalize;
-        font-size: .9rem;
-    }
-
-    .timer {
-        font-weight: bold;
-        color: #ffc107;
-    }
-
-    .btn-flip {
-        background: #7209b7;
-        color: #fff;
-        border-radius: 24px;
-        padding: 12px 0;
-    }
-
-    .btn-back {
-        background: #6c757d;
-        color: #fff;
-        border-radius: 24px;
-        padding: 12px 0;
-    }
-</style>
+</script>

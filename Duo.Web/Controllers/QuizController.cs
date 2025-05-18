@@ -1,12 +1,13 @@
-﻿// QuizController.cs
-
-using Microsoft.AspNetCore.Mvc;
-using DuoClassLibrary.Services;
+﻿using Microsoft.AspNetCore.Mvc;
 using DuoClassLibrary.Models.Quizzes;
 using DuoClassLibrary.Models.Exercises;
-using System.Linq;
-using System.Threading.Tasks;
 using Duo.Web.ViewModels;
+using System;
+using System.Linq;
+using System.Text.Json;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+using DuoClassLibrary.Services;
 
 namespace Duo.Web.Controllers
 {
@@ -16,9 +17,10 @@ namespace Duo.Web.Controllers
         private readonly IExerciseService _exerciseService;
         private readonly ISectionService _sectionService;
 
-        public QuizController(IQuizService quizService,
-                              IExerciseService exerciseService,
-                              ISectionService sectionService)
+        public QuizController(
+            IQuizService quizService,
+            IExerciseService exerciseService,
+            ISectionService sectionService)
         {
             _quizService = quizService;
             _exerciseService = exerciseService;
@@ -30,7 +32,6 @@ namespace Duo.Web.Controllers
         public async Task<IActionResult> ViewQuizzes(int? selectedQuizId)
         {
             var allQuizzes = await _quizService.GetAllQuizzes();
-
             var vm = new ManageQuizViewModel
             {
                 Quizzes = allQuizzes,
@@ -39,8 +40,7 @@ namespace Duo.Web.Controllers
 
             if (selectedQuizId.HasValue && selectedQuizId > 0)
             {
-                var quizExists = allQuizzes.Any(q => q.Id == selectedQuizId.Value);
-                if (!quizExists)
+                if (!allQuizzes.Any(q => q.Id == selectedQuizId.Value))
                 {
                     TempData["Warning"] = $"Quiz with ID {selectedQuizId} no longer exists.";
                     vm.SelectedQuizId = null;
@@ -53,15 +53,13 @@ namespace Duo.Web.Controllers
                 {
                     vm.AssignedExercises = await _exerciseService
                         .GetAllExercisesFromQuiz(selectedQuizId.Value);
-
                     var all = await _exerciseService.GetAllExercises();
                     vm.AvailableExercises = all
                         .Where(e => !vm.AssignedExercises.Any(a => a.ExerciseId == e.ExerciseId))
                         .ToList();
                 }
-                catch (HttpRequestException ex)
+                catch
                 {
-                    Console.WriteLine($"Failed to fetch exercises for quiz ID {selectedQuizId}: {ex.Message}");
                     vm.AssignedExercises = new List<Exercise>();
                     vm.AvailableExercises = new List<Exercise>();
                     TempData["Error"] = "Could not load exercises for this quiz.";
@@ -71,39 +69,30 @@ namespace Duo.Web.Controllers
             return View(vm);
         }
 
+        // GET /Quiz/{id}/Preview
         [HttpGet("Quiz/{id}/Preview")]
         public async Task<IActionResult> Preview(int id)
         {
             var quiz = await _quizService.GetQuizById(id);
+            if (quiz == null) return NotFound();
 
-            if (quiz == null) // Check for null quiz FIRST
-            {
-                return NotFound(); // Return NotFound if quiz doesn't exist
-            }
-
-            string sectionTitle = "Section: ";
-            if (quiz.SectionId != null)
-            {
-                var section = await _sectionService.GetSectionById(quiz.SectionId.Value);
-                if (section != null) // It's also good practice to check if the section was found
-                {
-                    sectionTitle += section.Title;
-                }
-                // else: sectionTitle will remain "Section: " or you can handle missing section
-            }
-
-            var exercises = await _exerciseService.GetAllExercisesFromQuiz(id);
-            var viewModel = new QuizPreviewViewModel
+            var vm = new QuizPreviewViewModel
             {
                 Quiz = quiz,
-                ExerciseIds = exercises.Select(e => e.ExerciseId).ToList(),
-                SectionTitle = sectionTitle
+                ExerciseIds = (await _exerciseService.GetAllExercisesFromQuiz(id))
+                                 .Select(e => e.ExerciseId)
+                                 .ToList(),
+                SectionTitle = quiz.SectionId.HasValue
+                                   ? (await _sectionService.GetSectionById(quiz.SectionId.Value))?.Title
+                                     ?? "Section:"
+                                   : "Section:"
             };
 
-            return View("QuizPreview", viewModel); // Pass the populated viewModel to the view
+            return View("QuizPreview", vm);
         }
 
-        [HttpGet("Quiz/{id}/Solve")]
+        // GET /Quiz/Solve/{id}?index={index}
+        [HttpGet]
         public async Task<IActionResult> Solve(int id, int? index)
         {
             var quiz = await _quizService.GetQuizById(id);
@@ -119,27 +108,72 @@ namespace Duo.Web.Controllers
                 QuizId = quiz.Id,
                 QuizTitle = quiz is Exam ? "Final Exam" : $"Quiz {quiz.Id}",
                 AllExercises = quiz.Exercises.ToList(),
-
                 CurrentExerciseIndex = idx,
                 CurrentExercise = quiz.Exercises[idx],
                 CurrentExerciseType = quiz.Exercises[idx].GetType().Name,
-
                 IsLastExercise = (idx == quiz.Exercises.Count - 1)
             };
-
             return View("Solve", vm);
         }
 
+        // POST /Quiz/Solve/{id}?index={index}
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> Solve(
+            int id,
+            int index,
+            string? FlashcardAnswer,        // only this one for flashcards
+            string? AssociationPairsJson,
+            string? BlankAnswersJson,
+            string? mcChoice)
+        {
+            var quiz = await _quizService.GetQuizById(id);
+            var current = quiz.Exercises[index];
+            bool valid = false;
+
+            if (current is FlashcardExercise fc && !string.IsNullOrEmpty(FlashcardAnswer))
+            {
+                valid = fc.ValidateAnswer(FlashcardAnswer);
+            }
+            else if (!string.IsNullOrEmpty(BlankAnswersJson) && current is FillInTheBlankExercise fib)
+            {
+                var blanks = JsonSerializer.Deserialize<List<string>>(BlankAnswersJson)!;
+                valid = fib.ValidateAnswer(blanks);
+            }
+            else if (!string.IsNullOrEmpty(AssociationPairsJson) && current is AssociationExercise assoc)
+            {
+                var rawPairs = JsonSerializer.Deserialize<List<AssociationPair>>(AssociationPairsJson)!;
+                var mapped = rawPairs
+                    .Select(p => (assoc.FirstAnswersList[p.left], assoc.SecondAnswersList[p.right]))
+                    .ToList();
+                valid = assoc.ValidateAnswer(mapped);
+            }
+            else if (!string.IsNullOrEmpty(mcChoice) && current is MultipleChoiceExercise mc)
+            {
+                valid = mc.ValidateAnswer(new List<string> { mcChoice });
+            }
+            else
+            {
+                valid = false;
+            }
+
+            int next = index + 1;
+            if (next >= quiz.Exercises.Count)
+                return RedirectToAction(nameof(EndQuiz));
+
+            return RedirectToAction(nameof(Solve), new { id, index = next });
+        }
+
+        // GET /Quiz/EndQuiz
+        [HttpGet]
+        public IActionResult EndQuiz()
+            => View();
 
         // POST /Quiz/AddExercise
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> AddExercise(int quizId, int exerciseId)
         {
             await _quizService.AddExerciseToQuiz(quizId, exerciseId);
-            return RedirectToAction(
-                nameof(ViewQuizzes),
-                new { selectedQuizId = quizId }
-            );
+            return RedirectToAction(nameof(ViewQuizzes), new { selectedQuizId = quizId });
         }
 
         // POST /Quiz/RemoveExercise
@@ -147,13 +181,10 @@ namespace Duo.Web.Controllers
         public async Task<IActionResult> RemoveExercise(int quizId, int exerciseId)
         {
             await _quizService.RemoveExerciseFromQuiz(quizId, exerciseId);
-            return RedirectToAction(
-                nameof(ViewQuizzes),
-                new { selectedQuizId = quizId }
-            );
+            return RedirectToAction(nameof(ViewQuizzes), new { selectedQuizId = quizId });
         }
 
-        // POST /Quiz/DeleteQuiz/5
+        // POST /Quiz/DeleteQuiz/{id}
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteQuiz(int id)
         {
@@ -161,49 +192,43 @@ namespace Duo.Web.Controllers
             return RedirectToAction(nameof(ViewQuizzes));
         }
 
-        // GET: /Quiz/CreateQuiz
+        // GET /Quiz/CreateQuiz
         [HttpGet]
         public async Task<IActionResult> CreateQuiz()
         {
             TempData["SelectedExerciseIds"] = new List<int>();
-            TempData.Keep("SelectedExerciseIds"); 
-
-            await SetCreateQuizViewData(); 
-
+            TempData.Keep("SelectedExerciseIds");
+            await SetCreateQuizViewData();
             return View();
         }
 
-        // POST: Add a selected exercise
+        // POST /Quiz/AddSelectedExercise
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> AddSelectedExercise(List<int> exerciseIds)
         {
-            var selectedIds = TempData["SelectedExerciseIds"] as List<int> ?? new();
+            var selected = TempData["SelectedExerciseIds"] as List<int> ?? new();
             foreach (var id in exerciseIds)
-            {
-                if (!selectedIds.Contains(id))
-                    selectedIds.Add(id);
-            }
+                if (!selected.Contains(id))
+                    selected.Add(id);
 
-            TempData["SelectedExerciseIds"] = selectedIds;
+            TempData["SelectedExerciseIds"] = selected;
             TempData.Keep("SelectedExerciseIds");
             await SetCreateQuizViewData();
             return View("CreateQuiz");
         }
 
-        // POST
+        // POST /Quiz/RemoveSelectedExercise
         [HttpPost, ValidateAntiForgeryToken]
         public IActionResult RemoveSelectedExercise(int exerciseId)
         {
-            var selectedIds = TempData["SelectedExerciseIds"] as List<int> ?? new();
-            selectedIds.Remove(exerciseId);
-
-            TempData["SelectedExerciseIds"] = selectedIds;
+            var selected = TempData["SelectedExerciseIds"] as List<int> ?? new();
+            selected.Remove(exerciseId);
+            TempData["SelectedExerciseIds"] = selected;
             TempData.Keep("SelectedExerciseIds");
-
-            return Json(new { success = true, remainingIds = selectedIds });
+            return Json(new { success = true, remainingIds = selected });
         }
 
-        // POST
+        // POST /Quiz/CreateQuizConfirmed
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateQuizConfirmed(List<int> SelectedExerciseIds)
         {
@@ -214,38 +239,38 @@ namespace Duo.Web.Controllers
                 return View("CreateQuiz");
             }
 
-            var quiz = new DuoClassLibrary.Models.Quizzes.Quiz(0, null, null);
-            await _quizService.CreateQuiz(quiz); 
-
+            var quiz = new Quiz(0, null, null);
+            await _quizService.CreateQuiz(quiz);
             var allQuizzes = await _quizService.GetAllQuizzes();
-            int newQuizId = allQuizzes.Max(q => q.Id); 
+            int newQuizId = allQuizzes.Max(q => q.Id);
+            foreach (var exId in SelectedExerciseIds)
+                await _quizService.AddExerciseToQuiz(newQuizId, exId);
 
-            foreach (var id in SelectedExerciseIds)
-                await _quizService.AddExerciseToQuiz(newQuizId, id);
-
-            return RedirectToAction("ViewQuizzes", new { selectedQuizId = newQuizId });
+            return RedirectToAction(nameof(ViewQuizzes), new { selectedQuizId = newQuizId });
         }
 
-
-        private async Task SetCreateQuizViewData()
-        {
-            var allExercises = await _exerciseService.GetAllExercises();
-            var selectedIds = TempData.Peek("SelectedExerciseIds") as List<int> ?? new();
-
-            ViewBag.AvailableExercises = allExercises;
-            TempData.Keep("SelectedExerciseIds");
-        }
-
+        // GET /Quiz/GetAvailableExercisesModal
         [HttpGet]
         public async Task<IActionResult> GetAvailableExercisesModal()
         {
-            var allExercises = await _exerciseService.GetAllExercises();
+            var all = await _exerciseService.GetAllExercises();
             var selectedIds = TempData["SelectedExerciseIds"] as List<int> ?? new();
             TempData.Keep("SelectedExerciseIds");
-
-            var available = allExercises.Where(e => !selectedIds.Contains(e.ExerciseId)).ToList();
+            var available = all.Where(e => !selectedIds.Contains(e.ExerciseId)).ToList();
             return PartialView("_AddExerciseModal", available);
         }
 
+        // Helper DTO for association JSON
+        private class AssociationPair
+        {
+            public int left { get; set; }
+            public int right { get; set; }
+        }
+
+        private async Task SetCreateQuizViewData()
+        {
+            ViewBag.AvailableExercises = await _exerciseService.GetAllExercises();
+            TempData.Keep("SelectedExerciseIds");
+        }
     }
 }

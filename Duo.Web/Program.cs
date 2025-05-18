@@ -1,6 +1,7 @@
 ﻿using DuoClassLibrary.Services;
 using DuoClassLibrary.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc.Razor;
+using Microsoft.AspNetCore.Session;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,6 +11,7 @@ if (string.IsNullOrWhiteSpace(apiBase))
 {
     throw new InvalidOperationException("Missing Api:BaseUrl in appsettings.json");
 }
+
 
 builder.Services
     .AddHttpClient<IQuizServiceProxy, QuizServiceProxy>(client =>
@@ -105,6 +107,14 @@ builder.Services.AddScoped<ICourseService, CourseService>();
 builder.Services.AddScoped<IExerciseService, ExerciseService>();
 builder.Services.AddScoped<ISectionService, SectionService>();
 
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+
 var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())
@@ -119,6 +129,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 app.UseAuthorization();
+app.UseSession();
 
 app.MapControllerRoute(
     name: "default",
@@ -143,9 +154,5 @@ app.MapControllerRoute(
     pattern: "Module/{id:int}",
     defaults: new { controller = "Module", action = "Details" });
 
-app.MapControllerRoute(
-    name: "quiz",
-    pattern: "Quiz/{action=ViewQuizzes}/{id?}",
-    defaults: new { controller = "Quiz" });
     
 app.Run();
