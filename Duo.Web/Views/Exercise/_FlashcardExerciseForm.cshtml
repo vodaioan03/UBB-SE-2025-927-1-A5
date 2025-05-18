@@ -60,10 +60,11 @@
     .timer {
         font-family: monospace;
         font-size: 1.2rem;
+        font-weight: bold;
     }
 </style>
 
-<div class="flashcard" id="flashcard">
+<div class="flashcard" id="flashcard" data-time="@Model.TimeInSeconds">
     <div class="flashcard-inner">
         <!-- Front of card -->
         <div class="flashcard-front">
@@ -137,20 +138,26 @@
 </div>
 
 <script>
-    (function() {
+    document.addEventListener('DOMContentLoaded', function() {
         const flashcard = document.getElementById('flashcard');
         const flipButton = document.getElementById('flipButton');
         const timerElement = document.getElementById('timer');
         const backTimerElement = document.getElementById('backTimer');
         const answerInput = document.getElementById('answerInput');
         
-        let timeLeft = @Model.TimeInSeconds;
+        // Get initial time from data attribute
+        const initialTime = parseInt(flashcard.dataset.time);
+        let timeLeft = initialTime;
         let isFlipped = false;
         
+        function formatTime(seconds) {
+            return `00:${seconds.toString().padStart(2, '0')}`;
+        }
+        
         function updateTimerDisplay(seconds) {
-            const formattedTime = `00:${seconds.toString().padStart(2, '0')}`;
-            timerElement.textContent = formattedTime;
-            backTimerElement.textContent = formattedTime;
+            const time = formatTime(seconds);
+            timerElement.textContent = time;
+            backTimerElement.textContent = time;
         }
         
         function flipCard() {
@@ -162,12 +169,10 @@
             }
         }
 
-        flipButton.addEventListener('click', () => {
-            flipCard();
-        });
-        
-        // Initialize timer display
+        // Set initial display
         updateTimerDisplay(timeLeft);
+
+        flipButton.addEventListener('click', flipCard);
         
         const timer = setInterval(() => {
             if (timeLeft > 0) {
@@ -183,5 +188,5 @@
         
         // Clean up timer when leaving page
         window.addEventListener('beforeunload', () => clearInterval(timer));
-    })();
+    });
 </script>

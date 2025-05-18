@@ -6,25 +6,87 @@
    and we draw a line between them on an HTML5 canvas.
    The submitted form will include a JSON array of pairs.
 *@
-<div class="association-exercise position-relative p-3 border rounded bg-light">
-    <h5 class="text-center mb-4">@Model.Question</h5>
-    <div class="row">
-        <div class="col-6">
-            <ul id="assoc-left" class="list-group">
+<style>
+    .association-exercise {
+        min-height: 400px;
+        background: white;
+        border-radius: 1rem;
+        border: 2px solid #6f42c1;
+        padding: 1.5rem;
+    }
+
+    .assoc-item {
+        cursor: pointer;
+        user-select: none;
+        margin-bottom: 10px;
+        border: 2px solid #e9ecef;
+        border-radius: 8px;
+        padding: 12px;
+        transition: all 0.3s ease;
+    }
+
+    .assoc-item:hover {
+        border-color: #6f42c1;
+        background-color: #f8f9fa;
+    }
+
+    .assoc-item.active {
+        background-color: #e7f1ff;
+        border-color: #6f42c1;
+    }
+
+    .assoc-item.matched {
+        background-color: #d1e7dd;
+        border-color: #198754;
+    }
+
+    .assoc-lists {
+        display: flex;
+        justify-content: space-between;
+        gap: 2rem;
+        margin-top: 2rem;
+    }
+
+    .assoc-list {
+        flex: 1;
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .canvas-container {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+    }
+</style>
+
+<div class="association-exercise position-relative">
+    <h4 class="text-center mb-4">@Model.Question</h4>
+    
+    <div class="assoc-lists">
+        <div class="assoc-list-container">
+            <h5 class="mb-3">First List</h5>
+            <ul id="assoc-left" class="assoc-list">
                 @for (int i = 0; i < Model.FirstAnswersList.Count; i++)
                 {
-                    <li class="list-group-item assoc-item assoc-left-item"
+                    <li class="assoc-item assoc-left-item"
                         data-index="@i">
                         @Model.FirstAnswersList[i]
                     </li>
                 }
             </ul>
         </div>
-        <div class="col-6">
-            <ul id="assoc-right" class="list-group">
+        
+        <div class="assoc-list-container">
+            <h5 class="mb-3">Second List</h5>
+            <ul id="assoc-right" class="assoc-list">
                 @for (int j = 0; j < Model.SecondAnswersList.Count; j++)
                 {
-                    <li class="list-group-item assoc-item assoc-right-item"
+                    <li class="assoc-item assoc-right-item"
                         data-index="@j">
                         @Model.SecondAnswersList[j]
                     </li>
@@ -33,102 +95,143 @@
         </div>
     </div>
 
-    <canvas id="assoc-canvas"
-            class="position-absolute top-0 start-0 w-100 h-100"
-            style="pointer-events:none;"></canvas>
+    <div class="canvas-container">
+        <canvas id="assoc-canvas"></canvas>
+    </div>
 
     <input type="hidden" name="AssociationPairsJson" id="AssociationPairsJson" />
 </div>
 
-@section Scripts {
-    <script>
-        (function(){
-          const leftItems  = document.querySelectorAll('.assoc-left-item');
-          const rightItems = document.querySelectorAll('.assoc-right-item');
-          const canvas     = document.getElementById('assoc-canvas');
-          const ctx        = canvas.getContext('2d');
-          let selectedLeftIndex = null;
-          const pairs = [];
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const leftItems = document.querySelectorAll('.assoc-left-item');
+        const rightItems = document.querySelectorAll('.assoc-right-item');
+        const canvas = document.getElementById('assoc-canvas');
+        const ctx = canvas.getContext('2d');
+        let selectedLeftIndex = null;
+        const pairs = [];
 
-          function resizeCanvas(){
-            canvas.width  = canvas.clientWidth;
-            canvas.height = canvas.clientHeight;
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            canvas.width = container.offsetWidth;
+            canvas.height = container.offsetHeight;
             redrawLines();
-          }
-          window.addEventListener('resize', resizeCanvas);
-          resizeCanvas();
+        }
 
-          function getCenter(el){
-            const r = el.getBoundingClientRect();
-            const c = canvas.getBoundingClientRect();
+        // Initial resize and add listeners
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        function getCenter(el) {
+            const rect = el.getBoundingClientRect();
+            const canvasRect = canvas.getBoundingClientRect();
             return {
-              x: (r.left + r.right)/2 - c.left,
-              y: (r.top  + r.bottom)/2 - c.top
+                x: (rect.left + rect.right) / 2 - canvasRect.left,
+                y: (rect.top + rect.bottom) / 2 - canvasRect.top
             };
-          }
+        }
 
-          function redrawLines(){
-            ctx.clearRect(0,0,canvas.width,canvas.height);
-            ctx.strokeStyle = '#198754';
-            ctx.lineWidth   = 2;
-            for(const p of pairs){
-              const lEl = leftItems[p.left];
-              const rEl = rightItems[p.right];
-              const a = getCenter(lEl);
-              const b = getCenter(rEl);
-              ctx.beginPath();
-              ctx.moveTo(a.x,a.y);
-              ctx.lineTo(b.x,b.y);
-              ctx.stroke();
-            }
-            document.getElementById('AssociationPairsJson').value = JSON.stringify(pairs);
-          }
-
-          leftItems.forEach(li => {
-            li.addEventListener('click', () => {
-              leftItems.forEach(x => x.classList.remove('active'));
-              const idx = parseInt(li.dataset.index);
-              selectedLeftIndex = idx;
-              li.classList.add('active');
+        function redrawLines() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw lines for existing pairs
+            pairs.forEach(pair => {
+                const leftEl = leftItems[pair.left];
+                const rightEl = rightItems[pair.right];
+                
+                ctx.beginPath();
+                ctx.strokeStyle = '#198754';
+                ctx.lineWidth = 2;
+                
+                const start = getCenter(leftEl);
+                const end = getCenter(rightEl);
+                
+                ctx.moveTo(start.x, start.y);
+                ctx.lineTo(end.x, end.y);
+                ctx.stroke();
             });
-          });
 
-          rightItems.forEach(li => {
-            li.addEventListener('click', () => {
-              if (selectedLeftIndex === null) return;
-              const rightIdx = parseInt(li.dataset.index);
-              const existing = pairs.findIndex(p => p.left===selectedLeftIndex && p.right===rightIdx);
-              if (existing >= 0) {
-                pairs.splice(existing,1);
-              } else {
-                for(let i=pairs.length-1;i>=0;i--){
-                  if(pairs[i].left===selectedLeftIndex || pairs[i].right===rightIdx){
-                    pairs.splice(i,1);
-                  }
+            // Update hidden input with pairs
+            document.getElementById('AssociationPairsJson').value = JSON.stringify(
+                pairs.map(p => ({
+                    first: leftItems[p.left].textContent.trim(),
+                    second: rightItems[p.right].textContent.trim()
+                }))
+            );
+        }
+
+        function updateMatchedStatus() {
+            // Reset all items
+            leftItems.forEach(item => item.classList.remove('matched'));
+            rightItems.forEach(item => item.classList.remove('matched'));
+            
+            // Mark matched pairs
+            pairs.forEach(pair => {
+                leftItems[pair.left].classList.add('matched');
+                rightItems[pair.right].classList.add('matched');
+            });
+        }
+
+        // Left item click handler
+        leftItems.forEach(item => {
+            item.addEventListener('click', () => {
+                const index = parseInt(item.dataset.index);
+                
+                // If this item is already matched, unselect it
+                const existingPair = pairs.find(p => p.left === index);
+                if (existingPair) {
+                    pairs.splice(pairs.indexOf(existingPair), 1);
+                    updateMatchedStatus();
+                    redrawLines();
+                    return;
                 }
-                pairs.push({ left: selectedLeftIndex, right: rightIdx });
-              }
-              leftItems[selectedLeftIndex].classList.remove('active');
-              selectedLeftIndex = null;
-              redrawLines();
+                
+                // Clear previous selection
+                leftItems.forEach(i => i.classList.remove('active'));
+                
+                // Select this item
+                selectedLeftIndex = index;
+                item.classList.add('active');
             });
-          });
+        });
 
-        })();
-    </script>
-    <style>
-        .association-exercise {
-            min-height: 300px;
-        }
-
-        .assoc-item {
-            cursor: pointer;
-            user-select: none;
-        }
-
-            .assoc-item.active {
-                background-color: #d1e7dd;
-                border-color: #198754;
-            }
-    </style>
-}
+        // Right item click handler
+        rightItems.forEach(item => {
+            item.addEventListener('click', () => {
+                const rightIndex = parseInt(item.dataset.index);
+                
+                // If no left item is selected and this right item is matched,
+                // remove its pair
+                if (selectedLeftIndex === null) {
+                    const existingPair = pairs.find(p => p.right === rightIndex);
+                    if (existingPair) {
+                        pairs.splice(pairs.indexOf(existingPair), 1);
+                        updateMatchedStatus();
+                        redrawLines();
+                    }
+                    return;
+                }
+                
+                // Remove any existing pairs with either selected item
+                const filteredPairs = pairs.filter(p => 
+                    p.left !== selectedLeftIndex && p.right !== rightIndex
+                );
+                pairs.length = 0;
+                pairs.push(...filteredPairs);
+                
+                // Add the new pair
+                pairs.push({
+                    left: selectedLeftIndex,
+                    right: rightIndex
+                });
+                
+                // Reset selection
+                leftItems[selectedLeftIndex].classList.remove('active');
+                selectedLeftIndex = null;
+                
+                updateMatchedStatus();
+                redrawLines();
+            });
+        });
+    });
+</script>
