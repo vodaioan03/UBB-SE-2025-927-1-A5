@@ -43,21 +43,36 @@ namespace DuoWebApp.Controllers
                 if (i < completedSections)
                 {
                     quizViewModels = quizzes
-                        .Select(q => new QuizUnlockViewModel { Quiz = q, IsUnlocked = true })
+                        .Select(q => new QuizUnlockViewModel 
+                        { 
+                            Quiz = q, 
+                            IsUnlocked = false, 
+                            IsCompleted = true 
+                        })
                         .ToList();
                     isExamUnlocked = false;
                 }
                 else if (i == completedSections)
                 {
                     quizViewModels = quizzes
-                        .Select((q, idx) => new QuizUnlockViewModel { Quiz = q, IsUnlocked = idx <= completedQuizzes })
+                        .Select((q, idx) => new QuizUnlockViewModel 
+                        { 
+                            Quiz = q, 
+                            IsUnlocked = idx == completedQuizzes, 
+                            IsCompleted = idx < completedQuizzes 
+                        })
                         .ToList();
                     isExamUnlocked = completedQuizzes >= quizzes.Count;
                 }
                 else
                 {
                     quizViewModels = quizzes
-                        .Select(q => new QuizUnlockViewModel { Quiz = q, IsUnlocked = false })
+                        .Select(q => new QuizUnlockViewModel 
+                        { 
+                            Quiz = q, 
+                            IsUnlocked = false, 
+                            IsCompleted = false 
+                        })
                         .ToList();
                     isExamUnlocked = false;
                 }

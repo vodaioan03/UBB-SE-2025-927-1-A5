@@ -16,15 +16,18 @@ namespace Duo.Web.Controllers
         private readonly IQuizService _quizService;
         private readonly IExerciseService _exerciseService;
         private readonly ISectionService _sectionService;
+        private readonly IUserService _userService;
 
         public QuizController(
             IQuizService quizService,
             IExerciseService exerciseService,
-            ISectionService sectionService)
+            ISectionService sectionService,
+            IUserService userService)
         {
             _quizService = quizService;
             _exerciseService = exerciseService;
             _sectionService = sectionService;
+            _userService = userService;
         }
 
         // GET /Quiz/ViewQuizzes?selectedQuizId=5
@@ -168,24 +171,61 @@ namespace Duo.Web.Controllers
 
         // GET /Quiz/EndQuiz
         [HttpGet]
-        public IActionResult EndQuiz()
+        public async Task<IActionResult> EndQuiz()
         {
-            int correctAnswers = TempData["CorrectAnswers"] as int? ?? 0;
-            int totalQuestions = TempData["TotalQuestions"] as int? ?? 0;
-            int passingPercent = 100;
-
-            double percentage = totalQuestions > 0 ? (double)correctAnswers / totalQuestions * 100 : 0;
-            bool isPassed = correctAnswers == totalQuestions;
-
-            var viewModel = new QuizEndViewModel
+            try
             {
-                CorrectAnswersText = $"{correctAnswers} / {totalQuestions}",
-                PassingPercentText = "100% needed to pass",
-                IsPassedText = isPassed ? "Quiz passed!" : "You need to redo this one.",
-                IsPassed = isPassed
-            };
+                int correctAnswers = TempData["CorrectAnswers"] as int? ?? 0;
+                int totalQuestions = TempData["TotalQuestions"] as int? ?? 0;
+                int quizId = TempData["QuizId"] as int? ?? 0;
+                int passingPercent = 100;
 
-            return View(viewModel);
+                double percentage = totalQuestions > 0 ? (double)correctAnswers / totalQuestions * 100 : 0;
+                bool isPassed = correctAnswers == totalQuestions;
+
+                var viewModel = new QuizEndViewModel
+                {
+                    CorrectAnswersText = $"{correctAnswers} / {totalQuestions}",
+                    PassingPercentText = "100% needed to pass",
+                    IsPassedText = isPassed ? "Quiz passed!" : "You need to redo this one.",
+                    IsPassed = isPassed
+                };
+
+                if (isPassed && quizId > 0)
+                {
+                    var quiz = await _quizService.GetQuizById(quizId);
+                    if (quiz?.SectionId != null)
+                    {
+                        var section = await _sectionService.GetSectionById(quiz.SectionId.Value);
+                        if (section != null)
+                        {
+                            var user = await _userService.GetByIdAsync(1); 
+                            var quizzesInSection = (await _quizService.GetAllQuizzesFromSection(section.Id)).ToList();
+                            int quizIndex = quizzesInSection.FindIndex(q => q.Id == quizId);
+                            
+                            if (quizIndex == user.NumberOfCompletedQuizzesInSection)
+                            {
+                                await _userService.IncrementUserProgressAsync(1);
+                                
+                                if (user.NumberOfCompletedQuizzesInSection + 1 >= quizzesInSection.Count)
+                                {
+                                    await _userService.UpdateUserSectionProgressAsync(1, 
+                                        user.NumberOfCompletedSections + 1, 
+                                        0); 
+                                }
+                            }
+                        }
+                    }
+                }
+
+                return View(viewModel);
+            }
+            catch (Exception ex)
+            {
+                // Log the error
+                Console.WriteLine($"Error in EndQuiz: {ex.Message}");
+                throw;
+            }
         }
 
         // POST /Quiz/AddExercise
@@ -323,13 +363,13 @@ namespace Duo.Web.Controllers
                             .Select(p => (association.FirstAnswersList[p.left], association.SecondAnswersList[p.right]))
                             .ToList();
                         isCorrect = association.ValidateAnswer(mappedPairs);
-                        correctAnswer = string.Join(", ", association.FirstAnswersList.Zip(association.SecondAnswersList, (a, b) => $"{a} → {b}"));
+                        correctAnswer = string.Join(" | ", association.FirstAnswersList.Zip(association.SecondAnswersList, (a, b) => $"{a} → {b}"));
                         break;
 
                     case MultipleChoiceExercise multipleChoice:
                         var mcAnswer = new List<string> { submission.Answer };
                         isCorrect = multipleChoice.ValidateAnswer(mcAnswer);
-                        correctAnswer = string.Join(", ", multipleChoice.Choices.Where(c => c.IsCorrect).Select(c => c.Answer));
+                        correctAnswer = string.Join(" | ", multipleChoice.Choices.Where(c => c.IsCorrect).Select(c => c.Answer));
                         break;
 
                     case FillInTheBlankExercise fillInBlank:
@@ -342,13 +382,19 @@ namespace Duo.Web.Controllers
                 if (!TempData.ContainsKey("TotalQuestions"))
                 {
                     TempData["TotalQuestions"] = quiz.Exercises.Count;
+                    TempData["QuizId"] = quizId;
+                    TempData["CorrectAnswers"] = 0;
                 }
                 
-                int currentCorrect = TempData["CorrectAnswers"] as int? ?? 0;
+                int currentCorrect = TempData.Peek("CorrectAnswers") as int? ?? 0;
                 if (isCorrect)
                 {
                     TempData["CorrectAnswers"] = currentCorrect + 1;
                 }
+
+                TempData.Keep("TotalQuestions");
+                TempData.Keep("QuizId");
+                TempData.Keep("CorrectAnswers");
 
                 return Json(new { isCorrect, correctAnswer });
             }

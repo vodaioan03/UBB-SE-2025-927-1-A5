@@ -82,9 +82,20 @@
             }
 
             .quiz-circle.completed {
-                background-color: #2D7D9A !important;
-                border-color: #2D7D9A !important;
+                background-color: #28a745 !important;
+                border-color: #28a745 !important;
                 cursor: default;
+                position: relative;
+            }
+
+            .quiz-circle.completed::after {
+                content: '✓';
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                font-size: 14px;
+                color: white;
             }
 
             .quiz-circle.unlocked:hover {
@@ -126,7 +137,20 @@
                             @* Quizzes *@
                             @foreach (var quizVm in sectionVm.Quizzes)
                             {
-                                var state = quizVm.IsUnlocked ? "unlocked" : "locked";
+                                string state;
+                                if (quizVm.IsCompleted)
+                                {
+                                    state = "completed";
+                                }
+                                else if (quizVm.IsUnlocked)
+                                {
+                                    state = "unlocked";
+                                }
+                                else
+                                {
+                                    state = "locked";
+                                }
+
                                 var cssClass = $"quiz-circle {state}";
                                 var shortName = $"Q{quizVm.Quiz.Id}";
                                 var url = Url.Action("Preview", "Quiz", new { id = quizVm.Quiz.Id });
@@ -140,7 +164,9 @@
                                     }
                                     else
                                     {
-                                        <div class="@cssClass">@shortName</div>
+                                        <div class="@cssClass" title="@(quizVm.IsCompleted ? "Completed" : "Locked")">
+                                            @shortName
+                                        </div>
                                     }
                                 </div>
                             }

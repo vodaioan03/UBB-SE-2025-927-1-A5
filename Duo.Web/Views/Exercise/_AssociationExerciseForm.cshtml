@@ -151,25 +151,22 @@
                 ctx.stroke();
             });
 
-            // Update hidden input with pairs
-            document.getElementById('AssociationPairsJson').value = JSON.stringify(
-                pairs.map(p => ({
-                    first: leftItems[p.left].textContent.trim(),
-                    second: rightItems[p.right].textContent.trim()
-                }))
-            );
+            // Update hidden input with pairs in the correct format for validation
+            document.getElementById('AssociationPairsJson').value = JSON.stringify(pairs);
         }
 
         function updateMatchedStatus() {
             // Reset all items
-            leftItems.forEach(item => item.classList.remove('matched'));
-            rightItems.forEach(item => item.classList.remove('matched'));
+            leftItems.forEach(item => item.classList.remove('matched', 'active'));
+            rightItems.forEach(item => item.classList.remove('matched', 'active'));
             
             // Mark matched pairs
             pairs.forEach(pair => {
                 leftItems[pair.left].classList.add('matched');
                 rightItems[pair.right].classList.add('matched');
             });
+            
+            selectedLeftIndex = null;
         }
 
         // Left item click handler
@@ -177,7 +174,7 @@
             item.addEventListener('click', () => {
                 const index = parseInt(item.dataset.index);
                 
-                // If this item is already matched, unselect it
+                // If this item is already matched, unselect it and remove its pair
                 const existingPair = pairs.find(p => p.left === index);
                 if (existingPair) {
                     pairs.splice(pairs.indexOf(existingPair), 1);
@@ -200,37 +197,24 @@
             item.addEventListener('click', () => {
                 const rightIndex = parseInt(item.dataset.index);
                 
-                // If no left item is selected and this right item is matched,
-                // remove its pair
-                if (selectedLeftIndex === null) {
-                    const existingPair = pairs.find(p => p.right === rightIndex);
-                    if (existingPair) {
-                        pairs.splice(pairs.indexOf(existingPair), 1);
-                        updateMatchedStatus();
-                        redrawLines();
-                    }
+                // If this item is already matched, unselect it and remove its pair
+                const existingPair = pairs.find(p => p.right === rightIndex);
+                if (existingPair) {
+                    pairs.splice(pairs.indexOf(existingPair), 1);
+                    updateMatchedStatus();
+                    redrawLines();
                     return;
                 }
                 
-                // Remove any existing pairs with either selected item
-                const filteredPairs = pairs.filter(p => 
-                    p.left !== selectedLeftIndex && p.right !== rightIndex
-                );
-                pairs.length = 0;
-                pairs.push(...filteredPairs);
-                
-                // Add the new pair
-                pairs.push({
-                    left: selectedLeftIndex,
-                    right: rightIndex
-                });
-                
-                // Reset selection
-                leftItems[selectedLeftIndex].classList.remove('active');
-                selectedLeftIndex = null;
-                
-                updateMatchedStatus();
-                redrawLines();
+                // If we have a selected left item and this right item isn't matched
+                if (selectedLeftIndex !== null) {
+                    pairs.push({
+                        left: selectedLeftIndex,
+                        right: rightIndex
+                    });
+                    updateMatchedStatus();
+                    redrawLines();
+                }
             });
         });
     });

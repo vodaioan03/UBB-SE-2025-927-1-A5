@@ -85,10 +85,8 @@
         const feedbackText = document.getElementById('feedbackText');
         const correctAnswerText = document.getElementById('correctAnswerText');
 
-        // Disable submit button while validating
         submitButton.disabled = true;
 
-        // Collect the answer based on exercise type
         let answer = null;
         @if (Model.CurrentExerciseType == nameof(DuoClassLibrary.Models.Exercises.FlashcardExercise))
         {
@@ -148,10 +146,8 @@
             answer = selectedAnswer.value;
             </text>
         }
-        // Add other exercise types here...
 
         try {
-            // Validate the answer
             const response = await fetch(`/Quiz/ValidateAnswer/@Model.QuizId/@Model.CurrentExerciseIndex`, {
                 method: 'POST',
                 headers: {
@@ -167,7 +163,6 @@
 
             const result = await response.json();
 
-            // Show feedback
             feedbackMessage.style.display = 'block';
             if (result.isCorrect) {
                 feedbackMessage.className = 'alert alert-success mt-3';
@@ -180,11 +175,9 @@
                 correctAnswerText.textContent = `Correct answer: ${result.correctAnswer}`;
             }
 
-            // Enable next button and keep submit button disabled
             nextButton.disabled = false;
             submitButton.disabled = true;
 
-            // Add visual indication that next button is available
             nextButton.classList.add('btn-primary');
             nextButton.classList.remove('btn-dark');
         } catch (error) {

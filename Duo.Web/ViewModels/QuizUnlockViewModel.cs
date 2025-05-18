@@ -7,5 +7,6 @@ namespace DuoWebApp.ViewModels
     {
         public Quiz Quiz { get; set; }
         public bool IsUnlocked { get; set; }
+        public bool IsCompleted { get; set; }
     }
 }
