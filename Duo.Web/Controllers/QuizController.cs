@@ -169,7 +169,24 @@ namespace Duo.Web.Controllers
         // GET /Quiz/EndQuiz
         [HttpGet]
         public IActionResult EndQuiz()
-            => View();
+        {
+            int correctAnswers = TempData["CorrectAnswers"] as int? ?? 0;
+            int totalQuestions = TempData["TotalQuestions"] as int? ?? 0;
+            int passingPercent = 100;
+
+            double percentage = totalQuestions > 0 ? (double)correctAnswers / totalQuestions * 100 : 0;
+            bool isPassed = correctAnswers == totalQuestions;
+
+            var viewModel = new QuizEndViewModel
+            {
+                CorrectAnswersText = $"{correctAnswers} / {totalQuestions}",
+                PassingPercentText = "100% needed to pass",
+                IsPassedText = isPassed ? "Quiz passed!" : "You need to redo this one.",
+                IsPassed = isPassed
+            };
+
+            return View(viewModel);
+        }
 
         // POST /Quiz/AddExercise
         [HttpPost, ValidateAntiForgeryToken]
@@ -320,6 +337,17 @@ namespace Duo.Web.Controllers
                         isCorrect = fillInBlank.ValidateAnswer(blankAnswers);
                         correctAnswer = string.Join(" | ", fillInBlank.PossibleCorrectAnswers);
                         break;
+                }
+
+                if (!TempData.ContainsKey("TotalQuestions"))
+                {
+                    TempData["TotalQuestions"] = quiz.Exercises.Count;
+                }
+                
+                int currentCorrect = TempData["CorrectAnswers"] as int? ?? 0;
+                if (isCorrect)
+                {
+                    TempData["CorrectAnswers"] = currentCorrect + 1;
                 }
 
                 return Json(new { isCorrect, correctAnswer });
