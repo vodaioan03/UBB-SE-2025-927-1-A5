@@ -15,7 +15,7 @@
 <form method="post"
       asp-action="Solve"
       asp-route-id="@Model.QuizId"
-      asp-route-index="@(Model.CurrentExerciseIndex + 1)"
+      asp-route-index="@Model.CurrentExerciseIndex"
       id="exerciseForm">
     @Html.AntiForgeryToken()
 
@@ -115,6 +115,37 @@
                 submitButton.disabled = false;
                 return;
             }
+            </text>
+        }
+        else if (Model.CurrentExerciseType == nameof(DuoClassLibrary.Models.Exercises.FillInTheBlankExercise))
+        {
+            <text>
+            const blankInputs = document.querySelectorAll('.blank-input');
+            const answers = Array.from(blankInputs).map(input => input.value.trim());
+            
+            if (answers.some(a => !a)) {
+                feedbackMessage.style.display = 'block';
+                feedbackMessage.className = 'alert alert-warning mt-3';
+                feedbackText.textContent = 'Please fill in all blanks.';
+                submitButton.disabled = false;
+                return;
+            }
+            
+            answer = JSON.stringify(answers);
+            </text>
+        }
+        else if (Model.CurrentExerciseType == nameof(DuoClassLibrary.Models.Exercises.MultipleChoiceExercise))
+        {
+            <text>
+            const selectedAnswer = document.querySelector('input[name="selectedAnswer"]:checked');
+            if (!selectedAnswer) {
+                feedbackMessage.style.display = 'block';
+                feedbackMessage.className = 'alert alert-warning mt-3';
+                feedbackText.textContent = 'Please select an answer.';
+                submitButton.disabled = false;
+                return;
+            }
+            answer = selectedAnswer.value;
             </text>
         }
         // Add other exercise types here...

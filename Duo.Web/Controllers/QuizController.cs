@@ -121,12 +121,15 @@ namespace Duo.Web.Controllers
         public async Task<IActionResult> Solve(
             int id,
             int index,
-            string? FlashcardAnswer,        // only this one for flashcards
+            string? FlashcardAnswer,        
             string? AssociationPairsJson,
             string? BlankAnswersJson,
             string? mcChoice)
         {
             var quiz = await _quizService.GetQuizById(id);
+            if (quiz == null || index < 0 || index >= quiz.Exercises.Count)
+                return NotFound();
+
             var current = quiz.Exercises[index];
             bool valid = false;
 
@@ -315,7 +318,7 @@ namespace Duo.Web.Controllers
                     case FillInTheBlankExercise fillInBlank:
                         var blankAnswers = JsonSerializer.Deserialize<List<string>>(submission.Answer)!;
                         isCorrect = fillInBlank.ValidateAnswer(blankAnswers);
-                        correctAnswer = string.Join(", ", fillInBlank.PossibleCorrectAnswers);
+                        correctAnswer = string.Join(" | ", fillInBlank.PossibleCorrectAnswers);
                         break;
                 }
 
