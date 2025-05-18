@@ -15,8 +15,8 @@
 <form method="post"
       asp-action="Solve"
       asp-route-id="@Model.QuizId"
-      asp-route-index="@Model.CurrentExerciseIndex"
-      onsubmit="return validateExercise();">
+      asp-route-index="@(Model.CurrentExerciseIndex + 1)"
+      id="exerciseForm">
     @Html.AntiForgeryToken()
 
     @switch (Model.CurrentExerciseType)
@@ -50,23 +50,117 @@
             break;
     }
 
-    <button type="submit"
-            class="btn btn-dark btn-lg mt-3">
-        @(Model.IsLastExercise ? "Finish Quiz" : "Next →")
-    </button>
+    <div class="d-flex justify-content-between mt-4">
+        <button type="button" 
+                id="submitButton" 
+                class="btn btn-primary"
+                onclick="validateExercise()">
+            Submit Answer
+        </button>
+
+        <button type="submit"
+                id="nextButton"
+                class="btn btn-dark"
+                disabled>
+            @(Model.IsLastExercise ? "Finish Quiz" : "Next →")
+        </button>
+    </div>
+
+    <div id="feedbackMessage" class="alert mt-3" style="display: none;">
+        <div class="d-flex align-items-center">
+            <span id="feedbackIcon" class="me-2"></span>
+            <span id="feedbackText"></span>
+        </div>
+        <div id="correctAnswerText" class="mt-2 fw-bold"></div>
+    </div>
 </form>
 
 <script>
-    function validateExercise() {
-        // Check if this is a multiple choice exercise
-        if (typeof window.validateMultipleChoice === 'function') {
-            const isValid = window.validateMultipleChoice();
-            if (!isValid) {
-                return false;
+    async function validateExercise() {
+        const form = document.getElementById('exerciseForm');
+        const submitButton = document.getElementById('submitButton');
+        const nextButton = document.getElementById('nextButton');
+        const feedbackMessage = document.getElementById('feedbackMessage');
+        const feedbackIcon = document.getElementById('feedbackIcon');
+        const feedbackText = document.getElementById('feedbackText');
+        const correctAnswerText = document.getElementById('correctAnswerText');
+
+        // Disable submit button while validating
+        submitButton.disabled = true;
+
+        // Collect the answer based on exercise type
+        let answer = null;
+        @if (Model.CurrentExerciseType == nameof(DuoClassLibrary.Models.Exercises.FlashcardExercise))
+        {
+            <text>
+            const answerInput = document.getElementById('answerInput');
+            if (!answerInput.value.trim()) {
+                feedbackMessage.style.display = 'block';
+                feedbackMessage.className = 'alert alert-warning mt-3';
+                feedbackText.textContent = 'Please enter an answer.';
+                submitButton.disabled = false;
+                return;
             }
-            // Add a small delay to show the feedback
-            return new Promise(resolve => setTimeout(() => resolve(true), 1000));
+            answer = answerInput.value;
+            </text>
         }
-        return true;
+        else if (Model.CurrentExerciseType == nameof(DuoClassLibrary.Models.Exercises.AssociationExercise))
+        {
+            <text>
+            answer = document.getElementById('AssociationPairsJson').value;
+            if (!answer) {
+                feedbackMessage.style.display = 'block';
+                feedbackMessage.className = 'alert alert-warning mt-3';
+                feedbackText.textContent = 'Please make at least one association.';
+                submitButton.disabled = false;
+                return;
+            }
+            </text>
+        }
+        // Add other exercise types here...
+
+        try {
+            // Validate the answer
+            const response = await fetch(`/Quiz/ValidateAnswer/@Model.QuizId/@Model.CurrentExerciseIndex`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                },
+                body: JSON.stringify({ answer: answer })
+            });
+
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+
+            const result = await response.json();
+
+            // Show feedback
+            feedbackMessage.style.display = 'block';
+            if (result.isCorrect) {
+                feedbackMessage.className = 'alert alert-success mt-3';
+                feedbackIcon.innerHTML = '✓';
+                feedbackText.textContent = 'Correct!';
+            } else {
+                feedbackMessage.className = 'alert alert-danger mt-3';
+                feedbackIcon.innerHTML = '✗';
+                feedbackText.textContent = 'Incorrect.';
+                correctAnswerText.textContent = `Correct answer: ${result.correctAnswer}`;
+            }
+
+            // Enable next button and keep submit button disabled
+            nextButton.disabled = false;
+            submitButton.disabled = true;
+
+            // Add visual indication that next button is available
+            nextButton.classList.add('btn-primary');
+            nextButton.classList.remove('btn-dark');
+        } catch (error) {
+            feedbackMessage.style.display = 'block';
+            feedbackMessage.className = 'alert alert-danger mt-3';
+            feedbackText.textContent = 'Error validating answer. Please try again.';
+            submitButton.disabled = false;
+        }
     }
 </script>

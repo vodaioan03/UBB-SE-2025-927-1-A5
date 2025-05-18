@@ -272,5 +272,64 @@ namespace Duo.Web.Controllers
             ViewBag.AvailableExercises = await _exerciseService.GetAllExercises();
             TempData.Keep("SelectedExerciseIds");
         }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Route("Quiz/ValidateAnswer/{quizId}/{exerciseIndex}")]
+        public async Task<IActionResult> ValidateAnswer(int quizId, int exerciseIndex, [FromBody] AnswerSubmissionModel submission)
+        {
+            try
+            {
+                var quiz = await _quizService.GetQuizById(quizId);
+                if (quiz == null || exerciseIndex >= quiz.Exercises.Count)
+                {
+                    return BadRequest(new { error = "Quiz or exercise not found" });
+                }
+
+                var exercise = quiz.Exercises[exerciseIndex];
+                bool isCorrect = false;
+                string correctAnswer = "";
+
+                switch (exercise)
+                {
+                    case FlashcardExercise flashcard:
+                        isCorrect = flashcard.ValidateAnswer(submission.Answer);
+                        correctAnswer = flashcard.GetCorrectAnswer();
+                        break;
+
+                    case AssociationExercise association:
+                        var associationPairs = JsonSerializer.Deserialize<List<AssociationPair>>(submission.Answer)!;
+                        var mappedPairs = associationPairs
+                            .Select(p => (association.FirstAnswersList[p.left], association.SecondAnswersList[p.right]))
+                            .ToList();
+                        isCorrect = association.ValidateAnswer(mappedPairs);
+                        correctAnswer = string.Join(", ", association.FirstAnswersList.Zip(association.SecondAnswersList, (a, b) => $"{a} → {b}"));
+                        break;
+
+                    case MultipleChoiceExercise multipleChoice:
+                        var mcAnswer = new List<string> { submission.Answer };
+                        isCorrect = multipleChoice.ValidateAnswer(mcAnswer);
+                        correctAnswer = string.Join(", ", multipleChoice.Choices.Where(c => c.IsCorrect).Select(c => c.Answer));
+                        break;
+
+                    case FillInTheBlankExercise fillInBlank:
+                        var blankAnswers = JsonSerializer.Deserialize<List<string>>(submission.Answer)!;
+                        isCorrect = fillInBlank.ValidateAnswer(blankAnswers);
+                        correctAnswer = string.Join(", ", fillInBlank.PossibleCorrectAnswers);
+                        break;
+                }
+
+                return Json(new { isCorrect, correctAnswer });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+    }
+
+    public class AnswerSubmissionModel
+    {
+        public string Answer { get; set; }
     }
 }
