@@ -8,6 +8,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using DuoClassLibrary.Services;
+using Microsoft.Extensions.Logging;
 
 namespace Duo.Web.Controllers
 {
@@ -17,17 +18,20 @@ namespace Duo.Web.Controllers
         private readonly IExerciseService _exerciseService;
         private readonly ISectionService _sectionService;
         private readonly IUserService _userService;
+        private readonly ILogger<QuizController> _logger;
 
         public QuizController(
             IQuizService quizService,
             IExerciseService exerciseService,
             ISectionService sectionService,
-            IUserService userService)
+            IUserService userService,
+            ILogger<QuizController> logger)
         {
             _quizService = quizService;
             _exerciseService = exerciseService;
             _sectionService = sectionService;
             _userService = userService;
+            _logger = logger;
         }
 
         // GET /Quiz/ViewQuizzes?selectedQuizId=5
@@ -72,55 +76,105 @@ namespace Duo.Web.Controllers
             return View(vm);
         }
 
-        // GET /Quiz/{id}/Preview
-        [HttpGet("Quiz/{id}/Preview")]
+        // GET: Quiz/Preview/{id}
+        [HttpGet]
         public async Task<IActionResult> Preview(int id)
         {
-            var quiz = await _quizService.GetQuizById(id);
-            if (quiz == null) return NotFound();
-
-            var vm = new QuizPreviewViewModel
+            try
             {
-                Quiz = quiz,
-                ExerciseIds = (await _exerciseService.GetAllExercisesFromQuiz(id))
-                                 .Select(e => e.ExerciseId)
-                                 .ToList(),
-                SectionTitle = quiz.SectionId.HasValue
-                                   ? (await _sectionService.GetSectionById(quiz.SectionId.Value))?.Title
-                                     ?? "Section:"
-                                   : "Section:"
-            };
+                var allExams = await _quizService.GetAllExams();
+                var exam = allExams.FirstOrDefault(e => e.Id == id);
+                
+                if (exam != null)
+                {
+                    var vm = new QuizPreviewViewModel
+                    {
+                        Quiz = exam,
+                        ExerciseIds = exam.Exercises.Select(e => e.ExerciseId).ToList(),
+                        SectionTitle = exam.SectionId.HasValue
+                            ? (await _sectionService.GetSectionById(exam.SectionId.Value))?.Title
+                              ?? "Section:"
+                            : "Section:"
+                    };
+                    return View("QuizPreview", vm);
+                }
 
-            return View("QuizPreview", vm);
+                var quiz = await _quizService.GetQuizById(id);
+                if (quiz == null) return NotFound();
+
+                var viewModel = new QuizPreviewViewModel
+                {
+                    Quiz = quiz,
+                    ExerciseIds = quiz.Exercises.Select(e => e.ExerciseId).ToList(),
+                    SectionTitle = quiz.SectionId.HasValue
+                        ? (await _sectionService.GetSectionById(quiz.SectionId.Value))?.Title
+                          ?? "Section:"
+                        : "Section:"
+                };
+
+                return View("QuizPreview", viewModel);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in Preview: {ex.Message}");
+                throw;
+            }
         }
 
-        // GET /Quiz/Solve/{id}?index={index}
+        // GET: Quiz/Solve/{id}
         [HttpGet]
         public async Task<IActionResult> Solve(int id, int? index)
         {
-            var quiz = await _quizService.GetQuizById(id);
-            if (quiz == null || quiz.Exercises == null || !quiz.Exercises.Any())
-                return NotFound();
-
-            int idx = index.GetValueOrDefault(0);
-            if (idx < 0 || idx >= quiz.Exercises.Count)
-                return RedirectToAction(nameof(Solve), new { id, index = 0 });
-
-            var vm = new QuizSolverViewModel
+            try
             {
-                QuizId = quiz.Id,
-                QuizTitle = quiz is Exam ? "Final Exam" : $"Quiz {quiz.Id}",
-                AllExercises = quiz.Exercises.ToList(),
-                CurrentExerciseIndex = idx,
-                CurrentExercise = quiz.Exercises[idx],
-                CurrentExerciseType = quiz.Exercises[idx].GetType().Name,
-                IsLastExercise = (idx == quiz.Exercises.Count - 1)
-            };
-            return View("Solve", vm);
+                BaseQuiz quiz;
+                
+                var allExams = await _quizService.GetAllExams();
+                quiz = allExams.FirstOrDefault(e => e.Id == id);
+                
+                if (quiz == null)
+                {
+                    quiz = await _quizService.GetQuizById(id);
+                    if (quiz == null)
+                    {
+                        return NotFound($"Quiz or exam with ID {id} not found.");
+                    }
+                }
+
+                if (quiz.Exercises == null || !quiz.Exercises.Any())
+                {
+                    return NotFound($"No exercises found for {(quiz is Exam ? "exam" : "quiz")} {id}.");
+                }
+
+                int idx = index.GetValueOrDefault(0);
+                if (idx < 0 || idx >= quiz.Exercises.Count)
+                {
+                    return RedirectToAction(nameof(Solve), new { id, index = 0 });
+                }
+
+                var vm = new QuizSolverViewModel
+                {
+                    QuizId = quiz.Id,
+                    QuizTitle = quiz is Exam ? "Final Exam" : $"Quiz {quiz.Id}",
+                    AllExercises = quiz.Exercises.ToList(),
+                    CurrentExerciseIndex = idx,
+                    CurrentExercise = quiz.Exercises[idx],
+                    CurrentExerciseType = quiz.Exercises[idx].GetType().Name,
+                    IsLastExercise = (idx == quiz.Exercises.Count - 1)
+                };
+
+                return View(vm);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in Solve action for ID {Id}", id);
+                return StatusCode(500, "An error occurred while processing your request.");
+            }
         }
 
-        // POST /Quiz/Solve/{id}?index={index}
-        [HttpPost, ValidateAntiForgeryToken]
+        // POST: Quiz/Solve/{id}
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Solve(
             int id,
             int index,
@@ -129,44 +183,78 @@ namespace Duo.Web.Controllers
             string? BlankAnswersJson,
             string? mcChoice)
         {
-            var quiz = await _quizService.GetQuizById(id);
-            if (quiz == null || index < 0 || index >= quiz.Exercises.Count)
-                return NotFound();
+            try
+            {
+                BaseQuiz quiz;
+                
+                var allExams = await _quizService.GetAllExams();
+                quiz = allExams.FirstOrDefault(e => e.Id == id);
+                
+                if (quiz == null)
+                {
+                    quiz = await _quizService.GetQuizById(id);
+                    if (quiz == null)
+                    {
+                        return NotFound($"Quiz or exam with ID {id} not found.");
+                    }
+                }
 
-            var current = quiz.Exercises[index];
-            bool valid = false;
+                if (index < 0 || index >= quiz.Exercises.Count)
+                {
+                    return NotFound($"Invalid exercise index {index} for {(quiz is Exam ? "exam" : "quiz")} {id}.");
+                }
 
-            if (current is FlashcardExercise fc && !string.IsNullOrEmpty(FlashcardAnswer))
-            {
-                valid = fc.ValidateAnswer(FlashcardAnswer);
-            }
-            else if (!string.IsNullOrEmpty(BlankAnswersJson) && current is FillInTheBlankExercise fib)
-            {
-                var blanks = JsonSerializer.Deserialize<List<string>>(BlankAnswersJson)!;
-                valid = fib.ValidateAnswer(blanks);
-            }
-            else if (!string.IsNullOrEmpty(AssociationPairsJson) && current is AssociationExercise assoc)
-            {
-                var rawPairs = JsonSerializer.Deserialize<List<AssociationPair>>(AssociationPairsJson)!;
-                var mapped = rawPairs
-                    .Select(p => (assoc.FirstAnswersList[p.left], assoc.SecondAnswersList[p.right]))
-                    .ToList();
-                valid = assoc.ValidateAnswer(mapped);
-            }
-            else if (!string.IsNullOrEmpty(mcChoice) && current is MultipleChoiceExercise mc)
-            {
-                valid = mc.ValidateAnswer(new List<string> { mcChoice });
-            }
-            else
-            {
-                valid = false;
-            }
+                var current = quiz.Exercises[index];
+                bool valid = false;
 
-            int next = index + 1;
-            if (next >= quiz.Exercises.Count)
-                return RedirectToAction(nameof(EndQuiz));
+                if (current is FlashcardExercise fc && !string.IsNullOrEmpty(FlashcardAnswer))
+                {
+                    valid = fc.ValidateAnswer(FlashcardAnswer);
+                }
+                else if (!string.IsNullOrEmpty(BlankAnswersJson) && current is FillInTheBlankExercise fib)
+                {
+                    var blanks = JsonSerializer.Deserialize<List<string>>(BlankAnswersJson)!;
+                    valid = fib.ValidateAnswer(blanks);
+                }
+                else if (!string.IsNullOrEmpty(AssociationPairsJson) && current is AssociationExercise assoc)
+                {
+                    var rawPairs = JsonSerializer.Deserialize<List<AssociationPair>>(AssociationPairsJson)!;
+                    var mapped = rawPairs
+                        .Select(p => (assoc.FirstAnswersList[p.left], assoc.SecondAnswersList[p.right]))
+                        .ToList();
+                    valid = assoc.ValidateAnswer(mapped);
+                }
+                else if (!string.IsNullOrEmpty(mcChoice) && current is MultipleChoiceExercise mc)
+                {
+                    valid = mc.ValidateAnswer(new List<string> { mcChoice });
+                }
 
-            return RedirectToAction(nameof(Solve), new { id, index = next });
+                if (!TempData.ContainsKey("TotalQuestions"))
+                {
+                    TempData["TotalQuestions"] = quiz.Exercises.Count;
+                    TempData["QuizId"] = id;
+                    TempData["CorrectAnswers"] = 0;
+                }
+                
+                if (valid)
+                {
+                    int currentCorrect = TempData.Peek("CorrectAnswers") as int? ?? 0;
+                    TempData["CorrectAnswers"] = currentCorrect + 1;
+                }
+
+                int next = index + 1;
+                if (next >= quiz.Exercises.Count)
+                {
+                    return RedirectToAction(nameof(EndQuiz));
+                }
+
+                return RedirectToAction(nameof(Solve), new { id, index = next });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in Solve POST action for ID {Id}", id);
+                return StatusCode(500, "An error occurred while processing your request.");
+            }
         }
 
         // GET /Quiz/EndQuiz
@@ -199,19 +287,25 @@ namespace Duo.Web.Controllers
                         var section = await _sectionService.GetSectionById(quiz.SectionId.Value);
                         if (section != null)
                         {
-                            var user = await _userService.GetByIdAsync(1); 
+                            var user = await _userService.GetByIdAsync(1);
                             var quizzesInSection = (await _quizService.GetAllQuizzesFromSection(section.Id)).ToList();
-                            int quizIndex = quizzesInSection.FindIndex(q => q.Id == quizId);
                             
-                            if (quizIndex == user.NumberOfCompletedQuizzesInSection)
+                            if (quiz is Exam)
                             {
-                                await _userService.IncrementUserProgressAsync(1);
-                                
-                                if (user.NumberOfCompletedQuizzesInSection + 1 >= quizzesInSection.Count)
+                                if (user.NumberOfCompletedQuizzesInSection >= quizzesInSection.Count)
                                 {
                                     await _userService.UpdateUserSectionProgressAsync(1, 
                                         user.NumberOfCompletedSections + 1, 
-                                        0); 
+                                        0);
+                                }
+                            }
+                            else
+                            {
+                                int quizIndex = quizzesInSection.FindIndex(q => q.Id == quizId);
+                                
+                                if (quizIndex == user.NumberOfCompletedQuizzesInSection)
+                                {
+                                    await _userService.IncrementUserProgressAsync(1);
                                 }
                             }
                         }

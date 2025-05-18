@@ -62,6 +62,7 @@ namespace DuoWebApp.Controllers
                             IsCompleted = idx < completedQuizzes 
                         })
                         .ToList();
+                    
                     isExamUnlocked = completedQuizzes >= quizzes.Count;
                 }
                 else
