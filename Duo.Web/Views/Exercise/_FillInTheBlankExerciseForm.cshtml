@@ -1,4 +1,4 @@
-@model DuoClassLibrary.Models.Exercises.FillInTheBlankExercise
+﻿@model DuoClassLibrary.Models.Exercises.FillInTheBlankExercise
 @using System.Text.RegularExpressions
 
 <div class="card mb-3">
@@ -9,11 +9,11 @@
             </div>
         </div>
 
-        <h5 class="card-title mb-4">Fill in the blanks</h5>
+        <h5 class="card-title mb-4">@Model.Question</h5>
         
         <div class="card-text">
             @{
-                var parts = Regex.Split(Model.Question, @"\{\}");
+                var parts = Regex.Split(@Model.Question, @"\{\}");
                 for (int i = 0; i < parts.Length; i++)
                 {
                     @Html.Raw(parts[i])

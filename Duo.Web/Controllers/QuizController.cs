@@ -82,7 +82,7 @@ namespace Duo.Web.Controllers
         {
             try
             {
-                var allExams = await _quizService.GetAllExams();
+                var allExams = await _quizService.GetAllQuizzes();
                 var exam = allExams.FirstOrDefault(e => e.Id == id);
                 
                 if (exam != null)
@@ -129,7 +129,7 @@ namespace Duo.Web.Controllers
             {
                 BaseQuiz quiz;
                 
-                var allExams = await _quizService.GetAllExams();
+                var allExams = await _quizService.GetAllQuizzes();
                 quiz = allExams.FirstOrDefault(e => e.Id == id);
                 
                 if (quiz == null)
@@ -187,7 +187,7 @@ namespace Duo.Web.Controllers
             {
                 BaseQuiz quiz;
                 
-                var allExams = await _quizService.GetAllExams();
+                var allExams = await _quizService.GetAllQuizzes();
                 quiz = allExams.FirstOrDefault(e => e.Id == id);
                 
                 if (quiz == null)
