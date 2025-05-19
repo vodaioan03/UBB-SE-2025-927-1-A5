@@ -10,7 +10,8 @@
         type = c.IsPremium ? "Premium" : "Free",
         image = c.ImageUrl,
         duration = TimeSpan.FromSeconds(c.TimeToComplete).ToString(@"h\h\ m\m"),
-        difficulty = c.Difficulty
+        difficulty = c.Difficulty,
+        tags = c.Tags.Select(t => new { id = t.TagId, name = t.Name }).ToList()
     }));
 }
 
@@ -21,14 +22,33 @@
         <input type="text" id="searchInput" class="form-control" placeholder="Search courses..." onkeyup="handleSearch()">
     </div>
 
-    <div class="mb-4">
-        <select id="filterSelect" class="form-select" onchange="handleFilterChange()">
-            <option value="All">All</option>
-            <option value="Free">Free</option>
-            <option value="Premium">Premium</option>
-        </select>
-    </div>
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <select id="filterSelect" class="form-select" onchange="handleFilterChange()">
+                <option value="All">All Types</option>
+                <option value="Free">Free</option>
+                <option value="Premium">Premium</option>
+            </select>
+        </div>
+        <div class="col-md-6">
+            <div class="dropdown">
+                <button class="btn dropdown-toggle w-100 text-start"
+                        type="button"
+                        id="tagDropdown"
+                        data-bs-toggle="dropdown"
+                        aria-expanded="false"
+                        style="background-color: #fff; border: 1px solid #ced4da; color: #212529;">
+                    Filter by Tags
+                </button>
+                <ul class="dropdown-menu w-100 px-3"
+                    id="tagCheckboxList"
+                    style="max-height: 200px; overflow-y: auto; background-color: #fff; border: 1px solid #ced4da;">
+                    <!-- Checkboxes will be injected here -->
+                </ul>
+            </div>
 
+        </div>
+    </div>
     <div class="row" id="courseContainer"></div>
 
     <nav>
@@ -42,6 +62,33 @@
         let filteredCourses = [...allCourses];
         const coursesPerPage = 6;
         let currentPage = 1;
+        let allTags = [];
+
+        async function initializeTags() {
+            const checkboxList = document.getElementById("tagCheckboxList");
+            try {
+                const response = await fetch('/Course/GetTags');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch tags');
+                }
+                allTags = await response.json();
+
+                checkboxList.innerHTML = "";
+                allTags.forEach(tag => {
+                    const li = document.createElement("li");
+                    li.innerHTML = `
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="${tag.tagId}" id="tag-${tag.tagId}" onchange="handleFilterChange()">
+                            <label class="form-check-label" for="tag-${tag.tagId}">${tag.name}</label>
+                        </div>
+                    `;
+                    checkboxList.appendChild(li);
+                });
+            } catch (error) {
+                console.error('Error fetching tags:', error);
+            }
+        }
+
 
         function renderCourses() {
             const courseContainer = document.getElementById("courseContainer");
@@ -67,6 +114,7 @@
                                 <span class="badge ${course.type === "Premium" ? "bg-warning" : "bg-success"}">${course.type}</span>
                                 <span class="badge bg-info text-dark">${course.difficulty}</span>
                                 <span class="badge bg-secondary">${course.duration}</span>
+                                ${course.tags.map(tag => `<span class="badge bg-primary me-1">${tag.name}</span>`).join('')}
                                 <a href="/Course/${course.id}" class="btn btn-sm btn-outline-primary mt-2">Preview</a>
                             </div>
                         </div>
@@ -98,7 +146,6 @@
         }
 
         function handleFilterChange() {
-            const filter = document.getElementById("filterSelect").value;
             filterCourses();
         }
 
@@ -110,11 +157,21 @@
             const searchQuery = document.getElementById("searchInput").value.toLowerCase();
             const filter = document.getElementById("filterSelect").value;
 
+            // Get all checked tag checkbox values
+            const checkedBoxes = document.querySelectorAll('#tagCheckboxList input[type="checkbox"]:checked');
+            const selectedTagIds = Array.from(checkedBoxes).map(cb => parseInt(cb.value));
+
             filteredCourses = allCourses.filter(course => {
                 const matchesSearch = course.title.toLowerCase().includes(searchQuery) ||
                                       course.description.toLowerCase().includes(searchQuery);
+
                 const matchesFilter = filter === "All" || course.type === filter;
-                return matchesSearch && matchesFilter;
+
+                const matchesTag = selectedTagIds.length === 0 || selectedTagIds.every(tagId =>
+                    course.tags.some(tag => tag.id === tagId)
+                );
+
+                return matchesSearch && matchesFilter && matchesTag;
             });
 
             currentPage = 1;
@@ -122,6 +179,15 @@
             renderPagination();
         }
 
+
+        document.addEventListener('click', function (e) {
+            if (e.target.closest('#tagCheckboxList')) {
+                e.stopPropagation();
+            }
+        });
+
+        // Initialize the page
+        initializeTags();
         renderCourses();
         renderPagination();
     </script>

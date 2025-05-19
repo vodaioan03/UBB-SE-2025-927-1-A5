@@ -670,6 +670,54 @@ namespace Duo.Api.Repositories
                 .ToListAsync();
         }
 
+        /// <summary>
+        /// Checks if a user has completed a specific quiz asynchronously.
+        /// </summary>
+        /// <param name="userId"> Id of user.</param>
+        /// <param name="quizId"> Id of quiz.</param>
+        /// <returns> A task returning a boolean result indicating whether the quiz is completed or not for the user.</returns>
+        public async Task<bool> IsQuizCompleted(int userId, int quizId)
+        {
+            var completion = await this.context.QuizCompletions.FindAsync(userId, quizId);
+
+            if (completion == null)
+            {
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+        }
+
+        /// <summary>
+        /// Marks a quiz as completed for a user asynchronously.
+        /// </summary>
+        /// <param name="completedQuiz"> Completed quiz for a user. </param>
+        /// <returns> A task representing the async operation.</returns>
+        public async Task CompleteQuizForUser(QuizCompletions completedQuiz)
+        {
+            this.context.QuizCompletions.Add(completedQuiz);
+            await this.context.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Deletes a quiz completion record for all users by quiz ID asynchronously.
+        /// </summary>
+        /// <param name="quizId"> Quiz id.</param>
+        /// <returns> A task representing the async operation. </returns>
+        public async Task DeleteQuizCompletions(int quizId)
+        {
+            var completions = await this.context.QuizCompletions
+                .Where(q => q.QuizId == quizId)
+                .ToListAsync();
+            if (completions != null)
+            {
+                this.context.QuizCompletions.RemoveRange(completions);
+                await this.context.SaveChangesAsync();
+            }
+        }
+
         #endregion
 
         #region Courses
@@ -678,9 +726,28 @@ namespace Duo.Api.Repositories
         /// Asynchronously retrieves all courses from the database.
         /// </summary>
         /// <returns>A list of <see cref="Course"/> objects representing all courses in the database.</returns>
-        public async Task<List<Course>> GetCoursesFromDbAsync()
+        public async Task<List<CourseDto>> GetCoursesFromDbAsync()
         {
-            return await context.Courses.ToListAsync();
+            return await context.Courses
+                .Include(c => c.CourseTags)
+                .ThenInclude(ct => ct.Tag)
+                .Select(c => new CourseDto
+                {
+                    CourseId = c.CourseId,
+                    Title = c.Title,
+                    Description = c.Description,
+                    IsPremium = c.IsPremium,
+                    Cost = c.Cost,
+                    ImageUrl = c.ImageUrl,
+                    TimeToComplete = c.TimeToComplete,
+                    Difficulty = c.Difficulty,
+                    CourseTags = c.CourseTags.Select(ct => new TagDto
+                    {
+                        TagId = ct.TagId,
+                        Name = ct.Tag.Name,
+                    }).ToList(),
+                })
+                .ToListAsync();
         }
 
         /// <summary>
@@ -688,9 +755,29 @@ namespace Duo.Api.Repositories
         /// </summary>
         /// <param name="id">The unique identifier of the course.</param>
         /// <returns>A <see cref="Course"/> object representing the course with the given ID, or null if not found.</returns>
-        public async Task<Course?> GetCourseByIdAsync(int id)
+        public async Task<CourseDto?> GetCourseByIdAsync(int id)
         {
-            return await context.Courses.FindAsync(id);
+            return await this.context.Courses
+                .Include(c => c.CourseTags)
+                .ThenInclude(ct => ct.Tag)
+                .Where(c => c.CourseId == id)
+                .Select(c => new CourseDto
+                {
+                    CourseId = c.CourseId,
+                    Title = c.Title,
+                    Description = c.Description,
+                    IsPremium = c.IsPremium,
+                    Cost = c.Cost,
+                    ImageUrl = c.ImageUrl,
+                    TimeToComplete = c.TimeToComplete,
+                    Difficulty = c.Difficulty,
+                    CourseTags = c.CourseTags.Select(ct => new TagDto
+                    {
+                        TagId = ct.TagId,
+                        Name = ct.Tag.Name,
+                    }).ToList(),
+                })
+                .FirstOrDefaultAsync();
         }
 
         /// <summary>
@@ -893,42 +980,55 @@ namespace Duo.Api.Repositories
         /// <param name="filterNotEnrolled">Flag to filter courses the user is not enrolled in.</param>
         /// <param name="userId">The ID of the user (for enrollment filtering).</param>
         /// <returns>A list of <see cref="Course"/> objects matching the filters.</returns>
-        public async Task<List<Course>> GetFilteredCoursesAsync(string searchText, bool filterPremium, bool filterFree, bool filterEnrolled, bool filterNotEnrolled, int userId)
+        public async Task<List<CourseDto>> GetFilteredCoursesAsync(string searchText, bool filterPremium, bool filterFree, bool filterEnrolled, bool filterNotEnrolled, int userId)
         {
-            var courses = context.Courses.AsQueryable();
+            var query = context.Courses
+                .Include(c => c.CourseTags)
+                .ThenInclude(ct => ct.Tag)
+                .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(searchText))
             {
-                courses = courses.Where(c => c.Title.Contains(searchText, StringComparison.OrdinalIgnoreCase));
+                searchText = searchText.ToLower();
+                query = query.Where(c => c.Title.ToLower().Contains(searchText) || c.Description.ToLower().Contains(searchText));
             }
 
-            if (filterPremium && filterFree)
+            if (filterPremium && !filterFree)
             {
-                // No filter (show all)
+                query = query.Where(c => c.IsPremium);
             }
-            else if (filterPremium)
+            else if (filterFree && !filterPremium)
             {
-                courses = courses.Where(c => c.IsPremium);
-            }
-            else if (filterFree)
-            {
-                courses = courses.Where(c => !c.IsPremium);
+                query = query.Where(c => !c.IsPremium);
             }
 
-            if (filterEnrolled && filterNotEnrolled)
+            if (filterEnrolled && !filterNotEnrolled)
             {
-                // No filter (show all)
+                query = query.Where(c => c.Enrollments.Any(e => e.UserId == userId));
             }
-            else if (filterEnrolled)
+            else if (filterNotEnrolled && !filterEnrolled)
             {
-                courses = courses.Where(c => context.CourseCompletions.Any(cc => cc.UserId == userId && cc.CourseId == c.CourseId));
-            }
-            else if (filterNotEnrolled)
-            {
-                courses = courses.Where(c => !context.CourseCompletions.Any(cc => cc.UserId == userId && cc.CourseId == c.CourseId));
+                query = query.Where(c => !c.Enrollments.Any(e => e.UserId == userId));
             }
 
-            return await courses.ToListAsync();
+            return await query
+                .Select(c => new CourseDto
+                {
+                    CourseId = c.CourseId,
+                    Title = c.Title,
+                    Description = c.Description,
+                    IsPremium = c.IsPremium,
+                    Cost = c.Cost,
+                    ImageUrl = c.ImageUrl,
+                    TimeToComplete = c.TimeToComplete,
+                    Difficulty = c.Difficulty,
+                    CourseTags = c.CourseTags.Select(ct => new TagDto
+                    {
+                        TagId = ct.TagId,
+                        Name = ct.Tag.Name
+                    }).ToList()
+                })
+                .ToListAsync();
         }
 
         public async Task AddTagToCourseAsync(int courseId, int tagId)
@@ -1074,6 +1174,54 @@ namespace Duo.Api.Repositories
                 .ToListAsync();
         }
 
+        /// <summary>
+        /// Asynchronously checks if a user has completed a specific exam.
+        /// </summary>
+        /// <param name="userId"> Id of the user.</param>
+        /// <param name="examId"> Id of the exam. </param>
+        /// <returns> A task returning a boolean value indicating if the exam was completed.</returns>
+        public async Task<bool> IsExamCompleted(int userId, int examId)
+        {
+            var completion = await this.context.ExamCompletions.FindAsync(userId, examId);
+
+            if (completion == null)
+            {
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+        }
+
+        /// <summary>
+        /// Asynchronously marks an exam as completed for a user.
+        /// </summary>
+        /// <param name="completedExam"> The completed exam. </param>
+        /// <returns> A task representing the async operation. </returns>
+        public async Task CompleteExamForUser(ExamCompletions completedExam)
+        {
+            this.context.ExamCompletions.Add(completedExam);
+            await this.context.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Deletes an exam completion record for all users by exam ID asynchronously.
+        /// </summary>
+        /// <param name="examId"> Exam id.</param>
+        /// <returns> A task representing the asynchronous operation.</returns>
+        public async Task DeleteExamCompletions(int examId)
+        {
+            var examCompletions = await this.context.ExamCompletions
+                .Where(ec => ec.ExamId == examId)
+                .ToListAsync();
+            if (examCompletions != null)
+            {
+                this.context.ExamCompletions.RemoveRange(examCompletions);
+                await this.context.SaveChangesAsync();
+            }
+        }
+
         #endregion
 
         #region Sections
@@ -1133,10 +1281,60 @@ namespace Duo.Api.Repositories
         public async Task DeleteSectionAsync(int id)
         {
             var section = await context.Sections.FindAsync(id);
+
             if (section != null)
             {
                 context.Sections.Remove(section);
                 await context.SaveChangesAsync();
+            }
+        }
+
+        /// <summary>
+        /// Checks if a section is open for a user asynchronously.
+        /// </summary>
+        /// <param name="userId"> The unique id of the user.</param>
+        /// <param name="sectionId"> The unique id of the section. </param>
+        /// <returns> A task returning a bool result indicating if the section is completed. </returns>
+        public async Task<bool> IsSectionCompletedAsync(int userId, int sectionId)
+        {
+            var completion = await this.context.SectionCompletions
+                .FindAsync(userId, sectionId);
+
+            if (completion == null)
+            {
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+        }
+
+        /// <summary>
+        /// Marks a section as completed for a user asynchronously.
+        /// </summary>
+        /// <param name="completedSection"> SectionCompletions object reprsenting a section completed by an user. </param>
+        /// <returns> A task representing the asynchronous operation. The task completes once the sectionCompletion is added. </returns>
+        public async Task CompleteSectionForUser(SectionCompletions completedSection)
+        {
+            this.context.SectionCompletions.Add(completedSection);
+            await this.context.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Deletes a section completion record for all users by section ID asynchronously.
+        /// </summary>
+        /// <param name="sectionId"> Id of the section. </param>
+        /// <returns> A task representing the asynchronous operation.</returns>
+        public async Task DeleteSectionCompletions(int sectionId)
+        {
+            var sectionCompletions = await this.context.SectionCompletions
+                .Where(sc => sc.SectionId == sectionId)
+                .ToListAsync();
+            if (sectionCompletions != null)
+            {
+                this.context.SectionCompletions.RemoveRange(sectionCompletions);
+                await this.context.SaveChangesAsync();
             }
         }
 
@@ -1273,6 +1471,6 @@ namespace Duo.Api.Repositories
         {
             return await context.Roadmaps.FindAsync(id);
         }
-    }
         #endregion
+    }
 }

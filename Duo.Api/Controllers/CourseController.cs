@@ -151,6 +151,7 @@ namespace Duo.Api.Controllers
         /// <param name="filterFree">Whether to filter free courses.</param>
         /// <param name="filterEnrolled">Whether to filter enrolled courses.</param>
         /// <param name="filterNotEnrolled">Whether to filter not enrolled courses.</param>
+        /// <param name="userId">The ID of the user.</param>
         /// <returns>A filtered list of courses.</returns>
         [HttpGet("get-filtered")]
         public async Task<IActionResult> GetFilteredCourses(
@@ -158,9 +159,9 @@ namespace Duo.Api.Controllers
             [FromQuery] bool filterPremium,
             [FromQuery] bool filterFree,
             [FromQuery] bool filterEnrolled,
-            [FromQuery] bool filterNotEnrolled)
+            [FromQuery] bool filterNotEnrolled,
+            [FromQuery] int userId)
         {
-            var userId = 1; // Hardcoded for simplicity, replace this with actual UserId based on your auth system
             var courses = await repository.GetFilteredCoursesAsync(searchText, filterPremium, filterFree, filterEnrolled, filterNotEnrolled, userId);
             return Ok(courses);
         }
