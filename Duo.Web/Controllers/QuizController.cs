@@ -236,12 +236,11 @@ namespace Duo.Web.Controllers
                     TempData["CorrectAnswers"] = 0;
                 }
                 
-                // checked 2 times if the answer was correct
-                //if (valid)
-                //{
-                //    int currentCorrect = TempData.Peek("CorrectAnswers") as int? ?? 0;
-                //    TempData["CorrectAnswers"] = currentCorrect + 1;
-                //}
+                if (valid)
+                {
+                    int currentCorrect = TempData.Peek("CorrectAnswers") as int? ?? 0;
+                    TempData["CorrectAnswers"] = currentCorrect + 1;
+                }
 
                 int next = index + 1;
                 if (next >= quiz.Exercises.Count)
