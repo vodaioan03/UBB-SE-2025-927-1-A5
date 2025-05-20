@@ -82,8 +82,8 @@ namespace Duo.Web.Controllers
         {
             try
             {
-                var allExams = await _quizService.GetAllQuizzes();
-                var exam = allExams.FirstOrDefault(e => e.Id == id);
+                var allQuizzes = await _quizService.GetAllQuizzes();
+                var exam = allQuizzes.FirstOrDefault(e => e.Id == id);
                 
                 if (exam != null)
                 {

@@ -183,7 +183,7 @@
                                     : "locked";
                                     var examClass = $"quiz-circle {stateExam}";
                                     var examLabel = $"E{ex.Id}";
-                                    var examUrl = Url.Action("Preview", "Quiz", new { id = ex.Id });
+                                    var examUrl = Url.Action("Preview", "Exam", new { id = ex.Id });
 
                                     @if (sectionVm.IsExamUnlocked)
                                     {

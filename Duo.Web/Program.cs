@@ -141,6 +141,11 @@ app.MapControllerRoute(
     defaults: new { controller = "Quiz" });
 
 app.MapControllerRoute(
+    name: "exam",
+    pattern: "Exam/{action}/{id}",
+    defaults: new { controller = "Exam" });
+
+app.MapControllerRoute(
     name: "courses",
     pattern: "Course/{action=ViewCourses}/{id?}");
 

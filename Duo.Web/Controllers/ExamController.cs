@@ -1,4 +1,5 @@
-﻿using DuoClassLibrary.Models.Exercises;
+﻿using Duo.Web.ViewModels;
+using DuoClassLibrary.Models.Exercises;
 using DuoClassLibrary.Models.Quizzes;
 using DuoClassLibrary.Models.Quizzes.API;
 using DuoClassLibrary.Services;
@@ -10,11 +11,14 @@ namespace Duo.Web.Controllers
     {
         private readonly IExerciseServiceProxy _exerciseService;
         private readonly IQuizServiceProxy _quizService;
+        private readonly ISectionService _sectionService;
 
-        public ExamController(IExerciseServiceProxy exerciseService, IQuizServiceProxy quizService)
+
+        public ExamController(IExerciseServiceProxy exerciseService, IQuizServiceProxy quizService, ISectionService sectionService)
         {
             _exerciseService = exerciseService;
             _quizService = quizService;
+            _sectionService = sectionService;
         }
 
         // GET: /Exam/AddExam
@@ -102,6 +106,51 @@ namespace Duo.Web.Controllers
                 .ToList<Exercise>();
 
             return PartialView("_SelectedExercisesPartial", proxyExercises);
+        }
+
+        // GET: Exam/Preview/{id}
+        [HttpGet]
+        public async Task<IActionResult> Preview(int id)
+        {
+            try
+            {
+                var allExams = await _quizService.GetAllExams();
+                var exam = allExams.FirstOrDefault(e => e.Id == id);
+
+                if (exam != null)
+                {
+                    var vm = new ExamPreviewViewModel
+                    {
+                        Exam = exam,
+                        ExerciseIds = exam.Exercises.Select(e => e.ExerciseId).ToList(),
+                        SectionTitle = exam.SectionId.HasValue
+                            ? (await _sectionService.GetSectionById(exam.SectionId.Value))?.Title
+                              ?? "Section:"
+                            : "Section:"
+                    };
+                    return View("ExamPreview", vm);
+                }
+
+                var currentExam = await _quizService.GetExamByIdAsync(id);
+                if (currentExam == null) return NotFound();
+
+                var viewModel = new ExamPreviewViewModel
+                {
+                    Exam = currentExam,
+                    ExerciseIds = currentExam.Exercises.Select(e => e.ExerciseId).ToList(),
+                    SectionTitle = currentExam.SectionId.HasValue
+                        ? (await _sectionService.GetSectionById(currentExam.SectionId.Value))?.Title
+                          ?? "Section:"
+                        : "Section:"
+                };
+
+                return View("ExamPreview", viewModel);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in Preview: {ex.Message}");
+                throw;
+            }
         }
     }
 }
