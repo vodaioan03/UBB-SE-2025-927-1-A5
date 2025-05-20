@@ -462,7 +462,7 @@ namespace Duo.Web.Controllers
                     TempData["QuizId"] = quizId;
                     TempData["CorrectAnswers"] = 0;
                 }
-                
+
                 int currentCorrect = TempData.Peek("CorrectAnswers") as int? ?? 0;
                 if (isCorrect)
                 {

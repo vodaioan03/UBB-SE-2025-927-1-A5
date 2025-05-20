@@ -67,7 +67,7 @@ namespace DuoWebApp.Controllers
                         .ToList();
                     isExamUnlocked = false;
                 }
-                else if (isPreviousSectionCompleted)
+                else if (isPreviousSectionCompleted || i == 0)
                 {
                     quizViewModels = quizzes
                         .Select((q, idx) => new QuizUnlockViewModel 
