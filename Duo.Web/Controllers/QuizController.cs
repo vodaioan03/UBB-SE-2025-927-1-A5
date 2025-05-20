@@ -289,25 +289,8 @@ namespace Duo.Web.Controllers
                         {
                             var user = await _userService.GetByIdAsync(1);
                             var quizzesInSection = (await _quizService.GetAllQuizzesFromSection(section.Id)).ToList();
-                            
-                            if (quiz is Exam)
-                            {
-                                if (user.NumberOfCompletedQuizzesInSection >= quizzesInSection.Count)
-                                {
-                                    await _userService.UpdateUserSectionProgressAsync(1, 
-                                        user.NumberOfCompletedSections + 1, 
-                                        0);
-                                }
-                            }
-                            else
-                            {
-                                int quizIndex = quizzesInSection.FindIndex(q => q.Id == quizId);
-                                
-                                if (quizIndex == user.NumberOfCompletedQuizzesInSection)
-                                {
-                                    await _userService.IncrementUserProgressAsync(1);
-                                }
-                            }
+
+                            await _quizService.CompleteQuiz(1, quizId);
                         }
                     }
                 }
