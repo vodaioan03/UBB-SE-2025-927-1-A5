@@ -35,7 +35,7 @@ namespace DuoWebApp.Controllers
             for (int i = 0; i < sections.Count; i++)
             {
                 var section = sections[i];
-                bool isSectionUnlocked = i <= completedSections;
+                bool isSectionUnlocked = false;
 
                 var quizzes = section.GetAllQuizzes().ToList();
                 int completedQuizzes = 0;
@@ -55,6 +55,9 @@ namespace DuoWebApp.Controllers
                 var isSectionCompleted = await _sectionService.IsSectionCompleted(1, section.Id);
                 var isPreviousSectionCompleted = i > 0 && await _sectionService.IsSectionCompleted(1, sections[i - 1].Id);
                 var isThisExamCompleted = await _quizService.IsExamCompleted(1, section.Exam.Id);
+
+
+
                 if (isSectionCompleted || isThisExamCompleted)
                 {
                     quizViewModels = quizzes
@@ -66,6 +69,7 @@ namespace DuoWebApp.Controllers
                         })
                         .ToList();
                     isExamUnlocked = false;
+                    isSectionCompleted = true;
                 }
                 else if (isPreviousSectionCompleted || i == 0)
                 {
@@ -79,6 +83,7 @@ namespace DuoWebApp.Controllers
                         .ToList();
                     
                     isExamUnlocked = completedQuizzes >= quizzes.Count;
+                    isSectionUnlocked = true;
                 }
                 else
                 {
@@ -91,6 +96,7 @@ namespace DuoWebApp.Controllers
                         })
                         .ToList();
                     isExamUnlocked = false;
+                    isSectionUnlocked = false;
                 }
 
                 var exam = await _quizService.GetExamFromSection(section.Id);
