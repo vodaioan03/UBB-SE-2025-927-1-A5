@@ -11,5 +11,6 @@ namespace DuoWebApp.ViewModels
         public List<QuizUnlockViewModel> Quizzes { get; set; }
         public Exam? Exam { get; set; }
         public bool IsExamUnlocked { get; set; }
+        public bool IsExamCompleted { get; set; }
     }
 }

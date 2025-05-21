@@ -1,4 +1,4 @@
-@model Duo.Web.ViewModels.QuizPreviewViewModel
+﻿@model Duo.Web.ViewModels.ExamPreviewViewModel
 
 <div class="container mt-5">
     <div class="row justify-content-center">
@@ -20,16 +20,14 @@
             </a>
 
             <!-- Quiz title -->
-            <h2 class="text-center mb-4">Quiz Preview</h2>
+            <h2 class="text-center mb-4">Exam Preview</h2>
 
             <!-- Quiz section info -->
             <div class="card mb-4">
                 <div class="card-body">
                     <h5 class="card-title">@Model.SectionTitle</h5>
                     <p class="card-text">
-                        @(Model.Quiz is DuoClassLibrary.Models.Quizzes.Exam
-                            ? "Final Exam"
-                            : $"Quiz nr. {Model.Quiz.Id}")
+                        "Final Exam"                            
                     </p>
                 </div>
             </div>
@@ -40,11 +38,11 @@
             </p>
 
             <!-- Start button -->
-            <a asp-controller="Quiz"
+            <a asp-controller="Exam"
                asp-action="Solve"
-               asp-route-id="@Model.Quiz.Id"
+               asp-route-id="@Model.Exam.Id"
                class="btn btn-primary float-end">
-                @(Model.Quiz is DuoClassLibrary.Models.Quizzes.Exam ? "Start Exam" : "Start Quiz")
+                @(Model.Exam is DuoClassLibrary.Models.Quizzes.Exam ? "Start Exam" : "Start Quiz")
             </a>
 
         </div>

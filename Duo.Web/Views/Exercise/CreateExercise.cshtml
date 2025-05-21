@@ -109,6 +109,57 @@
                 const exerciseType = $('#exerciseType').val();
                 const formData = collectFormData(exerciseType);
 
+                // Validate form data
+                let isValid = true;
+                let errorMessage = '';
+
+                if (!formData.Question || formData.Question.trim().length === 0) {
+                    isValid = false;
+                    errorMessage = 'Please enter a question.';
+                }
+                else if (formData.Question.length > 200) {
+                    isValid = false;
+                    errorMessage = 'Question is too long (maximum 200 characters).';
+                }
+
+                switch (exerciseType) {
+                    case 'Multiple Choice':
+                        if (!formData.Choices || formData.Choices.length < 2) {
+                            isValid = false;
+                            errorMessage = 'Please add at least 2 choices.';
+                        }
+                        else if (formData.Choices.length > 5) {
+                            isValid = false;
+                            errorMessage = 'Maximum 5 choices allowed.';
+                        }
+                        else if (!formData.Choices.some(c => c.IsCorrect)) {
+                            isValid = false;
+                            errorMessage = 'Please select at least one correct answer.';
+                        }
+                        break;
+
+                    case 'Fill in the blank':
+                        if (!formData.PossibleCorrectAnswers || formData.PossibleCorrectAnswers.length === 0) {
+                            isValid = false;
+                            errorMessage = 'Please add at least one answer.';
+                        }
+                        else if (formData.PossibleCorrectAnswers.length > 3) {
+                            isValid = false;
+                            errorMessage = 'Maximum 3 answers allowed.';
+                        }
+                        const blankCount = (formData.Question.match(/\{\}/g) || []).length;
+                        if (blankCount !== formData.PossibleCorrectAnswers.length) {
+                            isValid = false;
+                            errorMessage = 'Number of blanks in question must match number of answers.';
+                        }
+                        break;
+                }
+
+                if (!isValid) {
+                    alert(errorMessage);
+                    return;
+                }
+
                 console.log(formData); // Debugging line
                 formData.Difficulty = parseInt(formData.Difficulty, 10);
                 console.log(JSON.stringify(formData))
@@ -123,8 +174,7 @@
                     },
                     error: function(xhr) {
                         if (xhr.status === 400 && xhr.responseJSON) {
-                            // Display validation errors
-                            // Example: show errors next to fields
+                            alert('Validation error: ' + xhr.responseJSON);
                         } else {
                             alert('Error saving exercise: ' + xhr.responseText);
                         }
@@ -214,7 +264,8 @@
                 const baseData = {
                     Question: $('#Question').val(),
                     Difficulty: $('#Difficulty').val(),
-                    Type: type
+                    Type: type === 'Multiple Choice' ? 'MultipleChoice' : 
+                          type === 'Fill in the blank' ? 'FillInTheBlank' : type
                 };
 
                 switch(type) {
@@ -235,25 +286,37 @@
                     case 'Multiple Choice':
                         const choices = [];
                         $('.choice-row').each(function() {
-                            choices.push({
-                                Answer: $(this).find('.choice-text').val(),
-                                IsCorrect: $(this).find('.is-correct').is(':checked')
-                            });
+                            const choiceText = $(this).find('.choice-text').val().trim();
+                            const isCorrect = $(this).find('.is-correct').is(':checked');
+                            if (choiceText) {
+                                choices.push({
+                                    Answer: choiceText,
+                                    IsCorrect: isCorrect
+                                });
+                            }
                         });
                         return { ...baseData, Choices: choices };
                     
                     case 'Fill in the blank':
-                        const blanks = [];
-                        $('.blank-row').each(function() {
-                            blanks.push($(this).find('.blank-answer').val());
+                        const possibleAnswers = [];
+                        $('.blank-answer').each(function() {
+                            const answer = $(this).val().trim();
+                            if (answer) {
+                                possibleAnswers.push(answer);
+                            }
                         });
-                        return { ...baseData, PossibleCorrectAnswers: blanks };
+                        // Add {} placeholders to the question for each answer
+                        baseData.Question = baseData.Question.trim();
+                        if (!baseData.Question.includes('{}')) {
+                            baseData.Question = baseData.Question + ' ' + Array(possibleAnswers.length).fill('{}').join(' ');
+                        }
+                        return { ...baseData, PossibleCorrectAnswers: possibleAnswers };
                     
                     case 'Flashcard':
                         return { 
                             ...baseData, 
                             Answer: $('#flashcardAnswer').val(),
-                            TimeInSeconds: $('#flashcardTime').val()
+                            TimeInSeconds: parseInt($('#flashcardTime').val(), 10) || 30
                         };
                     
                     default:

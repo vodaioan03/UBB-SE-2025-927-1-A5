@@ -12,12 +12,14 @@ namespace DuoWebApp.Controllers
         private readonly IRoadmapService _roadmapService;
         private readonly ISectionService _sectionService;
         private readonly IUserService _userService;
+        private readonly IQuizService _quizService;
 
-        public RoadmapController(IRoadmapService roadmapService, ISectionService sectionService, IUserService userService)
+        public RoadmapController(IRoadmapService roadmapService, ISectionService sectionService, IUserService userService, IQuizService quizService)
         {
             _roadmapService = roadmapService;
             _sectionService = sectionService;
             _userService = userService;
+            _quizService = quizService;
         }
 
         public async Task<IActionResult> Index()
@@ -27,42 +29,78 @@ namespace DuoWebApp.Controllers
             var sections = await _sectionService.GetByRoadmapId(roadmap.Id);
 
             int completedSections = user.NumberOfCompletedSections;
-            int completedQuizzes = user.NumberOfCompletedQuizzesInSection;
 
             var sectionViewModels = new List<SectionUnlockViewModel>();
 
             for (int i = 0; i < sections.Count; i++)
             {
                 var section = sections[i];
-                bool isSectionUnlocked = i <= completedSections;
+                bool isSectionUnlocked = false;
+
                 var quizzes = section.GetAllQuizzes().ToList();
+                int completedQuizzes = 0;
 
-                var quizViewModels = new List<QuizUnlockViewModel>();
-                bool isExamUnlocked = false;
-
-                if (i < completedSections)
+                for (int j = 0; j < quizzes.Count; j++)
                 {
-                    // Section fully completed, all quizzes and exam unlocked
-                    quizViewModels = quizzes.Select(q => new QuizUnlockViewModel { Quiz = q, IsUnlocked = true }).ToList();
-                    isExamUnlocked = true;
-                }
-                else if (i == completedSections)
-                {
-                    // Current section: unlock quizzes up to completedQuizzes
-                    for (int q = 0; q < quizzes.Count; q++)
+                    var quiz = quizzes[j];
+                    var IsCompleted = await _quizService.IsQuizCompleted(1, quiz.Id);
+                    if(IsCompleted)
                     {
-                        bool isQuizUnlocked = q <= completedQuizzes;
-                        quizViewModels.Add(new QuizUnlockViewModel { Quiz = quizzes[q], IsUnlocked = isQuizUnlocked });
+                        completedQuizzes++;
                     }
-                    // Exam unlocked only if all quizzes are completed
+                }
+
+                List<QuizUnlockViewModel> quizViewModels;
+                bool isExamUnlocked;
+                var isSectionCompleted = await _sectionService.IsSectionCompleted(1, section.Id);
+                var isPreviousSectionCompleted = i > 0 && await _sectionService.IsSectionCompleted(1, sections[i - 1].Id);
+                var isThisExamCompleted = await _quizService.IsExamCompleted(1, section.Exam.Id);
+
+
+
+                if (isSectionCompleted || isThisExamCompleted)
+                {
+                    quizViewModels = quizzes
+                        .Select(q => new QuizUnlockViewModel 
+                        { 
+                            Quiz = q, 
+                            IsUnlocked = false, 
+                            IsCompleted = true 
+                        })
+                        .ToList();
+                    isExamUnlocked = false;
+                    isSectionCompleted = true;
+                }
+                else if (isPreviousSectionCompleted || i == 0)
+                {
+                    quizViewModels = quizzes
+                        .Select((q, idx) => new QuizUnlockViewModel 
+                        { 
+                            Quiz = q, 
+                            IsUnlocked = idx == completedQuizzes, 
+                            IsCompleted = idx < completedQuizzes 
+                        })
+                        .ToList();
+                    
                     isExamUnlocked = completedQuizzes >= quizzes.Count;
+                    isSectionUnlocked = true;
                 }
                 else
                 {
-                    // Future sections: nothing unlocked
-                    quizViewModels = quizzes.Select(q => new QuizUnlockViewModel { Quiz = q, IsUnlocked = false }).ToList();
+                    quizViewModels = quizzes
+                        .Select(q => new QuizUnlockViewModel 
+                        { 
+                            Quiz = q, 
+                            IsUnlocked = false, 
+                            IsCompleted = false 
+                        })
+                        .ToList();
                     isExamUnlocked = false;
+                    isSectionUnlocked = false;
                 }
+
+                var exam = await _quizService.GetExamFromSection(section.Id);
+                bool isExamCompleted = await _quizService.IsExamCompleted(1, exam.Id);
 
                 sectionViewModels.Add(new SectionUnlockViewModel
                 {
@@ -70,7 +108,8 @@ namespace DuoWebApp.Controllers
                     IsUnlocked = isSectionUnlocked,
                     Quizzes = quizViewModels,
                     Exam = section.Exam,
-                    IsExamUnlocked = isExamUnlocked
+                    IsExamUnlocked = isExamUnlocked,
+                    IsExamCompleted = isExamCompleted
                 });
             }
 

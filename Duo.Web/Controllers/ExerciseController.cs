@@ -104,13 +104,13 @@ public class ExerciseController : Controller
         switch (type)
         {
             case "Association":
-                return PartialView("_AssociationExerciseForm");
+                return PartialView("_AssociationExerciseCreateForm");
             case "Fill in the blank":
-                return PartialView("_FillInTheBlankExerciseForm");
+                return PartialView("_FillInTheBlankExerciseCreateForm");
             case "Multiple Choice":
-                return PartialView("_MultipleChoiceExerciseForm");
+                return PartialView("_MultipleChoiceExerciseCreateForm");
             case "Flashcard":
-                return PartialView("_FlashcardExerciseForm", new FlashcardExercise());
+                return PartialView("_FlashcardExerciseCreateForm", new FlashcardExercise());
             default:
                 return NotFound();
         }

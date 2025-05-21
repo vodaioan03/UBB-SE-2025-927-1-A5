@@ -254,7 +254,7 @@ namespace DuoClassLibrary.Services
 
         public Task<bool> IsExamCompletedAsync(int userId, int examId)
         {
-            var response = httpClient.GetFromJsonAsync<ExamCompletionDTO>($"{url}Exam/is-completed?userId={userId}&sectionId={examId}");
+            var response = httpClient.GetFromJsonAsync<ExamCompletionDTO>($"{url}Exam/is-completed?userId={userId}&examId={examId}");
             //Get boolean result from response
             if (response.Result == null)
             {

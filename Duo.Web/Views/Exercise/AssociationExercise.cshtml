@@ -4,7 +4,6 @@
 }
 
 <style>
-    /*--- tiny styling tweaks ---*/
     .match-select {
         min-width: 120px;
     }
@@ -17,7 +16,6 @@
 <div class="container py-5">
     <h1 class="text-center mb-4 display-6">Matching Exercise</h1>
 
-    <!-- Instruction card -->
     <div class="card shadow-sm mx-auto mb-4" style="max-width: 680px;">
         <div class="card-body p-4">
             <h5 id="questionTitle" class="fw-semibold mb-3"></h5>
@@ -28,7 +26,6 @@
         </div>
     </div>
 
-    <!-- Result card -->
     <div id="resultCard" class="card shadow-sm mx-auto d-none" style="max-width: 680px;">
         <div class="card-body p-4">
             <h5 id="resultHeader" class="fw-semibold"></h5>
@@ -50,12 +47,9 @@
     </div>
 </div>
 
-<!-- ==== Script (keeping logic modular & replaceable) ==== -->
 @section Scripts {
     <script type="module">
-        /***** Mock fetch – replace with real API / library call *****/
         async function getExercise() {
-            // In production, swap this with: return await fetch('/api/association/1').then(r => r.json());
             return {
                 id: 1,
                 question: 'Match the countries with their capitals',
@@ -66,10 +60,8 @@
                 ]
             };
         }
-        /***** Helper utilities *****/
         const shuffle = arr => arr.map(v => [v, Math.random()]).sort((a, b) => a[1] - b[1]).map(v => v[0]);
 
-        /***** Render form *****/
         async function init() {
             const data = await getExercise();
             const form = document.getElementById('matchForm');
@@ -77,7 +69,6 @@
 
             questionTitle.textContent = data.question;
 
-            // unique list of right‑hand options (shuffled)
             const capitalOptions = shuffle(data.pairs.map(p => p.capital));
 
             data.pairs.forEach((pair, idx) => {
@@ -100,7 +91,6 @@
             });
         }
 
-        /***** Evaluate answers *****/
         function evaluate(form, correctPairs) {
             const selects = form.querySelectorAll('select');
             const results = [];
@@ -117,7 +107,6 @@
             renderResult(results, score, correctPairs.length);
         }
 
-        /***** Render results table *****/
         function renderResult(results, score, total) {
             const resultCard = document.getElementById('resultCard');
             const resultBody = document.getElementById('resultBody');
@@ -138,7 +127,6 @@
             resultCard.classList.remove('d-none');
         }
 
-        /***** Retry *****/
         document.getElementById('retryBtn').addEventListener('click', () => {
             const resultCard = document.getElementById('resultCard');
             resultCard.classList.add('d-none');
@@ -146,7 +134,6 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         });
 
-        // Kickoff
         init();
     </script>
 }
