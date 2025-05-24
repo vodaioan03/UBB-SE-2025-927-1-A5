@@ -24,7 +24,15 @@ namespace DuoWebApp.Controllers
 
         public async Task<IActionResult> Index()
         {
-            var roadmap = await _roadmapService.GetByIdAsync(1);
+            Roadmap roadmap;
+            try
+            {
+                roadmap = await _roadmapService.GetByIdAsync(1);
+            }
+            catch (Exception ex)
+            {
+                return View(new List<SectionUnlockViewModel>());
+            }
             var user = await _userService.GetByIdAsync(1);
             var sections = await _sectionService.GetByRoadmapId(roadmap.Id);
 
