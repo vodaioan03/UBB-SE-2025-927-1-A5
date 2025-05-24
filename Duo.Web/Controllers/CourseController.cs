@@ -107,5 +107,36 @@ namespace Duo.Web.Controllers
                 return false;
             }
         }
+
+        public async Task<IActionResult> Enroll(int id)
+        {
+            int userId = 1;
+            var CurrentCourse = await courseService.GetCourseAsync(id);
+            var CoinBalance = await coinsService.GetCoinBalanceAsync(userId);
+            var IsEnrolled = await courseService.IsUserEnrolledAsync(userId, id);
+
+            if (!IsEnrolled && (CurrentCourse.Cost == 0 || CoinBalance >= CurrentCourse.Cost))
+            {
+                if (CurrentCourse.Cost > 0)
+                {
+                    bool coinDeductionSuccessful = await coinsService.TrySpendingCoinsAsync(userId, CurrentCourse.Cost);
+                }
+
+                bool enrollmentSuccessful = await courseService.EnrollInCourseAsync(userId, CurrentCourse.CourseId);
+
+                CoinBalance = await coinsService.GetCoinBalanceAsync(userId);
+                IsEnrolled = true;
+
+                // Start Course Progress Timer ...
+            }
+
+            return RedirectToRoute(
+                new
+                {
+                    controller = "Course",
+                    action = "CoursePreview",
+                    id = CurrentCourse.CourseId
+                });
+        }
     }
 }
