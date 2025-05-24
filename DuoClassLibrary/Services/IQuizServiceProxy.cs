@@ -30,5 +30,9 @@ namespace DuoClassLibrary.Services
         Task<Exam> CreateExamAsync(Exam exam);
         Task<QuizResult> GetResultAsync(int quizId);
         Task SubmitQuizAsync(QuizSubmission submission);
+        Task<bool> IsQuizCompletedAsync(int userId, int quizId);
+        Task<bool> IsExamCompletedAsync(int userId, int examId);
+        Task CompleteQuizAsync(int userId, int quizId);
+        Task CompleteExamAsync(int userId, int examId);
     }
 }

@@ -12,6 +12,7 @@ using DuoClassLibrary.Models.Exercises;
 using DuoClassLibrary.Models.Quizzes;
 using DuoClassLibrary.Helpers;
 using DuoClassLibrary.Models.Quizzes.API;
+using DuoClassLibrary.Models;
 
 namespace DuoClassLibrary.Services
 {
@@ -237,6 +238,42 @@ namespace DuoClassLibrary.Services
         {
             var response = await httpClient.PostAsJsonAsync($"{url}quiz/submit", submission);
             response.EnsureSuccessStatusCode();
+        }
+
+        public Task<bool> IsQuizCompletedAsync(int userId, int quizId)
+        {
+            var response = httpClient.GetFromJsonAsync<QuizCompletionDTO>($"{url}Quiz/is-completed?userId={userId}&quizId={quizId}");
+            //Get boolean result from response
+            if (response.Result == null)
+            {
+                throw new InvalidOperationException("Empty or invalid response from server.");
+            }
+
+            return Task.FromResult(response.Result.IsCompleted);
+        }
+
+        public Task<bool> IsExamCompletedAsync(int userId, int examId)
+        {
+            var response = httpClient.GetFromJsonAsync<ExamCompletionDTO>($"{url}Exam/is-completed?userId={userId}&examId={examId}");
+            //Get boolean result from response
+            if (response.Result == null)
+            {
+                throw new InvalidOperationException("Empty or invalid response from server.");
+            }
+
+            return Task.FromResult(response.Result.IsCompleted);
+        }
+
+        public async Task CompleteQuizAsync(int userId, int quizId)
+        {
+            var response = httpClient.PostAsJsonAsync($"{url}Quiz/add-completed-quiz?userId={userId}&quizId={quizId}", new { });
+            response.Result.EnsureSuccessStatusCode();
+        }
+
+        public async Task CompleteExamAsync(int userId, int examId)
+        {
+            var response = httpClient.PostAsJsonAsync($"{url}Exam/add-completed-exam?userId={userId}&examId={examId}", new { });
+            response.Result.EnsureSuccessStatusCode();
         }
     }
 }

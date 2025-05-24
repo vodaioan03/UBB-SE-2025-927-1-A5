@@ -1,77 +1,190 @@
-@model Duo.Web.Models.QuizSolverViewModel
+﻿@model Duo.Web.ViewModels.QuizSolverViewModel
 @{
+    Layout = "_Layout";
     ViewData["Title"] = $"Solving: {Model.QuizTitle}";
+    var pct = (int)Math.Ceiling(100.0 * (Model.CurrentExerciseIndex + 1) / Model.AllExercises.Count);
 }
 
-<div class="quiz-solver-container" style="max-width: 800px; margin: auto; padding: 20px;">
-    <h1 class="text-center">@ViewData["Title"]</h1>
-    <p class="text-center">Question @(Model.CurrentExerciseIndex + 1) of @Model.AllExercises.Count</p>
+<h1>@ViewData["Title"]</h1>
+<p>Question @(Model.CurrentExerciseIndex + 1) of @Model.AllExercises.Count</p>
 
-    <hr />
-
-    @if (Model.CurrentExercise != null)
-    {
-        <div class="exercise-area mb-4">
-            <h3>@Model.CurrentExercise.Question</h3>
-
-            @* Placeholder for the actual exercise component - the "white thingy" *@
-            <div class="exercise-component-placeholder mb-3" style="border: 1px dashed #ccc; background-color: #f9f9f9; min-height: 200px; padding: 20px; display: flex; align-items: center; justify-content: center;">
-                @* Conditional rendering based on exercise type *@
-                @if (Model.CurrentExerciseType == "MultipleChoiceExercise")
-                {
-                    <partial name="_MultipleChoiceExercisePartial" model="(MultipleChoiceExercise)Model.CurrentExercise" />
-                }
-                else if (Model.CurrentExerciseType == "FillInTheBlankExercise")
-                {
-                    <partial name="_FillInTheBlankExercisePartial" model="(FillInTheBlankExercise)Model.CurrentExercise" />
-                }
-                else if (Model.CurrentExerciseType == "AssociationExercise")
-                {
-                    <partial name="_AssociationExercisePartial" model="(AssociationExercise)Model.CurrentExercise" />
-                }
-                else if (Model.CurrentExerciseType == "FlashcardExercise")
-                {
-                    <partial name="_FlashcardExercisePartial" model="(FlashcardExercise)Model.CurrentExercise" />
-                }
-                else
-                {
-                    <p>Unsupported exercise type: @Model.CurrentExerciseType</p>
-                }
-            </div>
-        </div>
-
-        <div class="navigation-area text-center">
-            @*
-                This will eventually be a form POST or a JavaScript call
-                For now, it's just a visual placeholder based on the image.
-                The actual "Next Exercise" button needs to trigger logic to
-                load the next question (e.g., via a POST request or JS).
-            *@
-            @if (!Model.IsLastExercise)
-            {
-                @* Placeholder for the "Next Exercise" button as an image/styled button *@
-                <button type="button" class="btn btn-lg" style="background-color: #333; color: white; padding: 10px 20px; border-radius: 25px; min-width:150px;" onclick="alert('Next Exercise logic to be implemented!');">
-                    Next Exercise &rarr;
-                </button>
-            }
-            else
-            {
-                <button type="button" class="btn btn-success btn-lg" onclick="alert('Quiz Finished! Show results logic to be implemented!');">
-                    Finish Quiz
-                </button>
-            }
-        </div>
-    }
-    else
-    {
-        <p class="text-center">No current exercise to display.</p>
-    }
-
+<div class="progress mb-4" style="height:6px;">
+    <div class="progress-bar bg-success" style="width:@pct%;"></div>
 </div>
 
-@*
-    You might want to include hidden fields if this were a form for submitting answers
-    and advancing to the next question:
-    <input type="hidden" asp-for="QuizId" />
-    <input type="hidden" asp-for="CurrentExerciseIndex" />
-*@
+<form method="post"
+      asp-action="Solve"
+      asp-route-id="@Model.QuizId"
+      asp-route-index="@Model.CurrentExerciseIndex"
+      id="exerciseForm">
+    @Html.AntiForgeryToken()
+
+    @switch (Model.CurrentExerciseType)
+    {
+        case nameof(DuoClassLibrary.Models.Exercises.FlashcardExercise):
+            @await Html.PartialAsync(
+                    "~/Views/Exercise/_FlashcardExerciseForm.cshtml",
+                    (DuoClassLibrary.Models.Exercises.FlashcardExercise)Model.CurrentExercise
+                    )
+            break;
+
+        case nameof(DuoClassLibrary.Models.Exercises.AssociationExercise):
+            @await Html.PartialAsync(
+                    "~/Views/Exercise/_AssociationExerciseForm.cshtml",
+                    (DuoClassLibrary.Models.Exercises.AssociationExercise)Model.CurrentExercise
+                    )
+            break;
+
+        case nameof(DuoClassLibrary.Models.Exercises.MultipleChoiceExercise):
+            @await Html.PartialAsync(
+                    "~/Views/Exercise/_MultipleChoiceExerciseForm.cshtml",
+                    (DuoClassLibrary.Models.Exercises.MultipleChoiceExercise)Model.CurrentExercise
+                    )
+            break;
+
+        case nameof(DuoClassLibrary.Models.Exercises.FillInTheBlankExercise):
+            @await Html.PartialAsync(
+                    "~/Views/Exercise/_FillInTheBlankExerciseForm.cshtml",
+                    (DuoClassLibrary.Models.Exercises.FillInTheBlankExercise)Model.CurrentExercise
+                    )
+            break;
+    }
+
+    <div class="d-flex justify-content-between mt-4">
+        <button type="button" 
+                id="submitButton" 
+                class="btn btn-primary"
+                onclick="validateExercise()">
+            Submit Answer
+        </button>
+
+        <button type="submit"
+                id="nextButton"
+                class="btn btn-dark"
+                disabled>
+            @(Model.IsLastExercise ? "Finish Quiz" : "Next →")
+        </button>
+    </div>
+
+    <div id="feedbackMessage" class="alert mt-3" style="display: none;">
+        <div class="d-flex align-items-center">
+            <span id="feedbackIcon" class="me-2"></span>
+            <span id="feedbackText"></span>
+        </div>
+        <div id="correctAnswerText" class="mt-2 fw-bold"></div>
+    </div>
+</form>
+
+<script>
+    async function validateExercise() {
+        const form = document.getElementById('exerciseForm');
+        const submitButton = document.getElementById('submitButton');
+        const nextButton = document.getElementById('nextButton');
+        const feedbackMessage = document.getElementById('feedbackMessage');
+        const feedbackIcon = document.getElementById('feedbackIcon');
+        const feedbackText = document.getElementById('feedbackText');
+        const correctAnswerText = document.getElementById('correctAnswerText');
+
+        submitButton.disabled = true;
+
+        let answer = null;
+        @if (Model.CurrentExerciseType == nameof(DuoClassLibrary.Models.Exercises.FlashcardExercise))
+        {
+            <text>
+            const answerInput = document.getElementById('answerInput');
+            if (!answerInput.value.trim()) {
+                feedbackMessage.style.display = 'block';
+                feedbackMessage.className = 'alert alert-warning mt-3';
+                feedbackText.textContent = 'Please enter an answer.';
+                submitButton.disabled = false;
+                return;
+            }
+            answer = answerInput.value;
+            </text>
+        }
+        else if (Model.CurrentExerciseType == nameof(DuoClassLibrary.Models.Exercises.AssociationExercise))
+        {
+            <text>
+            answer = document.getElementById('AssociationPairsJson').value;
+            if (!answer) {
+                feedbackMessage.style.display = 'block';
+                feedbackMessage.className = 'alert alert-warning mt-3';
+                feedbackText.textContent = 'Please make at least one association.';
+                submitButton.disabled = false;
+                return;
+            }
+            </text>
+        }
+        else if (Model.CurrentExerciseType == nameof(DuoClassLibrary.Models.Exercises.FillInTheBlankExercise))
+        {
+            <text>
+            const blankInputs = document.querySelectorAll('.blank-input');
+            const answers = Array.from(blankInputs).map(input => input.value.trim());
+            
+            if (answers.some(a => !a)) {
+                feedbackMessage.style.display = 'block';
+                feedbackMessage.className = 'alert alert-warning mt-3';
+                feedbackText.textContent = 'Please fill in all blanks.';
+                submitButton.disabled = false;
+                return;
+            }
+            
+            answer = JSON.stringify(answers);
+            </text>
+        }
+        else if (Model.CurrentExerciseType == nameof(DuoClassLibrary.Models.Exercises.MultipleChoiceExercise))
+        {
+            <text>
+            const selectedAnswer = document.querySelector('input[name="selectedAnswer"]:checked');
+            if (!selectedAnswer) {
+                feedbackMessage.style.display = 'block';
+                feedbackMessage.className = 'alert alert-warning mt-3';
+                feedbackText.textContent = 'Please select an answer.';
+                submitButton.disabled = false;
+                return;
+            }
+            answer = selectedAnswer.value;
+            </text>
+        }
+
+        try {
+            const response = await fetch(`/Quiz/ValidateAnswer/@Model.QuizId/@Model.CurrentExerciseIndex`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                },
+                body: JSON.stringify({ answer: answer })
+            });
+
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+
+            const result = await response.json();
+
+            feedbackMessage.style.display = 'block';
+            if (result.isCorrect) {
+                feedbackMessage.className = 'alert alert-success mt-3';
+                feedbackIcon.innerHTML = '✓';
+                feedbackText.textContent = 'Correct!';
+            } else {
+                feedbackMessage.className = 'alert alert-danger mt-3';
+                feedbackIcon.innerHTML = '✗';
+                feedbackText.textContent = 'Incorrect.';
+                correctAnswerText.textContent = `Correct answer: ${result.correctAnswer}`;
+            }
+
+            nextButton.disabled = false;
+            submitButton.disabled = true;
+
+            nextButton.classList.add('btn-primary');
+            nextButton.classList.remove('btn-dark');
+        } catch (error) {
+            feedbackMessage.style.display = 'block';
+            feedbackMessage.className = 'alert alert-danger mt-3';
+            feedbackText.textContent = 'Error validating answer. Please try again.';
+            submitButton.disabled = false;
+        }
+    }
+</script>

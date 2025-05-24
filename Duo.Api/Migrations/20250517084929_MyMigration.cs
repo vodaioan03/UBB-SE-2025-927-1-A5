@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Duo.Api.Migrations
 {
     /// <inheritdoc />
-    public partial class NumeLaMigration : Migration
+    public partial class MyMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -338,6 +338,55 @@ namespace Duo.Api.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "SectionCompletions",
+                columns: table => new
+                {
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    SectionId = table.Column<int>(type: "int", nullable: false),
+                    Completed = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SectionCompletions", x => new { x.UserId, x.SectionId });
+                    table.ForeignKey(
+                        name: "FK_SectionCompletions_Sections_SectionId",
+                        column: x => x.SectionId,
+                        principalTable: "Sections",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_SectionCompletions_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "UserId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ExamCompletions",
+                columns: table => new
+                {
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    ExamId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ExamCompletions", x => new { x.UserId, x.ExamId });
+                    table.ForeignKey(
+                        name: "FK_ExamCompletions_Exams_ExamId",
+                        column: x => x.ExamId,
+                        principalTable: "Exams",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ExamCompletions_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "UserId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "ExamExercises",
                 columns: table => new
                 {
@@ -358,6 +407,30 @@ namespace Duo.Api.Migrations
                         column: x => x.ExercisesExerciseId,
                         principalTable: "Exercises",
                         principalColumn: "ExerciseId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "QuizCompletions",
+                columns: table => new
+                {
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    QuizId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_QuizCompletions", x => new { x.UserId, x.QuizId });
+                    table.ForeignKey(
+                        name: "FK_QuizCompletions_Quizzes_QuizId",
+                        column: x => x.QuizId,
+                        principalTable: "Quizzes",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_QuizCompletions_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "UserId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -406,6 +479,11 @@ namespace Duo.Api.Migrations
                 column: "CourseId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_ExamCompletions_ExamId",
+                table: "ExamCompletions",
+                column: "ExamId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_ExamExercises_ExercisesExerciseId",
                 table: "ExamExercises",
                 column: "ExercisesExerciseId");
@@ -428,6 +506,11 @@ namespace Duo.Api.Migrations
                 column: "ExerciseId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_QuizCompletions_QuizId",
+                table: "QuizCompletions",
+                column: "QuizId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_QuizExercises_QuizzesId",
                 table: "QuizExercises",
                 column: "QuizzesId");
@@ -435,6 +518,11 @@ namespace Duo.Api.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_Quizzes_SectionId",
                 table: "Quizzes",
+                column: "SectionId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SectionCompletions_SectionId",
+                table: "SectionCompletions",
                 column: "SectionId");
 
             migrationBuilder.CreateIndex(
@@ -464,13 +552,22 @@ namespace Duo.Api.Migrations
                 name: "Enrollments");
 
             migrationBuilder.DropTable(
+                name: "ExamCompletions");
+
+            migrationBuilder.DropTable(
                 name: "ExamExercises");
 
             migrationBuilder.DropTable(
                 name: "MultipleChoiceAnswerModel");
 
             migrationBuilder.DropTable(
+                name: "QuizCompletions");
+
+            migrationBuilder.DropTable(
                 name: "QuizExercises");
+
+            migrationBuilder.DropTable(
+                name: "SectionCompletions");
 
             migrationBuilder.DropTable(
                 name: "UserProgresses");
