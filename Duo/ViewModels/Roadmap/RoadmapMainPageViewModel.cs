@@ -5,10 +5,10 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Duo.Commands;
-using Duo.Models;
-using Duo.Models.Quizzes;
-using Duo.Models.Sections;
-using Duo.Services;
+using DuoClassLibrary.Models;
+using DuoClassLibrary.Models.Quizzes;
+using DuoClassLibrary.Models.Sections;
+using DuoClassLibrary.Services;
 using Duo.ViewModels.Base;
 
 namespace Duo.ViewModels.Roadmap
@@ -16,7 +16,7 @@ namespace Duo.ViewModels.Roadmap
     public class RoadmapMainPageViewModel : ViewModelBase
     {
         private IRoadmapService roadmapService;
-        private Duo.Models.Roadmap.Roadmap roadmap;
+        private DuoClassLibrary.Models.Roadmap.Roadmap roadmap;
         private IUserService userService;
         private User user;
         private BaseQuiz selectedQuiz;
@@ -55,9 +55,33 @@ namespace Duo.ViewModels.Roadmap
                 user = await userService.GetByIdAsync(1);
 
                 ISectionService sectionService = (ISectionService)App.ServiceProvider.GetService(typeof(ISectionService));
-                List<Section> sections = (List<Section>)await sectionService.GetByRoadmapId(1);
+                List<Section> sections = null;
+                try
+                {
+                    sections = (List<Section>)await sectionService.GetByRoadmapId(1);
+                }
+                catch (Exception ex)
+                {
+                    if (ex.Message.Contains("404"))
+                    {
+                        RaiseErrorMessage("No Sections", "Roadmap does not contain any sections yet.");
+                        SectionViewModels = new ObservableCollection<RoadmapSectionViewModel>();
+                        return;
+                    }
+                    throw;
+                }
 
                 sectionViewModels = new ObservableCollection<RoadmapSectionViewModel>();
+
+                if (sections == null || sections.Count == 0)
+                {
+                    RaiseErrorMessage("No Sections", "This roadmap does not contain any sections yet.");
+                    OnPropertyChanged(nameof(SectionViewModels));
+                    return;
+                }
+
+                bool isPreviousCompleted = true;
+                bool currentIsCompleted = false;
                 for (int i = 1; i <= sections.Count; i++)
                 {
                     var sectionViewModel = (RoadmapSectionViewModel)App.ServiceProvider.GetService(typeof(RoadmapSectionViewModel));
@@ -67,19 +91,21 @@ namespace Duo.ViewModels.Roadmap
                         continue;
                     }
 
-                    if (i <= user.NumberOfCompletedSections)
+                    currentIsCompleted = await sectionService.IsSectionCompleted(user.UserId, sections[i - 1].Id);
+                    if (currentIsCompleted)
                     {
-                        await sectionViewModel.SetupForSection(sections[i - 1].Id, true, 0);
+                        await sectionViewModel.SetupForSection(sections[i - 1].Id, true, 0, isPreviousCompleted);
                     }
-                    else if (i == user.NumberOfCompletedSections + 1)
+                    else if (isPreviousCompleted)
                     {
-                        await sectionViewModel.SetupForSection(sections[i - 1].Id, false, user.NumberOfCompletedQuizzesInSection);
+                        await sectionViewModel.SetupForSection(sections[i - 1].Id, false, user.NumberOfCompletedQuizzesInSection, isPreviousCompleted);
                     }
                     else
                     {
-                        await sectionViewModel.SetupForSection(sections[i - 1].Id, false, -1);
+                        await sectionViewModel.SetupForSection(sections[i - 1].Id, false, -1, isPreviousCompleted);
                     }
                     sectionViewModels.Add(sectionViewModel);
+                    isPreviousCompleted = currentIsCompleted;
                 }
 
                 OnPropertyChanged(nameof(SectionViewModels));
@@ -89,7 +115,6 @@ namespace Duo.ViewModels.Roadmap
                 RaiseErrorMessage("Setup Error", $"Failed to set up RoadmapMainPageViewModel.\nDetails: {ex.Message}");
             }
         }
-
         private async Task OpenQuizPreview(Tuple<int, bool> args)
         {
             try

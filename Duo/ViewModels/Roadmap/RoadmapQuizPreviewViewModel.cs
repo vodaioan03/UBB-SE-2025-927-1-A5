@@ -3,9 +3,9 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Duo.Commands;
-using Duo.Models.Quizzes;
-using Duo.Models.Sections;
-using Duo.Services;
+using DuoClassLibrary.Models.Quizzes;
+using DuoClassLibrary.Models.Sections;
+using DuoClassLibrary.Services;
 using Duo.ViewModels.Base;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
@@ -47,7 +47,14 @@ namespace Duo.ViewModels.Roadmap
                     }
                     if (this.quiz is Quiz quizInstance)
                     {
-                        return $"Quiz nr. {quizInstance.OrderNumber.ToString()}" ?? "-1";
+                        if (quizInstance.OrderNumber.HasValue && quizInstance.OrderNumber.Value > 0)
+                        {
+                            return $"Quiz nr. {quizInstance.OrderNumber.Value}";
+                        }
+                        else
+                        {
+                            return "Quiz nr. ?";
+                        }
                     }
                     return "-1";
                 }

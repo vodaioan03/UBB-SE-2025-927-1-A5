@@ -2,7 +2,7 @@
 using System.Text.Json;
 using System;
 using System.Linq;
-using Duo.Models.Exercises;
+using DuoClassLibrary.Models.Exercises;
 
 namespace Duo.Models.Quizzes;
 

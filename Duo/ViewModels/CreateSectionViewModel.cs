@@ -7,10 +7,10 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Duo.Commands;
-using Duo.Models.Exercises;
-using Duo.Models.Quizzes;
-using Duo.Models.Sections;
-using Duo.Services;
+using DuoClassLibrary.Models.Exercises;
+using DuoClassLibrary.Models.Quizzes;
+using DuoClassLibrary.Models.Sections;
+using DuoClassLibrary.Services;
 using Duo.ViewModels.Base;
 using Microsoft.IdentityModel.Tokens;
 

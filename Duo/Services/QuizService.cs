@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Duo.Exceptions;
-using Duo.Models.Exercises;
-using Duo.Models.Quizzes;
-using Duo.Models.Quizzes.API;
+using DuoClassLibrary.Models.Exercises;
+using DuoClassLibrary.Models.Quizzes;
+using DuoClassLibrary.Models.Quizzes.API;
 using Duo.Services.Interfaces;
 
 namespace Duo.Services

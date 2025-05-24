@@ -7,13 +7,13 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
-using Duo.Models.Exercises;
+using DuoClassLibrary.Models.Exercises;
 using Duo.ViewModels;
 using Duo.ViewModels.Base;
 using static Duo.Views.Components.AssociationExercise;
 using static Duo.Views.Components.MultipleChoiceExercise;
 using static Duo.Views.Components.FillInTheBlanksExercise;
-using Duo.Models;
+using DuoClassLibrary.Models;
 using Duo.Views.Components;
 
 namespace Duo.Views.Pages
@@ -87,7 +87,6 @@ namespace Duo.Views.Pages
                     {
                         await ViewModel.SetQuizIdAsync(quizId);
                     }
-
                     LoadCurrentExercise();
                 }
                 else
@@ -242,7 +241,7 @@ namespace Duo.Views.Pages
                         mainStackPanel.Children.Insert(2, difficultyGrid);
                     }
 
-                    if (currentExercise is Models.Exercises.AssociationExercise associationExercise)
+                    if (currentExercise is DuoClassLibrary.Models.Exercises.AssociationExercise associationExercise)
                     {
                         var associationControl = new Components.AssociationExercise()
                         {
@@ -254,7 +253,7 @@ namespace Duo.Views.Pages
 
                         ExerciseContentControl.Content = associationControl;
                     }
-                    else if (currentExercise is Models.Exercises.FillInTheBlankExercise fillInTheBlanksExercise)
+                    else if (currentExercise is DuoClassLibrary.Models.Exercises.FillInTheBlankExercise fillInTheBlanksExercise)
                     {
                         var fillInTheBlanksControl = new Components.FillInTheBlanksExercise()
                         {
@@ -264,7 +263,7 @@ namespace Duo.Views.Pages
 
                         ExerciseContentControl.Content = fillInTheBlanksControl;
                     }
-                    else if (currentExercise is Models.Exercises.MultipleChoiceExercise multipleChoiceExercise)
+                    else if (currentExercise is DuoClassLibrary.Models.Exercises.MultipleChoiceExercise multipleChoiceExercise)
                     {
                         var multipleChoiceControl = new Components.MultipleChoiceExercise()
                         {
@@ -275,7 +274,7 @@ namespace Duo.Views.Pages
 
                         ExerciseContentControl.Content = multipleChoiceControl;
                     }
-                    else if (currentExercise is Models.Exercises.FlashcardExercise flashcardExercise)
+                    else if (currentExercise is DuoClassLibrary.Models.Exercises.FlashcardExercise flashcardExercise)
                     {
                         var flashcardControl = new Components.FlashcardExercise()
                         {

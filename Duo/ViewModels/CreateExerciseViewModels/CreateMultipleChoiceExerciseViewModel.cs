@@ -5,8 +5,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Windows.Input;
 using Duo.Commands;
-using Duo.Models;
-using Duo.Models.Exercises;
+using DuoClassLibrary.Models;
+using DuoClassLibrary.Models.Exercises;
 using Duo.ViewModels.Base;
 using Duo.ViewModels.ExerciseViewModels;
 
@@ -41,7 +41,7 @@ namespace Duo.ViewModels.CreateExerciseViewModels
             try
             {
                 List<MultipleChoiceAnswerModel> multipleChoiceAnswerModelList = GenerateAnswerModelList();
-                Exercise newExercise = new Models.Exercises.MultipleChoiceExercise(0, questionText, difficulty, multipleChoiceAnswerModelList);
+                Exercise newExercise = new MultipleChoiceExercise(0, questionText, difficulty, multipleChoiceAnswerModelList);
                 return newExercise;
             }
             catch (Exception ex)

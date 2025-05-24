@@ -5,8 +5,8 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Duo.Exceptions;
-using Duo.Models.Exercises;
-using Duo.Models.Quizzes;
+using DuoClassLibrary.Models.Exercises;
+using DuoClassLibrary.Models.Quizzes;
 
 namespace Duo.Helpers
 {
@@ -112,7 +112,7 @@ namespace Duo.Helpers
             var root = doc.RootElement;
 
             int id = root.GetProperty("id").GetInt32();
-            int? sectionId = root.TryGetProperty("sectionId", out var sectionProp) && sectionProp.ValueKind != JsonValueKind.Null
+            int? sectionId = root.TryGetProperty("SectionId", out var sectionProp) && sectionProp.ValueKind != JsonValueKind.Null
                 ? sectionProp.GetInt32()
                 : null;
 

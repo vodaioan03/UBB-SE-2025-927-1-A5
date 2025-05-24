@@ -1,7 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
-using Duo.Models.Quizzes;
+using DuoClassLibrary.Models.Quizzes;
 using Duo.ViewModels.Base;
 using Duo.ViewModels.Roadmap;
 using Duo.Views.Pages;

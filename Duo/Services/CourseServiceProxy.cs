@@ -5,7 +5,7 @@ using System.Text.Json;
 using System.Text;
 using System;
 using System.Threading.Tasks;
-using Duo.Models;
+using DuoClassLibrary.Models;
 using Duo.Services.Interfaces;
 
 namespace Duo.Services
