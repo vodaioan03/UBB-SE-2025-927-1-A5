@@ -3,6 +3,7 @@ using DuoClassLibrary.Services;
 using Duo.Web.Models;
 using System.Security.Claims;
 using DuoClassLibrary.Models;
+using System.Text.Json;
 
 namespace Duo.Web.Controllers
 {
@@ -137,6 +138,57 @@ namespace Duo.Web.Controllers
                     action = "CoursePreview",
                     id = CurrentCourse.CourseId
                 });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> UpdateTimeLocal([FromBody] Dictionary<string, object> data)
+        {
+            // Extract values safely
+            if (!data.TryGetValue("userId", out var userIdObj) ||
+                !data.TryGetValue("courseId", out var courseIdObj) ||
+                !data.TryGetValue("seconds", out var secondsObj))
+            {
+                return BadRequest("Missing one or more required parameters: userId, courseId, or seconds.");
+            }
+
+            // Extract from JsonElement
+            int userId, courseId, seconds;
+
+            if (userIdObj is JsonElement userIdElement)
+            {
+                userId = userIdElement.ValueKind == JsonValueKind.Number
+                    ? userIdElement.GetInt32()
+                    : int.Parse(userIdElement.GetString());
+            }
+            else
+            {
+                userId = Convert.ToInt32(userIdObj);
+            }
+
+            if (courseIdObj is JsonElement courseIdElement)
+            {
+                courseId = courseIdElement.ValueKind == JsonValueKind.Number
+                    ? courseIdElement.GetInt32()
+                    : int.Parse(courseIdElement.GetString());
+            }
+            else
+            {
+                courseId = Convert.ToInt32(courseIdObj);
+            }
+
+            if (secondsObj is JsonElement secondsElement)
+            {
+                seconds = secondsElement.ValueKind == JsonValueKind.Number
+                    ? secondsElement.GetInt32()
+                    : int.Parse(secondsElement.GetString());
+            }
+            else
+            {
+                seconds = Convert.ToInt32(secondsObj);
+            }
+
+            await courseService.UpdateTimeSpentAsync(userId, courseId, seconds);
+            return Ok();
         }
     }
 }
